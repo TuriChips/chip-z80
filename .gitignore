@@ -3,8 +3,4 @@ build/
 logs/2*/
 logs/nightly-*/
 logs/latest
-# third-party files are fetched at test time, never committed (zexdoc is GPL)
-*.com
-zexdoc*
-zexall*
-logs/tool-versions.txt
+# third-party files (zexdoc, GPL) are fetched into build/third_party/ at test time, never committed (rule 9)

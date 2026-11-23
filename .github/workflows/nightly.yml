@@ -6,7 +6,7 @@ on:
 jobs:
   nightly:
     runs-on: ubuntu-24.04
-    timeout-minutes: 600
+    timeout-minutes: 350   # GitHub-hosted jobs are capped at 6h; if zexdoc needs longer, split it or use a self-hosted runner
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4

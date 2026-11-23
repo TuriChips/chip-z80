@@ -13,7 +13,7 @@ endif
 export TOP
 include $(TC)/chip.mk
 
-# Long acceptance tests (zexdoc, hours). Skips cleanly until tests/acceptance/run.sh exists.
+# Long acceptance tests only (zexdoc); build/test/synth already run in PR CI. Skips cleanly until tests/acceptance/run.sh exists.
 .PHONY: nightly
-nightly: all
+nightly:
 	@scripts/nightly.sh
