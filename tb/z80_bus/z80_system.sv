@@ -2,7 +2,7 @@
 // and a pin recorder/comparator that looks at every pin of §2 in every half T state (§4.0: one model clock edge per half).
 //
 // Top module name: one macro. The name is still being settled (Makefile z80_top vs blocks.md z80, see the spec-v1 issue):
-//   build with +define+Z80_TOP=z80 (default z80_top)
+//   build with +define+Z80_TOP=z80 (default z80, as the Makefile TOP since chip-z80#16)
 // Ports are the §2 names exactly: clk reset_n wait_n int_n nmi_n busrq_n d_in | a d_out d_oe m1_n mreq_n iorq_n rd_n wr_n rfsh_n
 // halt_n busak_n bus_oe.
 //
@@ -15,7 +15,7 @@
 //              [3] bus_oe [2] d_oe [1:0] 0. A mask bit of 0 = not compared (floating pins, don't-cares of the spec).
 // Environment: IN data = port[7:0] ^ A5H. INTA data (m1_n = iorq_n = 0) = FFH (RST 38H).
 `ifndef Z80_TOP
-`define Z80_TOP z80_top
+`define Z80_TOP z80
 `endif
 /* verilator lint_off UNUSEDSIGNAL */
 /* verilator lint_off UNDRIVEN */
