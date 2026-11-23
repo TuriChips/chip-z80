@@ -1,0 +1,3 @@
+# cpm_ref: zexdoc.com 8704 bytes, policy x6=mostek daa=nmos lenient-push, limit 1500.0s
+# group | result | instructions | seconds | detail
+ 9 bit n,<b,c,d,e,h,l,(hl),a>.... | OK | 158658903 | 332 | bit n,<b,c,d,e,h,l,(hl),a>....  OK Tests complete

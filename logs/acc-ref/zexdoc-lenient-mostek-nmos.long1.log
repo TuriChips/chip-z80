@@ -1,0 +1,6 @@
+# cpm_ref: zexdoc.com 8704 bytes, policy x6=mostek daa=nmos lenient-push, limit 1500.0s
+# group | result | instructions | seconds | detail
+12 <daa,cpl,scf,ccf>............. | OK | 136056625 | 277 | <daa,cpl,scf,ccf>.............  OK Tests complete
+ 0 <adc,sbc> hl,<bc,de,hl,sp>.... | OK | 279550746 | 563 | <adc,sbc> hl,<bc,de,hl,sp>....  OK Tests complete
+ 1 add hl,<bc,de,hl,sp>.......... | OK | 139195716 | 277 | add hl,<bc,de,hl,sp>..........  OK Tests complete
+ 2 add ix,<bc,de,ix,sp>.......... | OK | 139232068 | 279 | add ix,<bc,de,ix,sp>..........  OK Tests complete

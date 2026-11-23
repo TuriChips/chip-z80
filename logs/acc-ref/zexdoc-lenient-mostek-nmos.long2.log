@@ -1,0 +1,5 @@
+# cpm_ref: zexdoc.com 8704 bytes, policy x6=mostek daa=nmos lenient-push, limit 1500.0s
+# group | result | instructions | seconds | detail
+ 3 add iy,<bc,de,iy,sp>.......... | OK | 139232068 | 287 | add iy,<bc,de,iy,sp>..........  OK Tests complete
+ 5 aluop a,<b,c,d,e,h,l,(hl),a>.. | TIMEOUT | 0 | 1500 | time limit 1500.0s after 884146176 instructions
+ 7 aluop a,(<ix,iy>+1)........... | OK | 637477419 | 943 | aluop a,(<ix,iy>+1)...........  OK Tests complete

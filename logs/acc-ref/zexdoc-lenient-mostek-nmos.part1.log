@@ -1,0 +1,36 @@
+# cpm_ref: zexdoc.com 8704 bytes, policy x6=mostek daa=nmos lenient-push, limit 90.0s
+# group | result | instructions | seconds | detail
+ 0 <adc,sbc> hl,<bc,de,hl,sp>.... | TIMEOUT | 0 | 90 | time limit 90.0s after 44793856 instructions
+ 1 add hl,<bc,de,hl,sp>.......... | TIMEOUT | 0 | 90 | time limit 90.0s after 44875776 instructions
+ 2 add ix,<bc,de,ix,sp>.......... | TIMEOUT | 0 | 90 | time limit 90.0s after 62423040 instructions
+ 3 add iy,<bc,de,iy,sp>.......... | TIMEOUT | 0 | 90 | time limit 90.0s after 74235904 instructions
+ 4 aluop a,nn.................... | OK | 70532173 | 85 | aluop a,nn....................  OK Tests complete
+ 5 aluop a,<b,c,d,e,h,l,(hl),a>.. | TIMEOUT | 0 | 90 | time limit 90.0s after 74170368 instructions
+ 6 aluop a,<ixh,ixl,iyh,iyl>..... | UNDOCUMENTED | 0 | 0 | opcode DD 84 is outside the 1977 manuals (spec §6.0)
+ 7 aluop a,(<ix,iy>+1)........... | TIMEOUT | 0 | 90 | time limit 90.0s after 72056832 instructions
+ 8 bit n,(<ix,iy>+1)............. | OK | 4955375 | 6 | bit n,(<ix,iy>+1).............  OK Tests complete
+ 9 bit n,<b,c,d,e,h,l,(hl),a>.... | TIMEOUT | 0 | 90 | time limit 90.0s after 74285056 instructions
+10 cpd<r>........................ | OK | 31068009 | 37 | cpd<r>........................  OK Tests complete
+11 cpi<r>........................ | OK | 31085432 | 38 | cpi<r>........................  OK Tests complete
+12 <daa,cpl,scf,ccf>............. | TIMEOUT | 0 | 90 | time limit 90.0s after 75186176 instructions
+13 <inc,dec> a................... | OK | 7352142 | 9 | <inc,dec> a...................  OK Tests complete
+14 <inc,dec> b................... | OK | 7352142 | 9 | <inc,dec> b...................  OK Tests complete
+15 <inc,dec> bc.................. | OK | 3793623 | 5 | <inc,dec> bc..................  OK Tests complete
+16 <inc,dec> c................... | OK | 7352142 | 9 | <inc,dec> c...................  OK Tests complete
+17 <inc,dec> d................... | OK | 7352142 | 9 | <inc,dec> d...................  OK Tests complete
+18 <inc,dec> de.................. | OK | 3793623 | 4 | <inc,dec> de..................  OK Tests complete
+19 <inc,dec> e................... | OK | 7352142 | 9 | <inc,dec> e...................  OK Tests complete
+20 <inc,dec> h................... | OK | 7352142 | 9 | <inc,dec> h...................  OK Tests complete
+21 <inc,dec> hl.................. | OK | 3793623 | 4 | <inc,dec> hl..................  OK Tests complete
+22 <inc,dec> ix.................. | OK | 3795415 | 4 | <inc,dec> ix..................  OK Tests complete
+23 <inc,dec> iy.................. | OK | 3795415 | 4 | <inc,dec> iy..................  OK Tests complete
+24 <inc,dec> l................... | OK | 7352142 | 9 | <inc,dec> l...................  OK Tests complete
+25 <inc,dec> (hl)................ | OK | 7352142 | 9 | <inc,dec> (hl)................  OK Tests complete
+26 <inc,dec> sp.................. | OK | 3793623 | 5 | <inc,dec> sp..................  OK Tests complete
+27 <inc,dec> (<ix,iy>+1)......... | OK | 15411538 | 18 | <inc,dec> (<ix,iy>+1).........  OK Tests complete
+28 <inc,dec> ixh................. | UNDOCUMENTED | 0 | 0 | opcode DD 24 is outside the 1977 manuals (spec §6.0)
+29 <inc,dec> ixl................. | UNDOCUMENTED | 0 | 0 | opcode DD 2C is outside the 1977 manuals (spec §6.0)
+30 <inc,dec> iyh................. | UNDOCUMENTED | 0 | 0 | opcode DD 24 is outside the 1977 manuals (spec §6.0)
+31 <inc,dec> iyl................. | UNDOCUMENTED | 0 | 0 | opcode DD 2C is outside the 1977 manuals (spec §6.0)
+32 ld <bc,de>,(nnnn)............. | OK | 73072 | 0 | ld <bc,de>,(nnnn).............  OK Tests complete
+33 ld hl,(nnnn).................. | OK | 36244 | 0 | ld hl,(nnnn)..................  OK Tests complete
