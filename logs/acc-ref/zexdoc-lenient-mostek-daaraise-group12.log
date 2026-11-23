@@ -1,0 +1,3 @@
+# cpm_ref: zexdoc.com 8704 bytes, policy x6=mostek daa=raise lenient-push, limit 60.0s
+# group | result | instructions | seconds | detail
+12 <daa,cpl,scf,ccf>............. | UNSPECIFIED | 0 | 0 | PC=1D43 []: decision 8: DAA outside the 13-row table (A=8E C=1 H=0 N=0)
