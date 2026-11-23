@@ -58,7 +58,7 @@ Only the pins of `z80` (spec §2) and of `z80_system` are normative for tests. T
 | MRD, MWR | 3 | 3, 4, 5 | T4, T5 |
 | PRD, PWR | 4 | 4 | none |
 | IO | — | 3, 4, 5 | all of them are internal |
-| INTA | 6 | 6 (mode 0), 7 (modes 1, 2) | T5 (the 7th T) |
+| INTA | 6 | 6 (mode 0), 7 (modes 1, 2) | one extra T after T4, `t` = 7 (not T5 of the §4.5 table) |
 
 `mc_type` and `mc_len` must be valid from the T1H of their M cycle to its last half; control changes them only at the edge where `mc_end` = 1 (§3, `z80_timing`).
 

@@ -513,7 +513,7 @@ zexdoc masks these bits, so it's indifferent. zexall would fail, and isn't our a
 | C1 | Every one of the 698 documented opcodes (§6.0): registers, memory and flags per §6.2 and F[5:3] per §6.3; only the flags §6.2 leaves X (and the decision-6 flags until Sai rules) are masked |
 | C2 | Pin timing per half T state (§4) for every cycle type of §6.1, including waits (WAIT), lengthened cycles and the refresh address {I, R} |
 | C3 | WAIT in M1, memory and I/O cycles, and in interrupt acknowledge after the automatic Tw\* |
-| C4 | Interrupts: IFF1/IFF2 per §8.1 (EI delay, NMI saving IFF1, RETN, RETI leaving IFF alone, LD A,I/R → P/V); NMI to 0066H; modes 0 (RST only), 1 and 2; NMI over INT; HALT and HALT exit (§4.7) |
+| C4 | Interrupts: IFF1/IFF2 per §8.1 (EI delay, DI and RETN visible to their own sample (§8.4 item 5), BUSRQ at an instruction end (§8.4 item 4), NMI saving IFF1, RETN, RETI leaving IFF alone, LD A,I/R → P/V); NMI to 0066H; modes 0 (RST only), 1 and 2; NMI over INT; HALT and HALT exit (§4.7) |
 | C5 | Bus request/acknowledge (§4.4): floating outputs, BUSAK edges, no interrupts accepted during it |
 | C6 | Reset (§5): what's reset, outputs during reset, the first M1 |
 | C7 | No X/Z on driven pins, no bus conflict, with the positive-case test (8080 lesson) |
@@ -562,6 +562,7 @@ IFF1 "actually disables interrupts from being accepted"; IFF2 is "temporary stor
 **Item 5, what counts as one instruction for INT and NMI.**
 - **A prefix and its opcode are one instruction** (CB xx, DD xx, ED xx, FD xx, DD CB d op, FD CB d op). There's no interrupt between them, and the sampling point is the end of the whole instruction.
 - **Each iteration of LDIR, LDDR, CPIR, CPDR, INIR, INDR, OTIR or OTDR is one instruction.** An interrupt can be accepted at the end of an iteration, after its IO(5) when it repeats. The pushed PC is then the block instruction's own address, because the IO(5) has already done PC − 2. PM says so for CPIR: "Interrupts will be recognized … after each data transfer" (p.91).
+- **An instruction's own IFF changes are visible to its own sample** (*Decision*, Zura, chip-z80#10; TM p.55 states only EI's delay). DI, RETN and the interrupt-acceptance resets update IFF1/IFF2 **before** the INT sampling point at the end of that instruction. So **`DI` blocks an INT that's pending at its own end**, and **`RETN` with IFF2 = 1 can accept a pending INT at its own end** (no delay, unlike EI). EI is the one exception, below.
 - **EI's delay** (§8.1): INT is **not** accepted at the end of EI itself. The earliest sampling point that can accept it is the end of the **instruction after EI** (so `EI; RET` takes the interrupt after RET, the case TM §8 gives the delay for). This replaces draft v0's "nor at the end of the instruction after it", which contradicted §8.1 (Beru's point 1, chip-z80#2; the model already follows §8.1). **EI; EI** restarts the delay, so INT can be accepted only after the instruction following the *last* EI (the gap from chip-8080#47, closed here). **The EI delay doesn't apply to NMI.**
 
 **Item 6, NMI edge and pending.** As for the 6502 (chip-6502 spec §6, rules 3–5):
@@ -575,6 +576,8 @@ IFF1 "actually disables interrupts from being accepted"; IFF2 is "temporary stor
 **Item 7, stimulus rules for tests (C3–C8).**
 - `wait_n` changes only at **rising** edges, the start of an H half, because it's sampled at falling edges.
 - `int_n`, `nmi_n` and `busrq_n` change only at the edge that starts a **T1H**, of any M cycle. A Tw or extra T state never starts a T1, so there's no repeated-cycle case as on the 6502.
+- **`busrq_n` may also change at the edge that starts a TxH** (a bus-request state, §4.4); that's the only way to release it, because no T1 runs while it's 0 (Zura, chip-z80#10). As always, a change at edge E is seen only by samples at later edges: released at the edge starting TxH, it's sampled 1 at the next rising edge (the edge starting the next Tx), and `busak_n` rises at that Tx's falling edge (§4.4).
+- By the general rule, `busrq_n` driven 0 at the T1H of any M cycle, including the only M cycle of a one-cycle instruction, is seen at that cycle's last-T sampling edge (item 4).
 - `reset_n`: §5. `nmi_n` stays low for ≥ 2 T states (4 model cycles).
 - `int_n` **may change at any T1H**, like the other two. INT is level-sampled only at the §8.4 points, so a request withdrawn before acknowledge is fully specified: it simply isn't seen (Beru's re-review). That lets C8 raise and drop INT freely while IFF1 = 0.
 - INT mode 2 vectors always have bit 0 = 0 (§8.2, Beru's item 14).
