@@ -13,7 +13,8 @@
 //              (§8.4 general rule). Before the first edge: reset_n = 0, everything else 1.
 //   vector, 36 bits: [35:20] a  [19:12] d_out  [11] m1_n [10] mreq_n [9] iorq_n [8] rd_n [7] wr_n [6] rfsh_n [5] halt_n [4] busak_n
 //              [3] bus_oe [2] d_oe [1:0] 0. A mask bit of 0 = not compared (floating pins, don't-cares of the spec).
-// Environment: IN data = port[7:0] ^ A5H. INTA data (m1_n = iorq_n = 0) = FFH (RST 38H).
+// Environment: IN data = port[7:0] ^ A5H. INTA data (m1_n = iorq_n = 0) = vec.hex[half] if the vector dir has one (8 bits per half, C8), else FFH (RST 38H).
+// Plusargs: +VECROOT=<prefix> +VECSUF=<suffix> (case dir = prefix name suffix), +CASES=<file> (default <VECROOT>cases.txt), +TRACE=<prefix>.
 `ifndef Z80_TOP
 `define Z80_TOP z80
 `endif
@@ -24,7 +25,7 @@
 /* verilator lint_off WIDTHTRUNC */
 /* verilator lint_off WIDTHCONCAT */
 module z80_system;
-  localparam MAXH = 8192;
+  localparam MAXH = 65536;   // C8 cases run 10-40k halves
   reg clk = 1'b0;
   reg reset_n = 1'b0, wait_n = 1'b1, int_n = 1'b1, nmi_n = 1'b1, busrq_n = 1'b1;
   wire [15:0] a;
@@ -36,6 +37,9 @@ module z80_system;
   reg [35:0] msk [0:MAXH-1];
   reg [31:0] ev [0:MAXH-1];
   reg [4:0] inp [0:MAXH-1];
+  reg [7:0] vec [0:MAXH-1];   // INTA data per half (optional vec.hex; absent = FFH everywhere)
+  string vec_root, vec_suf;
+  integer vfd;
 
   string case_dir, case_name;
   integer hc, nev, ev_i, nh, errors, case_errors, i;
@@ -65,13 +69,16 @@ module z80_system;
 
   // memory, I/O and interrupt-acknowledge data
   wire inta = (m1_n === 1'b0) && (iorq_n === 1'b0);
-  assign d_in = inta ? 8'hFF : (iorq_n === 1'b0) ? (a[7:0] ^ 8'hA5) : mem[a];
+  assign d_in = inta ? ((hc >= 0 && hc < MAXH) ? vec[hc] : 8'hFF) : (iorq_n === 1'b0) ? (a[7:0] ^ 8'hA5) : mem[a];
 
   // load a case, with the model clock stopped at a falling edge so the next edge is the rising edge that starts half 0
   task load_case(input string name, input integer nhalves, input integer nevents);
     begin
       case_name = name;
-      case_dir = {"tests/z80_bus/vectors/", name};
+      vec_root = "tests/z80_bus/vectors/"; vec_suf = "";
+      void'($value$plusargs("VECROOT=%s", vec_root));   // C8: +VECROOT=tests/random/build/c8/ +VECSUF=.vec  (dir = root name suf)
+      void'($value$plusargs("VECSUF=%s", vec_suf));
+      case_dir = {vec_root, name, vec_suf};
       nh = nhalves; nev = nevents;
       for (i = 0; i < 65536; i = i + 1) mem[i] = 8'h00;
       $readmemh({case_dir, "/prog.hex"}, mem);
@@ -79,6 +86,9 @@ module z80_system;
       $readmemh({case_dir, "/exp.hex"}, exp, 0, nhalves - 1);
       $readmemh({case_dir, "/mask.hex"}, msk, 0, nhalves - 1);
       $readmemh({case_dir, "/inp.hex"}, inp, 0, nhalves - 1);
+      for (i = 0; i < nhalves; i = i + 1) vec[i] = 8'hFF;
+      vfd = $fopen({case_dir, "/vec.hex"}, "r");
+      if (vfd != 0) begin $fclose(vfd); $readmemh({case_dir, "/vec.hex"}, vec, 0, nhalves - 1); end
       reset_n = 1'b0; wait_n = 1'b1; int_n = 1'b1; nmi_n = 1'b1; busrq_n = 1'b1;
       hc = -1; ev_i = 0; case_errors = 0;
       if ($value$plusargs("TRACE=%s", trace_file)) begin
