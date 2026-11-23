@@ -1,0 +1,10 @@
+.toolchain/
+build/
+logs/2*/
+logs/nightly-*/
+logs/latest
+# third-party files are fetched at test time, never committed (zexdoc is GPL)
+*.com
+zexdoc*
+zexall*
+logs/tool-versions.txt
