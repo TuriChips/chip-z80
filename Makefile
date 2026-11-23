@@ -1,6 +1,6 @@
 # Bump TOOLCHAIN_REF on purpose, never track main. Bump the @tag in .github/workflows/*.yml with it.
 TOOLCHAIN_REF ?= v0.9
-TOP ?= z80_top
+TOP ?= z80
 TC := .toolchain
 ifeq (,$(wildcard $(TC)/chip.mk))
 $(shell rm -rf $(TC); gh repo clone TuriChips/toolchain $(TC) -- -q --depth 1 --branch $(TOOLCHAIN_REF))
