@@ -13,7 +13,7 @@ Status: **v1 candidate** (chip-z80#6), moved here from `TuriChips/turichips` `do
 As with the 6502, the manuals win. Secondary sources (emulators, test-vector sets) are cross-checks only, and each use is named where it's used.
 
 **Proposed scope decisions** (each to be confirmed before sign-off):
-- **Documented instructions only.** Behaviour of opcodes the 1977 manuals don't list (e.g. the `DD CB`/`FD CB` register-copy forms, `SLL`, IXH/IXL halves) is not specified, and tests don't execute them, as with the 6502's 105 undocumented opcodes.
+- **Documented instructions only, except what decision 9 adds.** Behaviour of opcodes the 1977 manuals don't list (e.g. the `DD CB`/`FD CB` register-copy forms, `SLL`, IXH/IXL halves) is not specified, and tests don't execute them, as with the 6502's 105 undocumented opcodes. **Open decision 9 (§3, §6.0a):** zexdoc executes 152 undocumented forms in 9 of its 67 groups, so either those groups are excluded from acceptance, or those 152 forms (and only those) are specified and tested. Until Sai rules, the sentence above stands.
 - **Undocumented flag bits** (bits 5 and 3 of F, the "X"/"Y" flags; TM §6.0 shows them as "X", unused): **our chip defines them** (§6.3: 0 after any flag-writing instruction, moved whole by POP AF and EX AF,AF'), and they are **compared as ordinary state**, like any other bit of F. This is our definition, not the NMOS part's (which copies result bits into them), so it matters for the acceptance test choice (§9): `zexall` checks them against real hardware and would fail; `zexdoc` masks them. (Changed from "not compared" in draft v0, which contradicted §6.3; Beru's point 3, chip-z80#2.)
 - **Refresh (R register and RFSH):** in scope. R's low 7 bits increment per M1, and the refresh address appears on A0–A6 in T3–T4 of M1 (TM §3.0, §4.0; exact rules in §4.1 and §6.3).
 - **Electrical timing (TM §11)** is out of scope: we model cycles, not nanoseconds.
@@ -48,6 +48,7 @@ Active-low pins keep an `_n` suffix (`m1_n`, `mreq_n`, …), as the 8080 and 650
 - **6.** Flags Zilog marks "X" but zexdoc checks: recommend Mostek MK78515 (§6.2).
 - **8.** DAA outside Zilog's and Mostek's 13-row table, and H after DAA: neither manual defines them, and zexdoc checks them. Recommend (a), a named secondary source as with the 6502 (§6.2).
 - **7.** Per-cycle bus types: recommend Mostek MK3880 §12, with Zilog's text governing where they differ (§6.1).
+- **9.** zexdoc runs undocumented opcodes (IXH/IXL/IYH/IYL halves, a DD/FD prefix that changes nothing, SLL) in 9 of its 67 groups (chip-z80#14). Options: (a) exclude those 9 groups from acceptance; (b) specify exactly the 152 forms involved; (c) specify only SLL and exclude 7 groups. Recommend **(b)** (§6.0a).
 - **Also open:**
   - the mode-0 INTA length: proposed MK3880's 12 T (§8.2);
   - the DD CB op-byte read (§6.1);
@@ -198,6 +199,42 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 - `ED 63` and `ED 6B`, the ED encodings of LD (nn),HL / LD HL,(nn) (the one-byte forms `22`/`2A` are listed). These *are* documented by PM's generic descriptions: `LD dd,(nn)` = ED 01dd1011 (PM p.57) and `LD (nn),dd` = ED 01dd0011 (PM p.62), each saying "Register pair dd defines BC, DE, HL, or SP", with HL = 10, 6 M cycles, "20 (4,4,3,3,3,3)" T states. So ED 6B = LD HL,(nn) and ED 63 = LD (nn),HL in 20 T states, alongside the 16-T one-byte forms.
 
 ***Decision* (proposed):** the documented set is Appendix C's **694 forms plus the 4 the listing omits (`LD R,A`, `LD A,R`, `ED 63`, `ED 6B`) = 698**. That's exactly our structural count (252 + 248 + 58 + 70 + 70), so every row of the table above now agrees. Everything else is undocumented: not specified, and not executed by tests (§1). As for the 6502, the final opcode table (§6.1) will be cross-checked by script against this list.
+
+### 6.0a Open decision 9: the undocumented forms zexdoc executes (chip-z80#14)
+**Evidence.** Homer ran zexdoc on the reference model (chip-z80#5, PR #15, `logs/acc-ref/zexdoc-mostek-nmos-summary.log` on `homer/chip-z80-5`). Under `Policy(x6='mostek', daa='nmos')`, 57 groups are OK, 0 ERROR, 1 didn't finish (group 5, speed only, chip-z80#13), and **9 stop because the model refuses an undocumented opcode**. Each zexdoc group compares one CRC over its whole sweep, and the expected CRCs come from real hardware, so a group can't be partly run: it runs whole, or it's excluded.
+
+**Exactly what the 9 groups execute**, read from the sweep masks (`tstr` base, increment mask, shift mask) in `zexdoc.z80` (begoon/z80exer @ 8634ccc, sha256 `f82ccdea…`, the source of the pinned binary). zexdoc skips any `76` and `DD 76`/`FD 76` (HALT) itself (its test loop, label `tlp`).
+
+| Group | zexdoc name | Opcodes run | Undocumented among them | Documented among them |
+|---|---|---|---|---|
+| 6 | `aluop a,<ixh,ixl,iyh,iyl>` | DD/FD + 84, 85, 8C, 8D, … BC, BD | all 32 (U1) | none |
+| 28, 29 | `<inc,dec> ixh`, `ixl` | DD 24, 25 / DD 2C, 2D | all (U1) | none |
+| 30, 31 | `<inc,dec> iyh`, `iyl` | **DD** 24, 25 / **DD** 2C, 2D (zexdoc's own slip: base `0DDh`, not `0FDh`) | all (U1) | none |
+| 48 | `ld <ixh,ixl,iyh,iyl>,nn` | DD/FD + 26, 2E | all 4 (U1) | none |
+| 50 | `ld <bcdexya>,<bcdexya>` | DD/FD + 40–7F except 76 | 48 halves (U1), 50 no-effect prefixes (U2) | 28: LD r,(IX/IY+d), LD (IX/IY+d),r |
+| 59 | `shf/rot (<ix,iy>+1)` | DD/FD CB 01 + 06, 0E, … 3E | DD/FD CB d 36, SLL (U3) | 14: RLC…SRL (IX/IY+d) |
+| 60 | `shf/rot <b,c,d,e,h,l,(hl),a>` | CB 00–3F | CB 30–37, SLL (U3) | 56: RLC…SRL r and (HL) |
+
+So groups 6, 28–31 and 48 test nothing documented. **Groups 59 and 60 are zexdoc's only check of all 70 documented shift/rotate forms**, and excluding them loses that hardware-derived check. C1 and C8 would still cover those forms, but only against our own reading of the manuals.
+
+**Options:**
+- **(a) Exclude groups 6, 28, 29, 30, 31, 48, 50, 59, 60.** Acceptance is zexdoc's other 58 groups. Homer's runner filters zexdoc's group table at run time (§9). Nothing new to specify. Cost: no hardware check of the 70 documented shift/rotate forms.
+- **(b) Specify the 152 forms U1–U3 below**, and only those. They become tested (C1b), and zexdoc runs all 67 groups. Cost to the design is small, because `docs/blocks.md` already has `r8` codes 8–11 for IXH, IXL, IYH, IYL and reserves `alu_op` 17 for SLL: no port or width changes. Beru's model gains the 152 forms. zexdoc runs 148 of them; the other 4 (FD 24, 25, 2C, 2D, because of the slip above) are checked only by C1b.
+- **(c) Specify only U3 (SLL, 10 forms)** and exclude groups 6, 28–31, 48, 50 (7 groups). This keeps the shift/rotate check with the smallest addition. zexdoc's IX/IY half-register groups are lost.
+
+**Recommendation: (b).** The 6502 precedent was to leave undocumented opcodes out because its acceptance test didn't need them. Here the acceptance test does, and (b) costs one decode rule, one prefix rule and one ALU op that blocks.md already reserves. These forms aren't in any manual we've read, so the hardware evidence is zexdoc's own CRCs, measured on real Z80s. If Sai wants a written secondary source as well, it's the same one as decision 8 (a), Sean Young's *The Undocumented Z80 Documented*. It must be read and quoted before it's used: [to read].
+
+**The forms (normative only if Sai picks (b); U3 alone if (c)).** Throughout, "as the unprefixed form" means registers, memory, flags (§6.2, §6.3) and bus behaviour exactly as that form's row, with the stated substitution. R counts each M1 as in §6.3, so every DD/FD form below adds 2 to R. A prefix and its opcode are one instruction for INT and NMI (§8.4 item 5).
+- **U1: index-register halves, 46 forms per prefix, 92 in all.** Under DD, an unprefixed opcode from the list below that names **H** or **L** as an 8-bit register (not as part of (HL)) uses **IXH = IX[15:8]** for H and **IXL = IX[7:0]** for L. Under FD it uses IYH = IY[15:8] and IYL = IY[7:0]. H, L and HL themselves are untouched.
+  - LD r,r' (40–7F, r and r' both ≠ 6, at least one of them H or L), 24 opcodes: 44, 45, 4C, 4D, 54, 55, 5C, 5D, 60–65, 67, 68–6D, 6F, 7C, 7D. Both operands are substituted, e.g. DD 65 = LD IXH,IXL, DD 64 = LD IXH,IXH. Cycles: OCF(4) OCF(4), 8 T.
+  - LD r,n with r = H, L (26, 2E): OCF(4) OCF(4) OD(3), 11 T.
+  - INC r, DEC r with r = H, L (24, 25, 2C, 2D): flags as INC r / DEC r. OCF(4) OCF(4), 8 T.
+  - ADD, ADC, SUB, SBC, AND, XOR, OR, CP A,r with r = H, L (84, 85, 8C, 8D, 94, 95, 9C, 9D, A4, A5, AC, AD, B4, B5, BC, BD): flags as the unprefixed form. OCF(4) OCF(4), 8 T.
+  - Not U1: the documented forms that name (HL) keep the real H and L, e.g. DD 66 = LD H,(IX+d), DD 75 = LD (IX+d),L (§6.0's 698).
+- **U2: a prefix with no effect, 25 forms per prefix, 50 in all.** DD or FD followed by an LD r,r' opcode (40–7F) where neither r nor r' is H, L or (HL) (r, r' ∈ {B, C, D, E, A}): the opcode runs as the unprefixed form. The prefix only adds its own OCF(4): OCF(4) OCF(4), 8 T. A DD/FD before any other opcode that has no documented DD/FD form stays unspecified and untested (as does a DD or FD followed by DD, ED or FD, blocks.md §2.7).
+- **U3: SLL, 10 forms.** CB 30–37 (SLL r, SLL (HL)), DD CB d 36 (SLL (IX+d)) and FD CB d 36 (SLL (IY+d)). Result = (m << 1) | 1, i.e. as SLA but bit 0 becomes 1. C = m[7]. S, Z from the result, P/V = even parity of the result, H = 0, N = 0, F[5:3] = 0 (§6.3). The cycle plan and the memory write are exactly SLA's row for the same operand (§6.1, rotate and shift group): CB 3x as CB 2x with the same low 3 bits, DD/FD CB d 36 as DD/FD CB d 26. These are `alu_op` 17 (blocks.md §2.3).
+
+**If (b) or (c) is chosen, these follow** (in the same PR as Sai's ruling): §1's scope bullet names U1–U3 as specified; §6.0's count becomes 698 documented + 152 (or + 10) specified; C1b is added to §7; blocks.md's `r8` note ("no documented instruction names them"), `alu_op` 17 and `z80_decode`'s `documented` port (renamed `specified`, covering the 850 or 708 forms) are updated; Beru's model adds the forms and its census.
 
 ### 6.1 Per-instruction timing (in progress)
 The source per instruction is PM's "M CYCLES … T STATES n(t1,t2,…)" line, which gives each M cycle's length. TM §7 (p.43) gives only totals. Groups as in PM's contents (p.25): 8-bit load, 16-bit load, exchange/block transfer/search, 8-bit arithmetic and logic, general-purpose arithmetic and CPU control, 16-bit arithmetic, rotate and shift, bit set/reset/test, jump, call and return, input and output.
@@ -521,6 +558,7 @@ zexdoc masks these bits, so it's indifferent. zexall would fail, and isn't our a
 | ID | Behaviour |
 |----|-----------|
 | C1 | Every one of the 698 documented opcodes (§6.0): registers, memory and flags per §6.2 and F[5:3] per §6.3; only the flags §6.2 leaves X (and the decision-6 flags until Sai rules) are masked |
+| C1b | Only if decision 9 is (b) or (c): every U1–U3 form of §6.0a (or U3 only), with the same checks as C1, including FD 24, 25, 2C, 2D, which zexdoc doesn't run |
 | C2 | Pin timing per half T state (§4) for every cycle type of §6.1, including waits (WAIT), lengthened cycles and the refresh address {I, R} |
 | C3 | WAIT in M1, memory and I/O cycles, and in interrupt acknowledge after the automatic Tw\* |
 | C4 | Interrupts: IFF1/IFF2 per §8.1 (EI delay, DI and RETN visible to their own sample (§8.4 item 5), BUSRQ at an instruction end (§8.4 item 4), NMI saving IFF1, RETN, RETI leaving IFF alone, LD A,I/R → P/V); NMI to 0066H; modes 0 (RST only), 1 and 2; NMI over INT; HALT and HALT exit (§4.7) |
@@ -529,7 +567,7 @@ zexdoc masks these bits, so it's indifferent. zexall would fail, and isn't our a
 | C7 | No X/Z on driven pins, no bus conflict, with the positive-case test (8080 lesson) |
 | C8 | Random programs vs Beru's reference model, every pin every half T state, with random WAIT/INT/NMI/BUSRQ stimulus |
 
-Acceptance: zexdoc (§9), with the CP/M stub.
+Acceptance: zexdoc (§9), with the CP/M stub. Which of its 67 groups count depends on decision 9 (§6.0a): all 67 under (b); all but groups 6, 28–31, 48, 50 under (c); all but those and 59, 60 under (a).
 
 ## 8. Interrupts (TM §8.0, pp.55–57, text layer; normative once checked)
 
@@ -599,6 +637,7 @@ IFF1 "actually disables interrupts from being accepted"; IFF2 is "temporary stor
    - **Where from:** github.com/agn453/ZEXALL at commit 8f71d41 has `zexdoc.com` (8,704 bytes, sha256 `34923a7e…`) and its source `zexdoc.z80`, with a GPL v2 `LICENSE`. That repo's source is modified to assemble with ZSM4, so the original as shipped with yaze is in github.com/begoon/z80exer (`yaze/zexdoc.z80`, with `prelim.z80`). Which binary we pin (the prebuilt `.com`, or our own assembly of the original source) is for Homer to propose, with both hashes recorded.
    - It's a **CP/M program** (loaded at 0100H, output through BDOS calls at 0005H), so the test system needs the same CP/M stub as the 8080. The 8080 lesson applies: the stub must also give a correct top of memory at 0006H/0007H.
    - It masks the undocumented X/Y flags, which matches §1. `prelim.z80`, a quick pre-check like 8080PRE, is a candidate first step (same licence, per its yaze distribution). Homer confirms its header in chip-z80#5 before it's fetched.
+   - **9 of its 67 groups execute undocumented opcodes** (§6.0a, decision 9). If Sai picks (a) or (c), the runner skips the excluded groups by their index in zexdoc's test table (the `tests:` list of `dw` pointers), and the log names each skipped group and the reason. The pinned binary isn't patched: its sha256 stays the one in `sw/exerciser/README.md`.
 2. **zexall**: the same, including the undocumented X/Y flags. Only if §1's flag decision changes.
 3. **Per-instruction vectors with bus activity**: SingleStepTests `z80` set, a cross-check only, as for the 6502.
 4. **Examples from the Zilog manuals** (TM §10, the PM).
