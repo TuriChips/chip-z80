@@ -79,6 +79,7 @@ class Z80:
         self.nmi_pending = False
         self.int_line = False
         self.last = ""
+        self.fetched = []
 
     a = property(lambda s: s.reg[7], lambda s, v: s.reg.__setitem__(7, v & 255))
 
@@ -124,6 +125,7 @@ class Z80:
     def fetch(self):
         v = self.mem[self.pc]
         self.pc = (self.pc + 1) & 0xFFFF
+        self.fetched.append(v)
         return v
 
     def fetch16(self):
@@ -336,9 +338,9 @@ class Z80:
             self.m1()
             self.last = "HALT-M1"
             return 4
-        start = self.pc
+        self.fetched = []
         t = self.execute()
-        self.last = " ".join(f"{self.mem[(start + k) & 0xFFFF]:02X}" for k in range((self.pc - start) & 0xFFFF))
+        self.last = " ".join(f"{b:02X}" for b in self.fetched)    # the bytes this instruction fetched
         return t
 
     # ---- the instruction set -----------------------------------------------------------------------------

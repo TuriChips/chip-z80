@@ -1,0 +1,73 @@
+# tests/random/run.sh, DUT=ref, SEEDS=64 INSTR=1000, 2026-11-23 UTC (chip-z80#8). Ref-vs-ref: the model replays image+stimulus alone.
+PASS ref-selftest
+PASS pins-selftest
+SKIP bus-xcheck (tests/z80_bus/vectors not in the tree yet: chip-z80 PR #12)
+C8 (DUT=ref): 64/64 seeds pass, 1000 instructions per seed, 0 fail
+PASS coverage
+PASS random
+
+PASS seed 1: profile waits: 321 instructions, 7540 halves, stop=dead-end; PASS 7540 halves compared, 0 differences
+PASS seed 2: profile int: 1073 instructions, 27270 halves, stop=limit; PASS 27270 halves compared, 0 differences
+PASS seed 3: profile nmi: 1013 instructions, 27996 halves, stop=dead-end; PASS 27996 halves compared, 0 differences
+PASS seed 4: profile busrq: 415 instructions, 12168 halves, stop=dead-end; PASS 12168 halves compared, 0 differences
+PASS seed 5: profile all: 815 instructions, 21096 halves, stop=dead-end; PASS 21096 halves compared, 0 differences
+PASS seed 6: profile heavy: 1067 instructions, 26640 halves, stop=limit; PASS 26640 halves compared, 0 differences
+PASS seed 7: profile quiet: 256 instructions, 4688 halves, stop=dead-end; PASS 4688 halves compared, 0 differences
+PASS seed 8: profile waits: 1000 instructions, 42602 halves, stop=limit; PASS 42602 halves compared, 0 differences
+PASS seed 9: profile int: 1158 instructions, 31620 halves, stop=limit; PASS 31620 halves compared, 0 differences
+PASS seed 10: profile nmi: 1114 instructions, 33806 halves, stop=limit; PASS 33806 halves compared, 0 differences
+PASS seed 11: profile busrq: 99 instructions, 2440 halves, stop=dead-end; PASS 2440 halves compared, 0 differences
+PASS seed 12: profile all: 529 instructions, 8302 halves, stop=dead-end; PASS 8302 halves compared, 0 differences
+PASS seed 13: profile heavy: 179 instructions, 4262 halves, stop=dead-end; PASS 4262 halves compared, 0 differences
+PASS seed 14: profile quiet: 757 instructions, 20034 halves, stop=dead-end; PASS 20034 halves compared, 0 differences
+PASS seed 15: profile waits: 86 instructions, 1880 halves, stop=dead-end; PASS 1880 halves compared, 0 differences
+PASS seed 16: profile int: 1000 instructions, 15710 halves, stop=limit; PASS 15710 halves compared, 0 differences
+PASS seed 17: profile nmi: 1137 instructions, 25498 halves, stop=limit; PASS 25498 halves compared, 0 differences
+PASS seed 18: profile busrq: 417 instructions, 13136 halves, stop=dead-end; PASS 13136 halves compared, 0 differences
+PASS seed 19: profile all: 132 instructions, 2604 halves, stop=dead-end; PASS 2604 halves compared, 0 differences
+PASS seed 20: profile heavy: 768 instructions, 19748 halves, stop=dead-end; PASS 19748 halves compared, 0 differences
+PASS seed 21: profile quiet: 1000 instructions, 38238 halves, stop=limit; PASS 38238 halves compared, 0 differences
+PASS seed 22: profile waits: 183 instructions, 2912 halves, stop=dead-end; PASS 2912 halves compared, 0 differences
+PASS seed 23: profile int: 619 instructions, 11312 halves, stop=dead-end; PASS 11312 halves compared, 0 differences
+PASS seed 24: profile nmi: 1136 instructions, 26682 halves, stop=limit; PASS 26682 halves compared, 0 differences
+PASS seed 25: profile busrq: 281 instructions, 8952 halves, stop=dead-end; PASS 8952 halves compared, 0 differences
+PASS seed 26: profile all: 341 instructions, 6372 halves, stop=dead-end; PASS 6372 halves compared, 0 differences
+PASS seed 27: profile heavy: 1066 instructions, 27268 halves, stop=limit; PASS 27268 halves compared, 0 differences
+PASS seed 28: profile quiet: 85 instructions, 1964 halves, stop=dead-end; PASS 1964 halves compared, 0 differences
+PASS seed 29: profile waits: 1000 instructions, 30374 halves, stop=limit; PASS 30374 halves compared, 0 differences
+PASS seed 30: profile int: 196 instructions, 3486 halves, stop=dead-end; PASS 3486 halves compared, 0 differences
+PASS seed 31: profile nmi: 1128 instructions, 29726 halves, stop=limit; PASS 29726 halves compared, 0 differences
+PASS seed 32: profile busrq: 301 instructions, 5258 halves, stop=dead-end; PASS 5258 halves compared, 0 differences
+PASS seed 33: profile all: 1114 instructions, 35214 halves, stop=limit; PASS 35214 halves compared, 0 differences
+PASS seed 34: profile heavy: 940 instructions, 30516 halves, stop=dead-end; PASS 30516 halves compared, 0 differences
+PASS seed 35: profile quiet: 737 instructions, 19368 halves, stop=dead-end; PASS 19368 halves compared, 0 differences
+PASS seed 36: profile waits: 364 instructions, 8810 halves, stop=dead-end; PASS 8810 halves compared, 0 differences
+PASS seed 37: profile int: 442 instructions, 10084 halves, stop=dead-end; PASS 10084 halves compared, 0 differences
+PASS seed 38: profile nmi: 1008 instructions, 19570 halves, stop=limit; PASS 19570 halves compared, 0 differences
+PASS seed 39: profile busrq: 1000 instructions, 15336 halves, stop=limit; PASS 15336 halves compared, 0 differences
+PASS seed 40: profile all: 605 instructions, 11688 halves, stop=dead-end; PASS 11688 halves compared, 0 differences
+PASS seed 41: profile heavy: 1074 instructions, 28642 halves, stop=limit; PASS 28642 halves compared, 0 differences
+PASS seed 42: profile quiet: 1000 instructions, 14314 halves, stop=limit; PASS 14314 halves compared, 0 differences
+PASS seed 43: profile waits: 1000 instructions, 26002 halves, stop=limit; PASS 26002 halves compared, 0 differences
+PASS seed 44: profile int: 1144 instructions, 40822 halves, stop=limit; PASS 40822 halves compared, 0 differences
+PASS seed 45: profile nmi: 1007 instructions, 18908 halves, stop=dead-end; PASS 18908 halves compared, 0 differences
+PASS seed 46: profile busrq: 723 instructions, 17428 halves, stop=dead-end; PASS 17428 halves compared, 0 differences
+PASS seed 47: profile all: 1101 instructions, 35216 halves, stop=limit; PASS 35216 halves compared, 0 differences
+PASS seed 48: profile heavy: 473 instructions, 10252 halves, stop=dead-end; PASS 10252 halves compared, 0 differences
+PASS seed 49: profile quiet: 258 instructions, 4618 halves, stop=dead-end; PASS 4618 halves compared, 0 differences
+PASS seed 50: profile waits: 418 instructions, 10092 halves, stop=dead-end; PASS 10092 halves compared, 0 differences
+PASS seed 51: profile int: 179 instructions, 3038 halves, stop=dead-end; PASS 3038 halves compared, 0 differences
+PASS seed 52: profile nmi: 192 instructions, 3490 halves, stop=dead-end; PASS 3490 halves compared, 0 differences
+PASS seed 53: profile busrq: 1000 instructions, 20370 halves, stop=limit; PASS 20370 halves compared, 0 differences
+PASS seed 54: profile all: 1137 instructions, 25608 halves, stop=limit; PASS 25608 halves compared, 0 differences
+PASS seed 55: profile heavy: 570 instructions, 17732 halves, stop=dead-end; PASS 17732 halves compared, 0 differences
+PASS seed 56: profile quiet: 297 instructions, 5218 halves, stop=dead-end; PASS 5218 halves compared, 0 differences
+PASS seed 57: profile waits: 1000 instructions, 33688 halves, stop=limit; PASS 33688 halves compared, 0 differences
+PASS seed 58: profile int: 479 instructions, 8198 halves, stop=dead-end; PASS 8198 halves compared, 0 differences
+PASS seed 59: profile nmi: 1016 instructions, 22828 halves, stop=dead-end; PASS 22828 halves compared, 0 differences
+PASS seed 60: profile busrq: 206 instructions, 5102 halves, stop=dead-end; PASS 5102 halves compared, 0 differences
+PASS seed 61: profile all: 347 instructions, 10254 halves, stop=dead-end; PASS 10254 halves compared, 0 differences
+PASS seed 62: profile heavy: 595 instructions, 15804 halves, stop=dead-end; PASS 15804 halves compared, 0 differences
+PASS seed 63: profile quiet: 1000 instructions, 17514 halves, stop=limit; PASS 17514 halves compared, 0 differences
+PASS seed 64: profile waits: 1000 instructions, 29732 halves, stop=limit; PASS 29732 halves compared, 0 differences
+PASS c8
