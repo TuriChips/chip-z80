@@ -40,9 +40,14 @@ class Policy:
     x6 = "raise"      # 'raise' | 'taint' | 'mostek'
     daa = "raise"     # 'raise' | 'taint' | 'nmos'
 
-    def __init__(self, x6="raise", daa="raise"):
+    pushaf = "raise"  # 'raise' | 'pass': PUSH AF of don't-care flags raises, or just moves the flag byte
+    # (PUSH only moves the flag; the taint is dropped, so a later POP AF reads it as defined. For harnesses
+    # such as zexdoc whose masks hide those bits.)
+
+    def __init__(self, x6="raise", daa="raise", pushaf="raise"):
         assert x6 in ("raise", "taint", "mostek") and daa in ("raise", "taint", "nmos")
-        self.x6, self.daa = x6, daa
+        assert pushaf in ("raise", "pass")
+        self.x6, self.daa, self.pushaf = x6, daa, pushaf
 
 
 PARITY = [1 if bin(i).count("1") % 2 == 0 else 0 for i in range(256)]
@@ -338,7 +343,7 @@ class Z80:
             return 4
         start = self.pc
         t = self.execute()
-        self.last = " ".join(f"{self.mem[(start + k) & 0xFFFF]:02X}" for k in range((self.pc - start) & 0xFFFF))
+        self.last = " ".join(f"{self.mem[(start + k) & 0xFFFF]:02X}" for k in range(min((self.pc - start) & 0xFFFF, 4)))   # debug only; capped: a taken jump is not 64K bytes
         return t
 
     # ---- the instruction set -----------------------------------------------------------------------------
@@ -466,7 +471,9 @@ class Z80:
         if z == 5:
             if q == 0:
                 if p == 3:
-                    self.need(0xFF, "PUSH AF"); self.push(self.af)
+                    if self.policy.pushaf == "raise":
+                        self.need(0xFF, "PUSH AF")
+                    self.push(self.af)
                 else:
                     self.push(self.get_rp(p))
                 return 11
