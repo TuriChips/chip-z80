@@ -1,0 +1,5 @@
+# Ada: lint z80_regs, z80_mem (2026-11-23T14:41:20Z); verilator Verilator 5.020 2024-01-01 rev (Debian 5.020-1)
+== verilator --lint-only -Wall z80_regs
+exit=0
+== verilator --lint-only -Wall z80_mem
+exit=0
