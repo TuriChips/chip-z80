@@ -102,7 +102,8 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 | T3L | address | **1** | **1** | **1** | 1 |
 | next T1H | next address | | | | 0 |
 
-- WAIT is sampled at the edge that starts T2L, and Tw states are inserted between T2 and T3, as in M1 (Figure 4.0-2A).
+- WAIT is sampled at the edge that starts T2L, and Tw states are inserted between T2 and T3, as in M1 (Figure 4.0-2A). **TwH and TwL repeat the T2L row**, for reads and writes alike: `mreq_n` = 0, `rd_n` = 0 in a read, **`wr_n` = 0 in a write** (WR has already fallen at T2L), `d_oe` = 1 in a write. WAIT is sampled again at the edge that starts each TwL (chip-z80#11 item 3).
+- **On reads `d_oe` = 0 in every half**; the `d_oe` column applies to writes only. Likewise `wr_n` = 1 throughout a read and `rd_n` = 1 throughout a write.
 - **Read data is taken at the edge that starts T3L.** TM §11, p.70: tSΦ̄(D) is "Data Setup Time to **Falling** Edge of Clock During M2 to M5", while M1 uses tSΦ(D), the "Rising Edge of Clock During M1 Cycle" (§4.1). This confirms the figure, whose IN window ends at T3's falling edge.
 - On writes, `d_oe` drops at the next T1H: tF(D), data float, is measured from that rising edge (p.71).
 - `m1_n` = 1 and `rfsh_n` = 1 throughout.
@@ -120,6 +121,8 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 | T3L | port address | **1** | **1** | **1** | 1 | 1 |
 | next T1H | | | | | 0 | |
 
+- **Columns marked (in) or (out) apply to that direction only** (chip-z80#11 item 4). In an **IN** cycle `wr_n` = 1 and **`d_oe` = 0 in every half**. In an **OUT** cycle `rd_n` = 1 in every half, and `d_oe` = 1 from the edge that starts T1L until the next T1H, as in the table.
+- **User wait states** (WAIT sampled 0 at the edge starting Tw\*L) follow Tw\* and come before T3. Each TwH and TwL **repeats the Tw\* row**: `iorq_n` = 0, and `rd_n` = 0 (IN) or `wr_n` = 0 (OUT). WAIT is sampled again at the edge that starts each TwL.
 - **IORQ, RD and WR fall at T2's *rising* edge**, not mid-T1 as for memory. Input data is taken at the edge that starts T3L (the IN window, and tSΦ̄(D) as for M2–M5).
 - `a`: the figure labels only A0–A7 "PORT ADDRESS". What A8–A15 carry depends on the instruction, and it's specified per instruction in §6.1 (input and output group, from PM pp.252–274).
 - `m1_n` = 1 throughout ("I/O operations never occur during M1 time", §2).
@@ -127,6 +130,8 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 ### 4.4 Bus request / acknowledge (Figure 4.0-4, page image p.16)
 - `busrq_n` is sampled "with the rising edge of the last clock period of any machine cycle" (TM p.14). If it's 0, then from "the rising edge of the next clock pulse" the CPU floats `a`, the data bus, `mreq_n`, `rd_n`, `wr_n`, `iorq_n` and **`rfsh_n`** (all five are listed as floating in the figure), and drives `busak_n` = 0. The CPU spends Tx states in this state.
 - `busrq_n` is sampled again at the rising edge of each Tx. Once it's sampled 1, `busak_n` returns to 1 **at the falling edge** in that Tx (TM p.70: tDH(BA) "BUSAK Delay From Falling Edge of Clock, BUSAK High"; it falls at a rising edge, tDL(BA)). The CPU drives the buses again from the next rising edge, which starts T1 of the next machine cycle.
+- **Exact halves** (chip-z80#11 item 1). Call the Tx states Tx1, Tx2, …, Txn. Tx1 starts at the rising edge after the last T state of the M cycle in which `busrq_n` was sampled 0. In every half of Tx1…Txn: `bus_oe` = 0, `d_oe` = 0, `busak_n` = 0, except **TxnL, where `busak_n` = 1**. Txn is the Tx at whose starting edge `busrq_n` is first sampled 1. T1H of the next M cycle starts at the rising edge after TxnL, with `bus_oe` = 1.
+- **Release and minimum length.** Under the stimulus rule (§8.4 item 7), `busrq_n` is released only at the edge that starts a TxH. Released at the edge that starts Tx*k*H, it's still sampled 0 at that edge (general rule, §8.4) and is first sampled 1 at the edge that starts Tx*k*+1. So **n = k + 1 and a bus request always lasts ≥ 2 Tx states**. **A 1-Tx request is not legal stimulus.** It would need `busrq_n` released between the last-T sample and Tx1, i.e. at the falling edge in the last T state, and tests never change `busrq_n` there. Real Z80 silicon accepts that timing, but our tests don't use it, so the RTL needn't do anything defined with it.
 - **Not floated:** `m1_n` and `halt_n` (not in the figure's list). TM §3 (pp.7–8, page image) calls both plain "Output", while MREQ, IORQ, RD and WR are "Tri-state output", so they agree.
 - **`rfsh_n` conflict:** TM §3 (p.8) calls RFSH "Output, active low" (not tri-state), but Figure 4.0-4 lists RFSH among the floating signals. *Decision (proposed)*: follow the figure, which describes the bus-request cycle itself. So `rfsh_n` floats with `bus_oe`, and isn't compared while `busak_n` = 0. Either way, a real RFSH can't be active during a bus request, because no M1 runs then.
 - "During a bus request cycle, the CPU cannot be interrupted by either a NMI or an INT signal" (p.14).
@@ -145,7 +150,7 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 | T3L, T4H | {I, R} | 1 | **0** | 1 | 1 | 0 |
 | T4L | {I, R} | 1 | **1** | 1 | 1 | 0 |
 
-- **No MREQ and no RD** before T3. The vector is taken from `d_in` at the edge that starts T3H (the IN window in the figure, as M1's opcode). WAIT is sampled at the edge that starts Tw\*2L, and user wait states go after the two Tw\* (Figure 4.0-5B, p.17).
+- **No MREQ and no RD** before T3. The vector is taken from `d_in` at the edge that starts T3H (the IN window in the figure, as M1's opcode). WAIT is sampled at the edge that starts Tw\*2L, and user wait states go after the two Tw\* (Figure 4.0-5B, p.17). **Each user TwH and TwL repeats the Tw\*2 row** (`iorq_n` = 0, `a` = PC, `m1_n` = 0), and WAIT is sampled again at the edge that starts each TwL (chip-z80#11 item 5). IORQ stays low until T3H, as in the figure.
 - What follows the vector (mode 0, 1 or 2) is §8.
 
 ### 4.6 NMI response (Figure 4.0-6, page image p.18)
@@ -166,8 +171,13 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 
 **Not documented, so these are *Decisions* (proposed):**
 1. **Other registers are not reset:** A, F, B, C, D, E, H, L, the alternate set A'…L', IX, IY and SP. As for the 6502 and 8080, the C8 preamble writes every one of them before anything reads it. Comparison has **no exemption window**.
-2. **While `reset_n` = 0:** `bus_oe` = 0 and `d_oe` = 0 (floating, §4.4), so `a`, `mreq_n`, `iorq_n`, `rd_n`, `wr_n`, `rfsh_n` and the data bus are not compared. `m1_n` = 1, `halt_n` = 1 and `busak_n` = 1 ("inactive") are compared from the second T state of reset on.
+2. **While in reset:** `bus_oe` = 0 and `d_oe` = 0 (floating, §4.4), so `a`, `mreq_n`, `iorq_n`, `rd_n`, `wr_n`, `rfsh_n` and the data bus are not compared. `m1_n` = 1, `halt_n` = 1 and `busak_n` = 1 ("inactive") are compared.
 3. **The first M1:** T1H of the first opcode fetch starts at **the first rising edge of Φ at which `reset_n` is sampled 1**, at address 0000H. The manuals give no delay here, so this is our choice. It's exact, so the RTL and the model can't disagree.
+3a. **Exact halves around reset** (chip-z80#11 item 2). `reset_n` is sampled **only at rising edges of Φ** (tS(RS), p.70), and by the general rule of §8.4 a change at edge E is first seen at the next rising edge, E+2 (E+1 is a falling edge).
+   - **Assertion.** `reset_n` driven 0 at rising edge E0 is first sampled 0 at E0+2. **In halves E0 and E0+1 no pin is compared**: the CPU may still be finishing the half it was in, and at power-up its state is undefined. **From E0+2** the CPU is in reset: item 2 holds, and the cycle that was running is abandoned.
+   - **Release.** `reset_n` driven 1 at rising edge E is still sampled 0 at E itself, so **halves E and E+1 are still reset halves**: `m1_n` = `halt_n` = `busak_n` = 1 are compared, and `bus_oe` = `d_oe` = 0. **T1H of the first M1 is the half starting at E+2**, with `bus_oe` = 1 and `a` = 0000H (§4.1).
+   - **RTL note.** A synchronous reset clocked every model edge sees the release at E+1, a falling edge. The first T1H must still be E+2, so the T-state counter starts only at a rising edge.
+3b. **Reset during a write** (chip-z80#11 item 6). If the CPU is in reset (from E0+2) during a memory or I/O write cycle, i.e. any half from its T1H to its T3L, then **whether that write reaches memory or the port is unspecified**: `wr_n` floats from E0+2 and isn't compared. **Stimulus rule:** tests never drive `reset_n` 0 at a rising edge E0 for which E0+2 starts any half from T1H to T3L of a memory or I/O write cycle. That is, they don't drive it at the rising edge that starts the write cycle's T1H, T2H, any TwH or Tw\*H, or at the rising edge just before its T1H. Reset in any other cycle, including every phase of M1, is fully specified by item 3a. The reference model has no pin timing, and it treats reset as taking effect between instructions.
 4. **Stimulus:** tests hold `reset_n` = 0 for **≥ 3 T states** (6 model cycles) and change it only at a rising edge (T-state boundary). `busrq_n`, `int_n` and `nmi_n` are held inactive from reset until the first M1 has started.
 
 ## 6. Instructions
@@ -577,8 +587,9 @@ IFF1 "actually disables interrupts from being accepted"; IFF2 is "temporary stor
 - `wait_n` changes only at **rising** edges, the start of an H half, because it's sampled at falling edges.
 - `int_n`, `nmi_n` and `busrq_n` change only at the edge that starts a **T1H**, of any M cycle. A Tw or extra T state never starts a T1, so there's no repeated-cycle case as on the 6502.
 - **`busrq_n` may also change at the edge that starts a TxH** (a bus-request state, §4.4); that's the only way to release it, because no T1 runs while it's 0 (Zura, chip-z80#10). As always, a change at edge E is seen only by samples at later edges: released at the edge starting TxH, it's sampled 1 at the next rising edge (the edge starting the next Tx), and `busak_n` rises at that Tx's falling edge (§4.4).
+- `busrq_n` changes at **no other edge**. So it's never released between the last-T sample and Tx1, and every bus request lasts ≥ 2 Tx states (§4.4, chip-z80#11 item 1).
 - By the general rule, `busrq_n` driven 0 at the T1H of any M cycle, including the only M cycle of a one-cycle instruction, is seen at that cycle's last-T sampling edge (item 4).
-- `reset_n`: §5. `nmi_n` stays low for ≥ 2 T states (4 model cycles).
+- `reset_n`: §5 (items 3a, 3b and 4). `nmi_n` stays low for ≥ 2 T states (4 model cycles).
 - `int_n` **may change at any T1H**, like the other two. INT is level-sampled only at the §8.4 points, so a request withdrawn before acknowledge is fully specified: it simply isn't seen (Beru's re-review). That lets C8 raise and drop INT freely while IFF1 = 0.
 - INT mode 2 vectors always have bit 0 = 0 (§8.2, Beru's item 14).
 
