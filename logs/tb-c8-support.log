@@ -1,0 +1,13 @@
+# tb C8 support (chip-z80#19), mock DUT (expected vector replayed), C8 seeds 3,5,9,14 from PR #20 gen.py
+# build: verilator --binary --timing -Wall --Mdir build/mock -f tb/z80_bus/files_mock.f --top tb
+## default 48 directed cases
+PASS 48 cases
+## C8: +VECROOT=<dir>/ +VECSUF=.vec, cases.txt = cat sN.case (halves 12080-20628, vec.hex read per half)
+ok   s5: 18730 halves, 0 errors
+ok   s9: 20628 halves, 0 errors
+ok   s14: 16830 halves, 0 errors
+PASS 3 cases
+## trace -> compare.py (tests/random/compare.py from PR #20)
+seed 5: PASS 18730 halves compared, 0 differences
+seed 9: PASS 20628 halves compared, 0 differences
+seed 14: PASS 16830 halves compared, 0 differences

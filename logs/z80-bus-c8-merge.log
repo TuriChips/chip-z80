@@ -1,0 +1,7 @@
+# Test summary 2026-11-24
+run: logs/20261124T172525024502773Z  run=2 pass=2 fail=0
+
+| block | result | log |
+|---|---|---|
+| z80_bus | PASS | logs/20261124T172525024502773Z/z80_bus.log |
+| random (tests/random/run.sh) | PASS | logs/20261124T172525024502773Z/random-*.log |

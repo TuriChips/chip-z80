@@ -4,12 +4,16 @@
 module tb;
   z80_system sys ();
   integer fd, n, nh, nev, rc, total, mutate;
-  string name;
+  string name, cases, vroot;
   initial begin
     total = 0;
     if ($value$plusargs("MUTATE=%d", mutate)) begin sys.mutate_half = mutate; sys.mutate_bit = 11; end   // MOCK only: flip m1_n in that half
-    fd = $fopen("tests/z80_bus/vectors/cases.txt", "r");
-    if (fd == 0) begin $display("FAIL cannot open tests/z80_bus/vectors/cases.txt (run tests/z80_bus/cases.py)"); $finish; end
+    vroot = "tests/z80_bus/vectors/";
+    void'($value$plusargs("VECROOT=%s", vroot));
+    cases = {vroot, "cases.txt"};
+    void'($value$plusargs("CASES=%s", cases));
+    fd = $fopen(cases, "r");
+    if (fd == 0) begin $display("FAIL cannot open %0s (run tests/z80_bus/cases.py)", cases); $finish; end
     while (!$feof(fd)) begin
       rc = $fscanf(fd, "%s %d %d\n", name, nh, nev);
       if (rc == 3) begin
