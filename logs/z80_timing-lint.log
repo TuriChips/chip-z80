@@ -1,0 +1,2 @@
+# verilator --lint-only -Wall rtl/control/z80_timing.v (Verilator 5.020 2024-01-01 rev (Debian 5.020-1)) 2026-11-23T14:43:18Z
+exit=0

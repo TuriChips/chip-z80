@@ -1,0 +1,4 @@
+$ verilator --lint-only -Wall --top-module z80_alu rtl/datapath/z80_alu.v
+exit code: 0
+$ verilator --lint-only -Wall --top-module z80_regs rtl/datapath/z80_regs.v
+exit code: 0

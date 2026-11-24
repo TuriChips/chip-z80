@@ -1,0 +1,4 @@
+# z80_alu self-check (Ada), 2026-11-24T13:51:46Z
+Verilator 5.020 2024-01-01 rev (Debian 5.020-1)
+$ verilator --lint-only -Wall --top-module z80_alu rtl/datapath/z80_alu.v
+exit: 0
