@@ -23,5 +23,6 @@ nightly:
 # Needs verilator 5.020 and curl (sw/exerciser/fetch.sh).
 .PHONY: acceptance
 acceptance:
-	@[ -f sw/exerciser/run_rtl.py ] || { echo "SKIP acceptance: sw/exerciser/run_rtl.py not there yet (#55)"; exit 0; }
-	python3 -I sw/exerciser/run_rtl.py prelim && python3 -I sw/exerciser/run_rtl.py zexdoc $(ACC_ARGS)
+	@if [ -f sw/exerciser/run_rtl.py ]; then \
+	  python3 -I sw/exerciser/run_rtl.py prelim && python3 -I sw/exerciser/run_rtl.py zexdoc $(ACC_ARGS); \
+	else echo "SKIP acceptance: sw/exerciser/run_rtl.py not there yet (#55)"; fi
