@@ -6,7 +6,7 @@
 #   2. C8: SEEDS seeds. Each makes a random program + WAIT/INT/NMI/BUSRQ stimulus (spec §7 C8, §8.4), the reference
 #      model's expected pin trace, the DUT trace, and compares every pin in every half T state.
 #   2b. decode-xcheck: simulated rtl/control/z80_decode.v vs the pin model's M-cycle layouts (xcheck_decode.py, #39)
-#   3. coverage: executed count per documented form (698 minus the excluded set), stimulus kinds hit.
+#   3. coverage: executed count per documented form (850 minus the excluded set), stimulus kinds hit.
 # DUT=ref (default, until RTL exists): the DUT trace is the reference model replaying the image and stimulus alone.
 # DUT=rtl RTL_TRACE_CMD='scripts/rtl_trace.sh': the one-line switch. The command gets HEX STIM OUT.pins and must
 #   write the .pins format (tests/random/compare.py documents it).

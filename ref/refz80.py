@@ -228,8 +228,10 @@ class Z80:
             co = v & 1; r = (v >> 1 | v & 0x80) & 255
         elif kind == 7:
             co = v & 1; r = v >> 1
+        elif kind == 6:                                   # SLL (§6.0a U3): as SLA, bit 0 = 1
+            co = v >> 7; r = (v << 1 | 1) & 255
         else:
-            raise Undocumented("SLL")
+            raise Undocumented("rot")
         self.setf(0xFF, (S_ if r & 0x80 else 0) | (Z_ if r == 0 else 0) | (PV_ if PARITY[r] else 0) | (C_ if co else 0))
         return r
 
@@ -523,8 +525,6 @@ class Z80:
         x, y, z = op >> 6, (op >> 3) & 7, op & 7
         mem = z == 6
         if x == 0:
-            if y == 6:
-                raise Undocumented(f"CB {op:02X} SLL")
             self.setr(z, self.rot(y, self.getr(z, ea)), ea)
             return (23 if ea is not None else 15) if mem else 8
         v = self.getr(z, ea)
@@ -545,11 +545,32 @@ class Z80:
         if op == 0xCB:                                    # execute() already counted DD and this CB
             d = s8(self.fetch())
             op2 = self.fetch()                            # an OD, not an M1 (§6.3 R rule 1)
-            if op2 & 7 != 6 or (op2 & 0xC0) == 0 and (op2 >> 3) & 7 == 6:
+            if op2 & 7 != 6:
                 raise Undocumented(f"{pre:02X} CB d {op2:02X}")
             return self.cb(op2, (get() + d) & 0xFFFF)
         x, y, z = op >> 6, (op >> 3) & 7, op & 7
         p, q = y >> 1, y & 1
+        # §6.0a U1/U2: DD/FD + an 8-bit-register opcode. H and L become IXH/IXL (U1); with no H/L it is a
+        # prefix with no effect (U2). Cycles are the unprefixed form's + 4.
+        u = None
+        if x == 1 and op != 0x76 and y != 6 and z != 6:
+            u = (y in (4, 5) or z in (4, 5), True)
+        elif x == 2 and z in (4, 5):
+            u = (True, True)
+        elif x == 0 and op in (0x24, 0x25, 0x2C, 0x2D, 0x26, 0x2E):
+            u = (True, True)
+        if u:
+            if u[0]:
+                v = get()
+                self.reg[4], self.reg[5], sh, sl = v >> 8, v & 255, self.reg[4], self.reg[5]
+                try:
+                    t = self.main(op)
+                finally:
+                    put(self.reg[4] << 8 | self.reg[5])
+                    self.reg[4], self.reg[5] = sh, sl
+            else:
+                t = self.main(op)
+            return t + 4
         # (IX+d) memory operand forms
         if op in (0x34, 0x35, 0x36) or (x == 2 and z == 6) or (x == 1 and (y == 6) != (z == 6)):
             d = s8(self.fetch())

@@ -2,10 +2,10 @@
 """Cross-check of rtl/control/z80_decode.v against the pin model (Beru, chip-z80#39).
 
 Independent of rtl/control/gen_decode.py and its table: the committed z80_decode.v is simulated (Verilator) over all
-2048 {prefix, ir}, and for every documented form (refz80.census()) the M-cycle (type, len) sequence of every outcome the
+2048 {prefix, ir}, and for every specified form (refz80.census(), 850) the M-cycle (type, len) sequence of every outcome the
 reference model produces (cc met / not met, DJNZ B=1/2, BC=1/2 repeats, CPIR match / no match: 5 F x 3 A x 5 BC states)
 is read from ref/pinsz80.tokens() and must equal the RTL plan[:pn] or plan[:pn_s] (s3 sets M3 to length 3).
-Also: `documented` == the census, `is_prefix` == exactly the six prefix bytes and never documented, plan slots past pn
+Also: `specified` == the census, `is_prefix` == exactly the six prefix bytes and never specified, plan slots past pn
 are zero. A DIFF is a finding for Zura (RTL) or for whoever is wrong; never patch it here.
 
   python3 -I -B tests/random/xcheck_decode.py          (needs verilator; prints PASS / FAIL and DIFF lines)
@@ -94,14 +94,14 @@ def main():
     doc = {k for k, v in rtl.items() if v["d"]}
     if doc != cen:
         bad += 1
-        print("DIFF documented != census: extra %s missing %s" % (sorted(doc - cen)[:10], sorted(cen - doc)[:10]))
+        print("DIFF specified != census: extra %s missing %s" % (sorted(doc - cen)[:10], sorted(cen - doc)[:10]))
     pre = {k for k, v in rtl.items() if v["p"]}
     if pre != PREFIX_BYTES:
         bad += 1
         print("DIFF is_prefix set %s, want %s" % (sorted(pre), sorted(PREFIX_BYTES)))
     if pre & doc:
         bad += 1
-        print("DIFF is_prefix overlaps documented: %s" % sorted(pre & doc))
+        print("DIFF is_prefix overlaps specified: %s" % sorted(pre & doc))
     for k in sorted(cen):
         r = rtl[k]
         if any(c != (0, 0) for c in r["plan"][r["pn"]:]):
@@ -116,7 +116,7 @@ def main():
         if got != want:
             bad += 1
             print("DIFF %s rtl %s ref %s" % (k, sorted(want), sorted(got)))
-    print("forms %d, documented %d, mismatches %d" % (len(cen), len(doc), bad))
+    print("forms %d, specified %d, mismatches %d" % (len(cen), len(doc), bad))
     print("PASS" if bad == 0 else "FAIL")
     sys.exit(1 if bad else 0)
 

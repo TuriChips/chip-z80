@@ -1,9 +1,9 @@
 // Dumps z80_decode for all 2048 {prefix, ir} (Beru, chip-z80#39). Read by tests/random/xcheck_decode.py.
-// One line per input: prefix ir documented is_prefix ins pn pn_s s3 plan_type(octal) plan_len(octal)
+// One line per input: prefix ir specified is_prefix ins pn pn_s s3 plan_type(octal) plan_len(octal)
 module decode_tb;
   reg [2:0] prefix; reg [7:0] ir;
   wire d, p, s3; wire [6:0] ins; wire [2:0] pn, pns; wire [17:0] pt, pl;
-  z80_decode u(.prefix(prefix), .ir(ir), .documented(d), .is_prefix(p), .ins(ins), .pn(pn), .pn_s(pns), .s3(s3),
+  z80_decode u(.prefix(prefix), .ir(ir), .specified(d), .is_prefix(p), .ins(ins), .pn(pn), .pn_s(pns), .s3(s3),
                .plan_type(pt), .plan_len(pl));
   integer i;
   initial begin

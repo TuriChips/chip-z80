@@ -65,7 +65,7 @@ def sel(r, *cols):
     return tuple(r[c] for c in cols)
 
 
-# 1. every documented form: T layout and event kinds agree with the model, in random states
+# 1. every specified form (698 documented + 152 of §6.0a): T layout and event kinds agree with the model, in random states
 forms, _ = census()
 rnd = random.Random(5)
 n = bad = 0
@@ -90,7 +90,7 @@ for f in sorted(forms, key=str):
         except Exception as e:
             bad += 1
             print("   layout", f, e)
-check("T layout and bus-event kinds agree with the model for all %d forms (%d runs)" % (len(forms), n), bad == 0 and len(forms) == 698)
+check("T layout and bus-event kinds agree with the model for all %d forms (%d runs)" % (len(forms), n), bad == 0 and len(forms) == 850)
 
 # 1b. power-up: 10 halves, nothing compared in 0-1, then bus_oe=0 with m1/halt/busak=1; first T1H at half 10 (§5 item 3a)
 _, s = sim([0x00])

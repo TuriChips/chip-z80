@@ -99,6 +99,10 @@ def operand_kind(f):
         if op in (0x22, 0x2A): return "addr"
         if op == 0x21: return "imm16"
         if op == 0x36: return "dispimm"
+        if op in (0x26, 0x2E): return "imm8"             # §6.0a U1: LD IXH/IXL/IYH/IYL,n
+        if op is not None and (op >> 6 == 1 and op & 7 != 6 and op >> 3 & 7 != 6 or op >> 6 == 2 and op & 7 in (4, 5)
+                               or op in (0x24, 0x25, 0x2C, 0x2D)):
+            return "none"                                # §6.0a U1/U2: no operand bytes
         return "disp"
     return "none"
 
