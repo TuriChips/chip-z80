@@ -1,5 +1,5 @@
 # synth/ (Leo)
-`synth/run.sh` maps each CPU block to `sky130_fd_sc_hd` (typical corner `tt_025C_1v80`, `lpflow_*`/probe/delay cells filtered by `sky130/filter_lib.py`) with Yosys, then OpenSTA (inside OpenROAD, `sta.tcl`) times the mapped netlist. No placement, ideal wires and clock, so the times are gates only. Same flow as chip-6502/chip-8080. Needs `source <toolchain>/scripts/eda-env.sh` (toolchain v0.9, as the Makefile pins).
+`synth/run.sh` maps each CPU block to `sky130_fd_sc_hd` (typical corner `tt_025C_1v80`, `lpflow_*`/probe/delay cells filtered by `sky130/filter_lib.py`) with Yosys, then OpenSTA (inside OpenROAD, `sta.tcl`) times the mapped netlist. No placement, ideal wires and clock, so the times are gates only. Unlike chip-6502/chip-8080's generic `abc -g` runs, this is PDK-mapped with STA (the 6502's `synth/sky130/` flow without placement). If the liberty file or `openroad` is missing (PR CI has only the models and apt yosys) it prints SKIP, exits 0 and leaves the committed report untouched. Needs `source <toolchain>/scripts/eda-env.sh` (toolchain v0.9, as the Makefile pins).
 
 Output: `synth/report.txt` (cells, flops, latches, area, worst path per block), logs in `synth/logs/<block>.{yosys.log,stat.txt,sta.log}`.
 

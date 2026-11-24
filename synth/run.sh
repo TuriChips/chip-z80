@@ -5,7 +5,11 @@
 # z80_mem is a test RAM (blocks.md §1) and is never synthesized. No placement or wire load: timing is gates only.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
-: "${PDK_ROOT:?source <toolchain>/scripts/eda-env.sh first}"
+LIB0=${PDK_ROOT:-/nonexistent}/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+if [ ! -f "$LIB0" ] || ! command -v openroad >/dev/null || ! command -v yosys >/dev/null; then
+  echo "SKIP: sky130 liberty, openroad or yosys not available (needs the layout tools: toolchain install_layout_tools.sh, then source scripts/eda-env.sh). Committed synth/report.txt and logs left untouched."
+  exit 0
+fi
 D=synth; L=$D/logs; mkdir -p $L; W=$(mktemp -d); trap 'rm -rf $W' EXIT
 TOP=${TOP:-z80}; PERIOD_NS=${PERIOD_NS:-100}; export PERIOD_NS
 S=$PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd
@@ -27,7 +31,7 @@ run_one() { # name file-list
 }
 
 {
-echo "Z80 synthesis, sky130_fd_sc_hd tt_025C_1v80, yosys $(yosys -V | cut -d' ' -f2), clock $PERIOD_NS ns, ideal wires. main $(git rev-parse --short HEAD)"
+echo "Z80 synthesis, sky130_fd_sc_hd tt_025C_1v80, yosys $(yosys -V | cut -d' ' -f2), clock $PERIOD_NS ns, ideal wires."
 printf '%-12s %7s %6s %6s %11s  %s\n' block cells flops latch area_um2 "worst path: data arrival ns (slack)"
 } > $W/head
 : > $W/rows
@@ -55,5 +59,5 @@ else
   echo "== full chip $TOP: skipped, rtl/files.f is not on main yet (Zura's top/control issue)"
 fi
 echo
-echo "== warnings"; grep -ih 'warning' $L/*.yosys.log | grep -v -e 'combinational (run' -e 'unsupported expression' || echo none
+echo "== warnings"; grep -H -i 'warning' $L/*.yosys.log | sed 's|^synth/logs/||; s|\.yosys\.log:|: |' | grep -v -e 'combinational (run' -e 'unsupported expression' || echo none
 } | tee $D/report.txt
