@@ -6,8 +6,7 @@
 // Ports are the §2 names exactly: clk reset_n wait_n int_n nmi_n busrq_n d_in | a d_out d_oe m1_n mreq_n iorq_n rd_n wr_n rfsh_n
 // halt_n busak_n bus_oe.
 //
-// Per case (tests/z80_bus/vectors/<id>/): prog.hex (+ prog<k>.hex reloaded at a stimulus event's bank field), stim.hex (32-bit words
-// {h[23:0], bank[1:0], reset_n, nmi_n, busrq... see below}), exp.hex / mask.hex (36-bit expected pin vector and compare mask per half).
+// Per case (tests/z80_bus/vectors/<id>/): prog.hex (+ prog<k>.hex reloaded at a stimulus event's bank field), stim.hex (32-bit words, layout below), exp.hex / mask.hex (36-bit expected pin vector and compare mask per half).
 //   stim word: [31:8] h = half index the new input values start at; [7] 0; [6:5] bank (0 = none); [4] reset_n; [3] nmi_n; [2] int_n;
 //              [1] busrq_n; [0] wait_n. All inputs take their new value at the edge that starts half h and are seen by samples after it
 //              (§8.4 general rule). Before the first edge: reset_n = 0, everything else 1.
@@ -55,7 +54,7 @@ module z80_system;
   reg [15:0] m_a; reg [7:0] m_d; reg m_m1, m_mreq, m_iorq, m_rd, m_wr, m_rfsh, m_halt, m_busak, m_oe, m_doe;
   assign a = m_a; assign d_out = m_d; assign d_oe = m_doe; assign m1_n = m_m1; assign mreq_n = m_mreq; assign iorq_n = m_iorq;
   assign rd_n = m_rd; assign wr_n = m_wr; assign rfsh_n = m_rfsh; assign halt_n = m_halt; assign busak_n = m_busak; assign bus_oe = m_oe;
-  always @(clk) if (active && hc >= 0 && hc < nh) begin : mock
+  always @(posedge clk) if (active && hc >= 0 && hc < nh) begin : mock
     reg [35:0] v;
     v = exp[hc];
     if (hc == mutate_half) v[mutate_bit] = ~v[mutate_bit];
@@ -109,9 +108,9 @@ module z80_system;
     end
   endtask
 
-  // one model edge = one half T state. Inputs change here (non-blocking, so this edge's own samples see the old value), outputs are
+  // one rising edge of the model clock = one half T state (the RTL is synchronous to the rising edge only, blocks.md §1). Inputs change here (non-blocking, so this edge's own samples see the old value), outputs are
   // read 4 ns later, just before the next edge: the value each pin holds through the half.
-  always @(clk) begin : half
+  always @(posedge clk) begin : half
     reg [35:0] act;
     if (active) begin
       hc = hc + 1;

@@ -1,0 +1,2 @@
+# verilator --lint-only -Wall -f rtl/files.f --top-module z80 (Verilator 5.020 2024-01-01 rev (Debian 5.020-1)) 2026-11-24T12:28:40Z
+exit=0

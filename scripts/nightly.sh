@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Long acceptance tests (zexdoc: hours). Run by the nightly workflow, never by PR CI.
-# Convention: tests/acceptance/run.sh (owned by verification) fetches what it needs via
-# scripts/fetch_thirdparty.sh and exits non-zero on failure. SKIPs cleanly until it exists.
+# Runs `make acceptance` (sw/exerciser/run_rtl.py: prelim + zexdoc on the RTL; logs in logs/acc-rtl/).
+# SKIPs cleanly until run_rtl.py exists.
 set -u
 cd "$(git rev-parse --show-toplevel)"
-[ -f tests/acceptance/run.sh ] || { echo "SKIP nightly: tests/acceptance/run.sh not there yet"; exit 0; }
+[ -f sw/exerciser/run_rtl.py ] || { echo "SKIP nightly: sw/exerciser/run_rtl.py not there yet"; exit 0; }
 run="logs/nightly-$(date -u +%Y%m%dT%H%M%SZ)"; mkdir -p "$run"
-RUN_DIR="$run" bash tests/acceptance/run.sh 2>&1 | tee "$run/acceptance.log"; exit "${PIPESTATUS[0]}"
+make acceptance 2>&1 | tee "$run/acceptance.log"; exit "${PIPESTATUS[0]}"

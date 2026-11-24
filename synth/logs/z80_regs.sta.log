@@ -1,0 +1,70 @@
+OpenROAD f12e2f474102bfb875eeee57fb610d7d7de17770 
+This program is licensed under the BSD-3 license. See the LICENSE file for details.
+Components of this program may be licensed under more restrictive licenses which must be honored.
+[INFO ODB-0222] Reading LEF file: /home/turichips/tools/mm/root/envs/pdk/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/techlef/sky130_fd_sc_hd__nom.tlef
+[INFO ODB-0223]     Created 14 technology layers
+[INFO ODB-0224]     Created 25 technology vias
+[INFO ODB-0226] Finished LEF file:  /home/turichips/tools/mm/root/envs/pdk/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/techlef/sky130_fd_sc_hd__nom.tlef
+[INFO ODB-0222] Reading LEF file: /home/turichips/tools/mm/root/envs/pdk/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef
+[WARNING ODB-0220] WARNING (LEFPARS-2008): NOWIREEXTENSIONATPIN statement is obsolete in version 5.6 or later.
+The NOWIREEXTENSIONATPIN statement will be ignored. See file /home/turichips/tools/mm/root/envs/pdk/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef at line 2.
+
+[INFO ODB-0225]     Created 437 library cells
+[INFO ODB-0226] Finished LEF file:  /home/turichips/tools/mm/root/envs/pdk/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef
+== worst path (any start to any end: reg-to-reg, input-to-reg, reg-to-output, input-to-output)
+Startpoint: _4268_ (rising edge-triggered flip-flop clocked by clk)
+Endpoint: _4266_ (rising edge-triggered flip-flop clocked by clk)
+Path Group: clk
+Path Type: max
+
+   Delay     Time   Description
+-----------------------------------------------------------
+   0.000    0.000   clock clk (rise edge)
+   0.000    0.000   clock network delay (ideal)
+   0.000    0.000 ^ _4268_/CLK (sky130_fd_sc_hd__dfxtp_1)
+   3.578    3.578 ^ _4268_/Q (sky130_fd_sc_hd__dfxtp_1)
+   3.084    6.662 v _2141_/Y (sky130_fd_sc_hd__clkinv_1)
+   0.496    7.158 ^ _2236_/Y (sky130_fd_sc_hd__nand2_1)
+   0.129    7.287 v _2239_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.459    7.747 v _2247_/X (sky130_fd_sc_hd__a2111o_1)
+   0.388    8.134 v _2263_/X (sky130_fd_sc_hd__maj3_1)
+   0.376    8.510 v _2289_/X (sky130_fd_sc_hd__maj3_1)
+   0.378    8.888 v _2316_/X (sky130_fd_sc_hd__maj3_1)
+   0.377    9.266 v _2344_/X (sky130_fd_sc_hd__maj3_1)
+   0.378    9.644 v _2371_/X (sky130_fd_sc_hd__maj3_1)
+   0.393   10.036 v _2397_/X (sky130_fd_sc_hd__maj3_1)
+   0.110   10.146 ^ _2500_/Y (sky130_fd_sc_hd__nand4_1)
+   0.109   10.255 v _2515_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.143   10.398 ^ _2554_/Y (sky130_fd_sc_hd__o22ai_1)
+   0.148   10.546 v _2555_/Y (sky130_fd_sc_hd__o21ai_0)
+   0.252   10.798 v _2569_/X (sky130_fd_sc_hd__or2_0)
+   0.344   11.142 ^ _2572_/Y (sky130_fd_sc_hd__a221oi_1)
+   0.194   11.336 ^ _2573_/Y (sky130_fd_sc_hd__nand2b_1)
+   0.125   11.461 v _2574_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.165   11.625 ^ _2575_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.102   11.727 v _2578_/Y (sky130_fd_sc_hd__o21ai_0)
+   0.228   11.955 v _2580_/X (sky130_fd_sc_hd__a22o_1)
+   0.003   11.959 v _4266_/D (sky130_fd_sc_hd__dfxtp_1)
+           11.959   data arrival time
+
+ 100.000  100.000   clock clk (rise edge)
+   0.000  100.000   clock network delay (ideal)
+   0.000  100.000   clock reconvergence pessimism
+          100.000 ^ _4266_/CLK (sky130_fd_sc_hd__dfxtp_1)
+  -0.118   99.882   library setup time
+           99.882   data required time
+-----------------------------------------------------------
+           99.882   data required time
+          -11.959   data arrival time
+-----------------------------------------------------------
+           87.924   slack (MET)
+
+
+== worst register-to-register path
+max_delay/setup group clk
+
+                                     Required   Actual
+Endpoint                                Delay    Delay    Slack
+---------------------------------------------------------------
+_4266_/D (sky130_fd_sc_hd__dfxtp_1)    99.882   11.959   87.924 (MET)
+

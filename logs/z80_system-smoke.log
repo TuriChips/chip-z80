@@ -1,0 +1,4 @@
+# Zura smoke (not a test): prelim.com (sha256 pinned by sw/exerciser/fetch.sh) on z80_system CPM=1, rtl/control/z80_system_smoke.sv, Verilator 5.020 2026-11-24T12:52:19Z
+# build: verilator --binary --timing -Wno-fatal -Irtl/control --top-module z80_system_smoke -DMEMF='"<hex>"' <files.f RTL> rtl/datapath/z80_mem.v rtl/control/z80_system.v rtl/control/z80_system_smoke.sv  (hex = '@0100' + one byte/line of prelim.com)
+Preliminary tests complete
+[smoke] done=1 bus_conflict=0 half-T-clocks=17483
