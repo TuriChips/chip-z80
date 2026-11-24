@@ -7,20 +7,25 @@ Usage:
     --check    build the table, run the checks, and verify the committed files equal the regenerated text
 
 The table below is the encoding, written from the instruction set (spec 6.0/6.1), never from the ref model. The checks:
-  1. documented set == ref/refz80.py census() exactly (698 forms), per group main 252, CB 248, DD 70, ED 58, FD 70;
+  1. the 698 documented forms == ref/refz80.py census() (per group main 252, CB 248, DD 70, ED 58, FD 70); the 152 forms
+     of decision 9 (spec 6.0a: U1 92, U2 50, U3 10) are enumerated here from the spec's rules, and once the ref model
+     has them too (census() = 850) the whole table must equal census() exactly;
   2. every form's M-cycle types and lengths equal the spec 6.1 table row it names (parsed from the spec text);
   3. every form's T states, for each outcome (condition met / not met, repeating / not), equal what ref/refz80.py's
      step() returns for that form.
-Undocumented encodings decode as documented = 0 with the NOP plan (control treats them as NOP and tests never run them).
+Encodings outside the 850 decode as specified = 0 with the NOP plan (control treats them as NOP and tests never run them).
 
-Rows for decision 9's 152 undocumented forms (chip-z80 PR #23) would be added as more put() calls with documented
-still 1 only if the spec makes them documented; they are NOT implemented here.
+Decision 9 (b), spec 6.0a: the 152 extra forms are table rows like any other (specified = 1):
+  U1  DD/FD + 92 opcodes naming H/L as an 8-bit register: the unprefixed kind (LD_R_R, LD_R_N, INC_R, DEC_R, ALU_R) with
+      one extra OCF(4) first; z80_control substitutes IXH/IXL/IYH/IYL (r8 8-11) for r = 4, 5 in those kinds under DD/FD;
+  U2  DD/FD + LD r,r' on B,C,D,E,A: LD_R_R with the extra OCF(4), no substitution;
+  U3  SLL: CB 30-37 and DD/FD CB d 36 are ROT_R / ROT_HL / ROT_IXD with ir[5:3] = 6, so alu_op 11 + 6 = 17.
 
 Decode output (all combinational from {prefix, ir}); a "plan" always covers the WHOLE instruction, from the first
 fetch (prefix fetches and the d / op bytes of DD CB d op included):
-  documented  1   the form is one of the 698
+  specified   1   the form is one of the 850 (698 documented + decision 9's 152)
   is_prefix   1   this byte only selects a prefix: prefix 0 and ir in CB DD ED FD, or prefix 2/4 and ir = CB.
-                  The plan is then OCF(4) and control fetches on (documented = 0 for it)
+                  The plan is then OCF(4) and control fetches on (specified = 0 for it)
   ins         7   instruction kind, z80_decode_kinds.vh (`Z80K_*); one per semantic, see the table below
   pn          3   M cycles when the instruction runs its full plan (condition met / repeating)
   pn_s        3   M cycles when the condition is not met / the block instruction ends (= pn when no condition)
@@ -53,12 +58,13 @@ def kind(name):
         kinds.append(name)
     return kinds.index(name)
 
-def put(pre, op, name, plan, row, short=None, srow=None, mnem=""):
+def put(pre, op, name, plan, row, short=None, srow=None, mnem="", extra=False, lead=0):
     """pre in '', CB, DD, ED, FD, DDCB, FDCB. plan: 'OCF4 OD3' style (OD, MR, SRL... all spelled MR/MW here).
-    row: label of the spec 6.1 table row for the full plan; short/srow: the same for the not-met / ends outcome."""
+    row: label of the spec 6.1 table row for the full plan; short/srow: the same for the not-met / ends outcome.
+    extra: a decision 9 form (not one of the 698). lead: leading cycles of the plan that are not in the row (U1/U2 prefix OCF)."""
     key = (PREFIX[pre], op)
     assert key not in forms, (pre, hex(op))
-    forms[key] = dict(kind=kind(name), plan=P(plan), row=row, short=P(short) if short else None, srow=srow, mnem=mnem or name)
+    forms[key] = dict(kind=kind(name), plan=P(plan), row=row, short=P(short) if short else None, srow=srow, mnem=mnem or name, extra=extra, lead=lead)
 
 R8 = ["B", "C", "D", "E", "H", "L", "(HL)", "A"]
 
@@ -132,11 +138,10 @@ for op in range(256):
 # ------------------------------------------------------------------ CB
 for op in range(256):
     x, y, z = op >> 6, (op >> 3) & 7, op & 7
-    if x == 0 and y == 6:
-        continue                                     # SLL, undocumented
+    sll = (x == 0 and y == 6)                        # U3: SLL, decision 9
     if x == 0:
-        if z == 6: put("CB", op, "ROT_HL", "OCF4 OCF4 MR4 MW3", "rot (HL)")
-        else: put("CB", op, "ROT_R", "OCF4 OCF4", "rot r")
+        if z == 6: put("CB", op, "ROT_HL", "OCF4 OCF4 MR4 MW3", "rot (HL)", extra=sll)
+        else: put("CB", op, "ROT_R", "OCF4 OCF4", "rot r", extra=sll)
     elif x == 1:
         if z == 6: put("CB", op, "BIT_HL", "OCF4 OCF4 MR4", "BIT b,(HL)")
         else: put("CB", op, "BIT_R", "OCF4 OCF4", "BIT b,r; SET b,r; RES b,r")
@@ -189,11 +194,19 @@ for pre in ("DD", "FD"):
         elif op == 0xE5: put(pre, op, "PUSH_IX", "OCF4 OCF5 MW3 MW3", "PUSH IX; PUSH IY")
         elif op == 0xE9: put(pre, op, "JP_IX", "OCF4 OCF4", "JP (IX); JP (IY)")
         elif op == 0xF9: put(pre, op, "LD_SP_IX", "OCF4 OCF6", "LD SP,IX; LD SP,IY")
+    # U1 (halves) and U2 (no-effect prefix), spec 6.0a: the unprefixed form with one more OCF(4) in front
     for op in range(256):
         x, y, z = op >> 6, (op >> 3) & 7, op & 7
-        if z != 6 or (x == 0 and y == 6):
+        if x == 1 and y != 6 and z != 6:
+            put(pre, op, "LD_R_R", "OCF4 OCF4", "LD r,r'", extra=True, lead=1)      # U1 if hl else U2
+        elif x == 0 and z == 6 and y in (4, 5): put(pre, op, "LD_R_N", "OCF4 OCF4 MR3", "LD r,n", extra=True, lead=1)
+        elif x == 0 and z in (4, 5) and y in (4, 5): put(pre, op, "INC_R" if z == 4 else "DEC_R", "OCF4 OCF4", "INC r; DEC r", extra=True, lead=1)
+        elif x == 2 and z in (4, 5): put(pre, op, "ALU_R", "OCF4 OCF4", "alu r", extra=True, lead=1)
+    for op in range(256):
+        x, y, z = op >> 6, (op >> 3) & 7, op & 7
+        if z != 6:
             continue
-        if x == 0: put(pre + "CB", op, "ROT_IXD", "OCF4 OCF4 MR3 MR5 MR4 MW3", "rot (IX+d); rot (IY+d)")
+        if x == 0: put(pre + "CB", op, "ROT_IXD", "OCF4 OCF4 MR3 MR5 MR4 MW3", "rot (IX+d); rot (IY+d)", extra=(y == 6))
         elif x == 1: put(pre + "CB", op, "BIT_IXD", "OCF4 OCF4 MR3 MR5 MR4", "BIT b,(IX+d); BIT b,(IY+d)")
         else: put(pre + "CB", op, "RES_IXD" if x == 2 else "SET_IXD", "OCF4 OCF4 MR3 MR5 MR4 MW3", "SET/RES b,(IX+d); same for IY")
 # ------------------------------------------------------------------ prefix bytes (not forms)
@@ -252,17 +265,28 @@ def run_checks():
     log = []
     ok = True
     def say(s): log.append(s)
-    # 1. census
+    # 1. census. The 698 documented forms must equal the ref model's; the 152 of decision 9 are checked against it
+    #    only once the ref model has them (census() = 850), and always against the spec's counts (92 + 50 + 10).
     cs, groups = census_set()
     mine = {k for k in forms}
-    say(f"documented forms in the table: {len(mine)}; ref census: {len(cs)} {groups}")
-    only_t, only_r = sorted(mine - cs), sorted(cs - mine)
-    say(f"in table, not in census: {len(only_t)} {only_t[:8]}; in census, not in table: {len(only_r)} {only_r[:8]}")
-    ok &= not only_t and not only_r and len(mine) == 698
+    doc = {k for k, f in forms.items() if not f["extra"]}
+    ext = mine - doc
+    say(f"forms in the table: {len(mine)} = {len(doc)} documented + {len(ext)} decision 9; ref census: {len(cs)} {groups}")
+    ref_has_ext = len(cs) > 698
+    cmp_set = mine if ref_has_ext else doc
+    only_t, only_r = sorted(cmp_set - cs), sorted(cs - cmp_set)
+    say(f"in table, not in census: {len(only_t)} {only_t[:8]}; in census, not in table: {len(only_r)} {only_r[:8]}"
+        + ("" if ref_has_ext else "  (the ref model does not have the 152 yet: compared on the 698 only)"))
+    ok &= not only_t and not only_r and len(doc) == 698 and len(mine) == 850
     pre_names = ["main", "CB", "DD", "ED", "FD", "DDCB", "FDCB"]
-    cnt = {n: sum(1 for k in mine if k[0] == i) for i, n in enumerate(pre_names)}
-    say(f"table per prefix: {cnt}; spec 6.0: main 252, CB 248, DD 70 (39 + 31 DDCB), ED 58, FD 70")
+    cnt = {n: sum(1 for k in doc if k[0] == i) for i, n in enumerate(pre_names)}
+    say(f"documented per prefix: {cnt}; spec 6.0: main 252, CB 248, DD 70 (39 + 31 DDCB), ED 58, FD 70")
     ok &= (cnt["main"], cnt["CB"], cnt["DD"] + cnt["DDCB"], cnt["ED"], cnt["FD"] + cnt["FDCB"]) == (252, 248, 70, 58, 70)
+    sll = {k for k in ext if k[0] in (1, 5, 6)}
+    u12 = {k for k in ext if k[0] in (2, 4)}
+    u1 = {k for k in u12 if forms[k]["kind"] != kinds.index("LD_R_R") or (k[1] >> 3 & 7 in (4, 5)) or (k[1] & 7 in (4, 5))}
+    say(f"decision 9: U1 {len(u1)} (spec 92), U2 {len(u12) - len(u1)} (spec 50), U3 SLL {len(sll)} (spec 10)")
+    ok &= (len(u1), len(u12) - len(u1), len(sll)) == (92, 50, 10)
     # 2. plan vs spec text
     text = open(specf, encoding="utf-8").read()
     rows = spec_rows(text)
@@ -272,7 +296,7 @@ def run_checks():
         for plan, lab, what in ((f["plan"], f["row"], "full"), (f["short"], f["srow"], "short")):
             if plan is None: continue
             try:
-                want = row_plan(rows, lab)
+                want = [("OCF", 4)] * f["lead"] + row_plan(rows, lab)
             except KeyError:
                 say(f"  NO SPEC ROW {lab!r} for {pre_names[k[0]]} {k[1]:02X}"); bad += 1; continue
             if plan != want:
@@ -285,6 +309,8 @@ def run_checks():
     bad = 0
     for k, f in sorted(forms.items()):
         want = {sum_t(f["plan"])} | ({sum_t(f["short"])} if f["short"] else set())
+        if f["extra"] and not ref_has_ext:
+            continue                                 # no ref-model step() for these yet; plan vs spec rows above covers them
         got = set()
         seqs = {0: lambda o: [o], 1: lambda o: [0xCB, o], 2: lambda o: [0xDD, o, 5], 3: lambda o: [0xED, o],
                 4: lambda o: [0xFD, o, 5], 5: lambda o: [0xDD, 0xCB, 5, o], 6: lambda o: [0xFD, 0xCB, 5, o]}
@@ -306,7 +332,7 @@ def run_checks():
                             got.add(("UNDOC",))
         if got != want:
             say(f"  T MISMATCH {pre_names[k[0]]} {k[1]:02X} {f['mnem']}: table {sorted(want)} ref {sorted(got, key=str)}"); bad += 1
-    say(f"T states vs ref step(): {len(forms)} forms, {bad} mismatches")
+    say(f"T states vs ref step(): {len(doc) if not ref_has_ext else len(forms)} forms, {bad} mismatches")
     ok &= bad == 0
     return ok, log
 
@@ -322,13 +348,13 @@ def emit():
     L = []
     w = L.append
     w("// Generated by rtl/control/gen_decode.py from its table: do not edit by hand.")
-    w("// z80_decode: {prefix, ir} -> documented, is_prefix, instruction kind and the cycle plan.")
+    w("// z80_decode: {prefix, ir} -> specified, is_prefix, instruction kind and the cycle plan.")
     w("// Ports and encoding: docs/blocks.md section 3 (z80_decode), see the header of gen_decode.py for the fields.")
     w("// prefix: 0 none, 1 CB, 2 DD, 3 ED, 4 FD, 5 DD CB, 6 FD CB. Kinds: z80_decode_kinds.vh.")
     w("module z80_decode (")
     w("    input  wire [2:0]  prefix,")
     w("    input  wire [7:0]  ir,")
-    w("    output wire        documented,")
+    w("    output wire        specified,")
     w("    output wire        is_prefix,")
     w("    output wire [6:0]  ins,")
     w("    output wire [2:0]  pn,")
@@ -341,7 +367,7 @@ def emit():
     w("    reg [6:0]  ins_q;")
     w("    reg [2:0]  pn_q, pns_q;")
     w("    reg [17:0] pt_q, pl_q;")
-    w("    assign documented = d_q;")
+    w("    assign specified  = d_q;")
     w("    assign is_prefix  = p_q;")
     w("    assign ins        = ins_q;")
     w("    assign pn         = pn_q;")
@@ -350,7 +376,7 @@ def emit():
     w("    assign plan_type  = pt_q;")
     w("    assign plan_len   = pl_q;")
     w("    always @* begin")
-    w("        // default: undocumented, runs as NOP (OCF 4)")
+    w("        // default: not one of the 850 specified forms, runs as NOP (OCF 4)")
     w("        d_q = 1'b0; p_q = 1'b0; s3_q = 1'b0; ins_q = 7'd%d; pn_q = 3'd1; pns_q = 3'd1;" % kinds.index("NOP"))
     w("        pt_q = 18'd0; pl_q = {14'd0, 3'd4};".replace("{14'd0, 3'd4}", "18'd4"))
     w("        case ({prefix, ir})")

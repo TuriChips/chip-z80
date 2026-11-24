@@ -1,10 +1,9 @@
-documented forms in the table: 698; ref census: 698 {'main': 252, 'CB': 248, 'DD': 70, 'ED': 58, 'FD': 70}
-in table, not in census: 0 []; in census, not in table: 0 []
-table per prefix: {'main': 252, 'CB': 248, 'DD': 39, 'ED': 58, 'FD': 39, 'DDCB': 31, 'FDCB': 31}; spec 6.0: main 252, CB 248, DD 70 (39 + 31 DDCB), ED 58, FD 70
-spec 6.1 rows parsed from /tmp/spec.md: 81
-plan vs spec 6.1: 698 forms, 0 mismatches
+forms in the table: 850 = 698 documented + 152 decision 9; ref census: 698 {'main': 252, 'CB': 248, 'DD': 70, 'ED': 58, 'FD': 70}
+in table, not in census: 0 []; in census, not in table: 0 []  (the ref model does not have the 152 yet: compared on the 698 only)
+documented per prefix: {'main': 252, 'CB': 248, 'DD': 39, 'ED': 58, 'FD': 39, 'DDCB': 31, 'FDCB': 31}; spec 6.0: main 252, CB 248, DD 70 (39 + 31 DDCB), ED 58, FD 70
+decision 9: U1 92 (spec 92), U2 50 (spec 50), U3 SLL 10 (spec 10)
+spec 6.1 rows parsed from docs/spec.md: 81
+plan vs spec 6.1: 850 forms, 0 mismatches
 T states vs ref step(): 698 forms, 0 mismatches
-RESULT: PASS
-spec: docs/spec.md of igris/chip-z80-18 (760aa41); spec is not on main yet
 RESULT: PASS
 committed z80_decode.v and z80_decode_kinds.vh == regenerated: yes

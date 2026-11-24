@@ -79,12 +79,12 @@ module z80_control (
     assign tmp  = tmp_r;
 
     // ---------------------------------------------------------------- decode
-    wire        documented, is_prefix, s3;
+    wire        specified, is_prefix, s3;
     wire [6:0]  ins;
     wire [2:0]  pn, pn_s;
     wire [17:0] plan_type, plan_len;
     z80_decode u_decode (
-        .prefix(prefix), .ir(ir), .documented(documented), .is_prefix(is_prefix), .ins(ins),
+        .prefix(prefix), .ir(ir), .specified(specified), .is_prefix(is_prefix), .ins(ins),
         .pn(pn), .pn_s(pn_s), .s3(s3), .plan_type(plan_type), .plan_len(plan_len)
     );
 
@@ -112,8 +112,13 @@ module z80_control (
     wire [3:0] dd_hi   = (dd == 2'd0) ? 4'd0 : (dd == 2'd1) ? 4'd2 : (dd == 2'd2) ? 4'd4 : 4'd12;
     wire [2:0] src3    = ir[2:0];
     wire [2:0] dst3    = ir[5:3];
-    wire [3:0] src4    = {1'b0, src3};
-    wire [3:0] dst4    = {1'b0, dst3};
+    // Decision 9 U1 (spec 6.0a): under DD/FD the 8-bit-register kinds name IXH/IXL (IYH/IYL) for r = 4, 5. Those kinds only
+    // occur under DD/FD for the U1/U2 forms; LD r,(IX+d) and the like are other kinds and keep the real H and L.
+    wire       half_k  = (prefix == 3'd2 || prefix == 3'd4) &&
+                         (ins == `Z80K_LD_R_R || ins == `Z80K_LD_R_N || ins == `Z80K_INC_R || ins == `Z80K_DEC_R ||
+                          ins == `Z80K_ALU_R);
+    wire [3:0] src4    = (half_k && (src3 == 3'd4 || src3 == 3'd5)) ? (ix_hi + {3'b0, src3[0]}) : {1'b0, src3};
+    wire [3:0] dst4    = (half_k && (dst3 == 3'd4 || dst3 == 3'd5)) ? (ix_hi + {3'b0, dst3[0]}) : {1'b0, dst3};
     wire       src_a   = (src3 == 3'd7);
     wire       dst_a   = (dst3 == 3'd7);
     wire       dn      = ir[3];             // block instruction direction: 0 inc, 1 dec
@@ -688,5 +693,5 @@ module z80_control (
         end
     end
 
-    wire unused_ok = &{1'b0, documented, R_C, R_H, PRD, PWR, IOC, tw};
+    wire unused_ok = &{1'b0, specified, R_C, R_H, PRD, PWR, IOC, tw};
 endmodule
