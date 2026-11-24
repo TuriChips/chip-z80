@@ -79,7 +79,7 @@ module z80_alu (
             6'd14, 6'd22: begin rs = {cf, b[7:1]};   rs_c = b[0]; end  // RR, RRA
             6'd15:        begin rs = {b[6:0], 1'b0}; rs_c = b[7]; end  // SLA
             6'd16:        begin rs = {b[7], b[7:1]}; rs_c = b[0]; end  // SRA
-            // op 17 (SLL) is unused until Sai rules on decision 9 (#14 / PR #23): falls to default
+            6'd17:        begin rs = {b[6:0], 1'b1}; rs_c = b[7]; end  // SLL (decision 9, spec 6.0a U3)
             6'd18:        begin rs = {1'b0, b[7:1]}; rs_c = b[0]; end  // SRL
             default: ;
         endcase
@@ -135,7 +135,7 @@ module z80_alu (
                 result = dec8; fupd = 1'b1;
                 nf = {dec8[7], (dec8 == 8'd0), 1'b0, (b[3:0] == 4'h0), 1'b0, (b == 8'h80), 1'b1, cf};
             end
-            6'd11, 6'd12, 6'd13, 6'd14, 6'd15, 6'd16, 6'd18: begin  // CB rotates/shifts
+            6'd11, 6'd12, 6'd13, 6'd14, 6'd15, 6'd16, 6'd17, 6'd18: begin  // CB rotates/shifts
                 result = rs; fupd = 1'b1;
                 nf = szp(rs); nf[FC] = rs_c;
             end
@@ -200,7 +200,7 @@ module z80_alu (
                 result = as8; fupd = 1'b1;
                 nf = {as8[7], (as8 == 8'd0) & z16, 1'b0, as_h, 1'b0, as_v, is_sub, as_c};
             end
-            default: result = b;                               // 17 (SLL, decision 9), 42-63: none
+            default: result = b;                               // 42-63: none
         endcase
     end
 
