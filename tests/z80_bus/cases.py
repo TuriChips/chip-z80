@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Z80 bus-cycle test cases (C2 basic cycles, C3 WAIT, C5 BUSRQ/BUSAK, C6 reset).
+"""Z80 bus-cycle test cases (C2 basic cycles, C3 WAIT, C4 interrupts, C5 BUSRQ/BUSAK, C6 reset).
 
 Builds, for every case, tests/z80_bus/vectors/<id>/{prog.hex,prog1.hex,prog2.hex,stim.hex,exp.hex,mask.hex} and
 vectors/cases.txt (read by tb/z80_bus/tb.sv), then cross-checks the instruction stream against Beru's ref/refz80.py
@@ -21,10 +21,11 @@ from zbus import Stim, Run, PINS, io_data, INTVEC  # noqa: E402
 CASES = []
 
 
-def case(cid, spec, desc, tail, segs, stim=None, plan=None, txplan=None, banks=None, passes=0):
-    """tail = halves to run after the last pass reaches HALT; passes = resets after power-up."""
+def case(cid, spec, desc, tail, segs, stim=None, plan=None, txplan=None, banks=None, passes=0, vec=INTVEC, halts=1):
+    """tail = halves to run after the last pass reaches its halts-th HALT (and stays halted); passes = resets after power-up;
+    vec = byte on the bus in INTA (int, or one per INTA); halts = HALT instructions executed before the case ends (C4: a HALT may be left by an interrupt)."""
     CASES.append(dict(id=cid, spec=spec, desc=desc, tail=tail, segs=segs, stim=stim or powerup(Stim()), plan=plan,
-                      txplan=txplan, banks=banks or {}, passes=passes))
+                      txplan=txplan, banks=banks or {}, passes=passes, vec=vec, halts=halts))
 
 
 def powerup(stim, E=8):
@@ -64,7 +65,7 @@ def im(m): return [0xED, {0: 0x46, 1: 0x56, 2: 0x5E}[m]]
 
 
 
-def plan_for(waits=None, neg=None, busrq=None, int_low=None, resets=None, int_high=None):
+def plan_for(waits=None, neg=None, busrq=None, int_low=None, resets=None, int_high=None, nmi_low=(), nmi_high=()):
     """Keys are (kind, occurrence) in pass 0 or (pass, kind, occurrence); kind is the M-cycle kind (OCF OD MR MW PR PW INTA) or 'HM1'
     for halted opcode fetches (HALT's own M1 is HM1 #0).
     waits {key: k}: k WAIT states in that M cycle (low from T2H for memory/M1, from Tw*H for I/O).
@@ -75,10 +76,12 @@ def plan_for(waits=None, neg=None, busrq=None, int_low=None, resets=None, int_hi
     waits, neg, busrq, resets = norm(waits), norm(neg), norm(busrq), norm(resets)
     int_low = {(k if len(k) == 3 else (0,) + k) for k in (int_low or ())}
     int_high = {(k if len(k) == 3 else (0,) + k) for k in (int_high or ())}
+    nmi_low = {(k if len(k) == 3 else (0,) + k) for k in nmi_low}
+    nmi_high = {(k if len(k) == 3 else (0,) + k) for k in nmi_high}
     count = {}
 
     def plan(n, c, h0, st, run):
-        kinds = [c["k"]] + (["HM1"] if c.get("halt") else [])
+        kinds = [c["k"]] + (["HM1"] if c.get("halt") else []) + (["NMIA"] if c.get("nmi") else [])
         if c["k"] == "INTA":
             st.set(h0, "int", 1)
         for k in kinds:
@@ -100,6 +103,10 @@ def plan_for(waits=None, neg=None, busrq=None, int_low=None, resets=None, int_hi
                 st.set(h0, "int", 0)
             if key in int_high:
                 st.set(h0, "int", 1)
+            if key in nmi_low:
+                st.set(h0, "nmi", 0)
+            if key in nmi_high:
+                st.set(h0, "nmi", 1)
             if key in resets:
                 off, ln, bank = resets[key]
                 st.set(h0 + off, "reset", 0)
@@ -235,16 +242,149 @@ case("C6-09-reset-iff-im", "§5 / §3.0 reset: IFF1/IFF2 = 0 and IM = 0 (observe
      20, PASS1, banks={1: PASS_IFF, 2: PASS_IM}, passes=2,
      plan=plan_for(resets={("OCF", 12): (0, 8, 1), (1, "OCF", 5): (0, 8, 2)}, int_low={(1, "OCF", 0), (2, "OCF", 4)}, int_high={(1, "OCF", 4)}))
 
+# ----------------------------------------------------------------------------------------------- C4
+RETN, RETI = [0xED, 0x45], [0xED, 0x4D]
+
+
+def asm(org, *items):
+    """Tiny assembler: byte lists, 'name:' labels, ('JP'|'JPPE'|'JPPO', 'name') -> [(org, bytes)] plus the label table."""
+    op = {"JP": 0xC3, "JPPE": 0xEA, "JPPO": 0xE2}
+    labels, pc = {}, org
+    for it in items:
+        if isinstance(it, str):
+            labels[it.rstrip(":")] = pc
+        else:
+            pc += 3 if isinstance(it, tuple) else len(it)
+    out = bytearray()
+    for it in items:
+        if isinstance(it, tuple):
+            out += bytes([op[it[0]], labels[it[1]] & 255, labels[it[1]] >> 8])
+        elif not isinstance(it, str):
+            out += bytes(it)
+    return [(org, bytes(out))], labels
+
+
+def code(*parts):
+    """Several asm segments -> one segment list."""
+    segs = []
+    for sg in parts:
+        segs += sg[0] if isinstance(sg, tuple) else sg
+    return segs
+
+
+SPI = ld_dd_nn(3, 0x4100)
+I = lambda k, o=0: (k, o)
+
+# --- IFF1/IFF2, EI delay (§8.1, §8.4 item 5): the vector is mode 0 RST 38H (FFH, the harness default); the handler at 0038H is HALT
+H38 = asm(0x38, [HALT])
+case("C4-01-ei-delay", "§8.1 EI row: INT not accepted until after the instruction following EI; §8.4 item 5; §8.2 mode 0 RST 38H = 12 T; §6.3 R counts INTA",
+     "LD SP; EI; NOP; NOP; HALT with INT low from EI's T1H: not taken at the end of EI, taken at the end of the NOP after it (pushed PC = 0005H), handler HALT at 0038H",
+     20, code(asm(0, SPI, [EI], [NOP], [NOP], [HALT]), H38), plan=plan_for(int_low={("OCF", 1)}))
+case("C4-02-ei-ei", "§8.4 item 5: EI;EI restarts the delay (INT accepted only after the instruction following the last EI); §8.1",
+     "LD SP; EI; EI; NOP; NOP; HALT with INT low from the first EI's T1H: not taken at the end of either EI, taken after the NOP (pushed PC = 0006H)",
+     20, code(asm(0, SPI, [EI], [EI], [NOP], [NOP], [HALT]), H38), plan=plan_for(int_low={("OCF", 1)}))
+case("C4-03-di-own-sample", "§8.4 item 5: DI updates IFF before its own INT sample (DI blocks an INT pending at its own end); §8.1 DI row",
+     "LD SP; EI; NOP; NOP; DI; NOP; NOP; HALT with INT low from DI's T1H and never released: never taken, the program reaches its HALT",
+     20, code(asm(0, SPI, [EI], [NOP], [NOP], [DI], [NOP], [NOP], [HALT]), H38), plan=plan_for(int_low={("OCF", 4)}))
+case("C4-04-retn-own-sample", "§8.4 item 5: RETN's IFF1 <- IFF2 is visible to its own sample (RETN with IFF2 = 1 accepts a pending INT at its own end, no delay); §8.1 NMI row (IFF2 keeps the old IFF1), RETN row; §8.2 NMI 11 T",
+     "EI; NOP; NOP; NMI on the third instruction; handler NOP; RETN with INT low from RETN's T1H: after RETN, INT is taken (pushed PC = return address 0006H)",
+     20, code(asm(0, SPI, [EI], [NOP], [NOP], [NOP], [HALT]), asm(0x66, [NOP], RETN), H38),
+     plan=plan_for(nmi_low={("OCF", 3)}, nmi_high={("OCF", 5)}, int_low={("OCF", 6)}))
+
+# --- NMI (§4.6, §8.2) and IFF2 -> P/V (§8.1); results shown on the pins through OUT (n),A and JP PE
+NMI_MAIN = lambda pre: asm(0, SPI, *pre, [NOP], [NOP], [NOP], LD_A_I, ("JPPE", "x"), out_n_a(0x20), [HALT], "x:", out_n_a(0x21), [HALT])
+NMI_H = asm(0x66, LD_A_I, ("JPPE", "hx"), out_n_a(0x10), RETN, "hx:", out_n_a(0x11), RETN)
+case("C4-05-nmi-iff1-1", "§4.6 / §8.2 NMI: OCF(5) with the data byte ignored and PC not advanced, SWH SWL, PC = 0066H, 11 T; §8.1 NMI row (IFF1 = 0, IFF2 keeps 1), LD A,I row (P/V = IFF2), RETN row",
+     "EI then NMI on a NOP: handler sees P/V = 1 (LD A,I; JP PE), RETN restores IFF1, and after returning P/V = IFF2 = 1 again",
+     20, code(NMI_MAIN([[EI]]), NMI_H), plan=plan_for(nmi_low={("OCF", 3)}, nmi_high={("OCF", 5)}))
+case("C4-06-nmi-iff1-0", "§8.2 NMI cannot be disabled; §8.1 NMI row (IFF2 keeps the old IFF1 = 0), RETN row (IFF1 <- IFF2 = 0): INT held low afterwards is still not taken",
+     "DI then NMI: handler sees P/V = 0, RETN leaves IFF1 = 0, INT low from after the return is never taken, and P/V = 0 afterwards",
+     20, code(NMI_MAIN([[DI]]), NMI_H, H38), plan=plan_for(nmi_low={("OCF", 3)}, nmi_high={("OCF", 5)}, int_low={("OCF", 11)}))
+RETI_MAIN = asm(0, SPI, [EI], [NOP], [NOP], [NOP], LD_A_I, ("JPPE", "x"), out_n_a(0x20), [HALT], "x:", out_n_a(0x21), [EI], [NOP], [HALT])
+case("C4-07-reti-iff", "§8.1 RETI row: IFF unchanged (directed test, PM p.247): after an NMI (IFF1 = 0, IFF2 = 1) RETI leaves IFF1 = 0 and IFF2 = 1; §8.4 item 5",
+     "EI, NMI, handler RETI, with INT low from after the return: not taken (IFF1 still 0), P/V = IFF2 = 1, then EI; NOP: INT is taken",
+     20, code(RETI_MAIN, asm(0x66, RETI), H38), plan=plan_for(nmi_low={("OCF", 3)}, nmi_high={("OCF", 5)}, int_low={("OCF", 7)}))
+case("C4-08-int-mode1", "§8.2 INT mode 1: INTA(7) SWH SWL = 13 T, restart to 0038H, bus byte ignored (C9 on the bus here); §8.1 INT row (IFF1 = IFF2 = 0 as seen by LD A,I)",
+     "IM 1; EI; NOP; INT low: handler at 0038H sees P/V = 0",
+     20, code(asm(0, SPI, im(1), [EI], [NOP], [NOP], [HALT]), asm(0x38, LD_A_I, ("JPPE", "hx"), out_n_a(0x10), [HALT], "hx:", out_n_a(0x11), [HALT])),
+     plan=plan_for(int_low={("OCF", 4)}), vec=0xC9)
+case("C4-09-int-mode0-rst10", "§8.2 INT mode 0: RST p only, MK3880 INTA(6) SWH SWL = 12 T; RST 10H on the bus goes to 0010H",
+     "default mode 0; EI; NOP; INT low with RST 10H: restart to 0010H",
+     20, code(asm(0, SPI, [EI], [NOP], [NOP], [HALT]), asm(0x10, [HALT])), plan=plan_for(int_low={("OCF", 1)}), vec=0xD7)
+case("C4-10-int-mode0-rst28", "§8.2 INT mode 0: RST 28H on the bus goes to 0028H",
+     "default mode 0; EI; NOP; INT low with RST 28H: restart to 0028H",
+     20, code(asm(0, SPI, [EI], [NOP], [NOP], [HALT]), asm(0x28, [HALT])), plan=plan_for(int_low={("OCF", 1)}), vec=0xEF)
+case("C4-11-int-mode2", "§8.2 INT mode 2: INTA(7) SWH SWL MRL MRH = 19 T, pointer {I, vector}, low byte first; vector bit 0 = 0",
+     "I = 30H, IM 2, vector 40H: PC pushed, pointer 3040H -> handler 5000H, which sees P/V = 0 and shows I on A15:8",
+     20, code(asm(0, ld_r_n(A, 0x30), LD_I_A, SPI, im(2), [EI], [NOP], [NOP], [HALT]), [(0x3040, bytes([0x00, 0x50]))],
+              asm(0x5000, LD_A_I, ("JPPE", "hx"), out_n_a(0x10), [HALT], "hx:", out_n_a(0x11), [HALT])),
+     plan=plan_for(int_low={("OCF", 7)}), vec=0x40)
+case("C4-12-int-mode2-fe", "§8.2 INT mode 2: another pointer (I = 20H, vector FEH -> 20FEH/20FFH, handler 1234H)",
+     "I = 20H, IM 2, vector FEH: handler at 1234H",
+     20, code(asm(0, ld_r_n(A, 0x20), LD_I_A, SPI, im(2), [EI], [NOP], [NOP], [HALT]), [(0x20FE, bytes([0x34, 0x12]))], asm(0x1234, [HALT])),
+     plan=plan_for(int_low={("OCF", 7)}), vec=0xFE)
+LDAIR = asm(0, SPI, [EI], [NOP], LD_A_I, ("JPPE", "a"), out_n_a(0x01), "a:", LD_A_R, ("JPPE", "b"), out_n_a(0x02), "b:", [DI], LD_A_I,
+            ("JPPE", "c"), out_n_a(0x03), "c:", LD_A_R, ("JPPE", "d"), out_n_a(0x04), "d:", [HALT])
+case("C4-13-ld-a-ir-pv", "§8.1 LD A,I / LD A,R row: P/V <- IFF2 (both polarities, both opcodes), no interrupt involved",
+     "with IFF2 = 1: LD A,I and LD A,R take JP PE; after DI the same two do not (OUT 03H, OUT 04H on the pins)",
+     20, code(LDAIR))
+for nm, ins, key in (("i", LD_A_I, 5), ("r", LD_A_R, 5)):
+    case(f"C4-1{4 if nm == 'i' else 5}-ld-a-{nm}-int", "§8.1 LD A,I/LD A,R row: P/V = IFF2 as it stands during the instruction, before an interrupt accepted at its end resets it (Beru's item 15); §8.2 mode 1",
+         f"IM 1; EI; NOP; LD A,{nm.upper()} with INT low from its T1H: INT taken at its end, handler RETI, and the P/V it set is still 1 (JP PE taken)",
+         20, code(asm(0, SPI, im(1), [EI], [NOP], ins, ("JPPE", "x"), out_n_a(0x20), [HALT], "x:", out_n_a(0x21), [HALT]), asm(0x38, RETI)),
+         plan=plan_for(int_low={("OCF", 6)}), vec=0xC9)
+
+# --- NMI edge rules (§8.4 item 6), priority, BUSRQ (§8.4 item 4)
+case("C4-16-nmi-edge", "§8.4 item 6 rules 1, 3: edge-triggered, one response per falling edge (nmi_n held low across the return from the first response gives no second one); §8.3, §8.4 item 7",
+     "NMI falls on a NOP and stays low for 7 instructions (handler RETN): one response; released, falls again 2 NOPs later: a second response",
+     20, code(asm(0, SPI, [NOP] * 14, [HALT]), asm(0x66, RETN)),
+     plan=plan_for(nmi_low={("OCF", 2), ("OCF", 11)}, nmi_high={("OCF", 9), ("OCF", 16)}))
+case("C4-17-nmi-over-int", "§4.6 / §8.4 item 6 rule 6: NMI beats INT at the same sampling point; INT (level) is taken after the handler's RETN restores IFF1; §8.2 mode 1",
+     "IM 1; EI; NOP with NMI and INT both low from the NOP's T1H: NMI response first (0066H), RETN, then the INT response",
+     20, code(asm(0, SPI, im(1), [EI], [NOP], [NOP], [HALT]), asm(0x66, RETN), H38), plan=plan_for(nmi_low={("OCF", 4)}, int_low={("OCF", 4)}, nmi_high={("OCF", 6)}), vec=0xC9)
+case("C4-18-nmi-in-response", "§8.4 item 6 rules 4, 5: neither response samples NMI/INT, so the first handler instruction runs; an NMI edge during the response stays pending and is taken at the end of that instruction",
+     "NMI falls on a NOP, rises at the response's M1, falls again at its first stack write; handler NOP; RETN: second NMI taken after the handler's NOP (pushed PC = 0067H)",
+     20, code(asm(0, SPI, [NOP], [NOP], [NOP], [HALT]), asm(0x66, [NOP], RETN)),
+     plan=plan_for(nmi_low={("OCF", 1), ("MW", 0)}, nmi_high={("OCF", 2), ("OCF", 6)}))
+case("C4-19-nmi-at-ei", "§8.4 item 5: the EI delay doesn't apply to NMI; §8.1 EI row",
+     "LD SP; EI with NMI low from EI's T1H: NMI response at the end of EI (pushed PC = 0004H); RETN returns, IFF1 = IFF2 = 1",
+     20, code(asm(0, SPI, [EI], [NOP], [HALT]), asm(0x66, RETN)), plan=plan_for(nmi_low={("OCF", 1)}, nmi_high={("OCF", 3)}))
+case("C4-20-busrq-blocks-int-nmi", "§8.4 item 4: BUSRQ low at the sample blocks INT and NMI; the NMI stays pending and is taken at the end of the next instruction, INT afterwards (RETN restores IFF1); §4.4",
+     "IM 1; EI; NOP; NOP with INT, NMI and BUSRQ all low from the second NOP's T1H: bus request runs, then NOP; NMI at its end; RETN; INT",
+     20, code(asm(0, SPI, im(1), [EI], [NOP], [NOP], [NOP], [HALT]), asm(0x66, RETN), H38),
+     plan=plan_for(nmi_low={("OCF", 5)}, int_low={("OCF", 5)}, busrq={("OCF", 5): 1}, nmi_high={("OCF", 8)}), txplan=txplan_for(2), vec=0xC9)
+case("C4-21-int-withdrawn", "§8.4 item 7: INT may change at any T1H and is level-sampled only at instruction ends: a request withdrawn before the sample is never seen",
+     "EI; NOP; LD A,(nn) with INT low at its first T1H and high again at its last M cycle's T1H: no INTA at its end or later",
+     20, code(asm(0, SPI, [EI], [NOP], ld_a_nn(0x2000), [NOP], [NOP], [HALT]), H38, [(0x2000, bytes([0x5C]))]),
+     plan=plan_for(int_low={("OCF", 3)}, int_high={("MR", 0)}))
+
+# --- HALT (§4.7, §6.3)
+case("C4-22-halt-exit-int", "§4.7: INT with IFF1 = 1 ends a halt at the end of a halted M1 (halt_n rises at its T4L; pushed PC = HALT + 1, §6.3 HALT item 3); §8.4 item 4",
+     "IM 1; EI; NOP; HALT; INT low during the 4th halted M1: handler EI; RETI returns to the NOP after HALT, then HALT again",
+     20, code(asm(0, SPI, im(1), [EI], [NOP], [HALT], [NOP], [HALT]), asm(0x38, [EI], RETI)), plan=plan_for(int_low={("HM1", 3)}), vec=0xC9, halts=2)
+case("C4-23-halt-exit-nmi", "§4.7: NMI ends a halt even with IFF1 = 0; INT with IFF1 = 0 does not (INT held low from HALT's own T1H, never taken); §8.2",
+     "DI; HALT; NMI falls during the 3rd halted M1: handler RETN returns to HALT + 1; the second HALT stays halted with INT still low",
+     20, code(asm(0, SPI, [DI], [HALT], [NOP], [HALT]), asm(0x66, RETN)), plan=plan_for(int_low={("HM1", 0)}, nmi_low={("HM1", 3)}, nmi_high={("HM1", 8)}), halts=2)
+case("C4-24-halt-own-m1-int", "§4.7 / chip-z80#24: INT accepted at the end of HALT's own M1 (HALT is the instruction after EI, IFF1 = 1): halt_n stays 1, no halted M1, pushed PC = HALT + 1",
+     "IM 1; EI; HALT with INT low from EI's T1H: not taken at EI's end, taken at HALT's own T4 sample; halt_n never falls; handler 0038H is OUT (10H),A with A = 77H; HALT",
+     20, code(asm(0, SPI, ld_r_n(A, 0x77), im(1), [EI], [HALT], [HALT]), asm(0x38, out_n_a(0x10), [HALT])), plan=plan_for(int_low={("OCF", 4)}), vec=0xC9, halts=2)
+case("C4-25-halt-own-m1-nmi", "§4.7 / chip-z80#24: a pending NMI (§8.4 item 6) accepted at the end of a handler's first instruction HALT: halt_n stays 1, pushed PC = HALT + 1",
+     "NMI falls on a NOP, rises at the response's M1, falls again at its first stack write; the handler is HALT: second NMI taken at HALT's own T4 sample (halt_n stays 1), then the handler HALT really halts",
+     20, code(asm(0, SPI, [NOP], [NOP], [HALT]), asm(0x66, [HALT])), plan=plan_for(nmi_low={("OCF", 1), ("MW", 0)}, nmi_high={("OCF", 2)}), halts=2)
+case("C4-26-halt-own-m1-busrq", "§4.7 / chip-z80#24: BUSRQ low at HALT's own T4 sample blocks the interrupt: halt_n falls at T4L as usual, the bus request runs, the INT is taken at the end of the first halted M1 (halt_n rises at its T4L)",
+     "IM 1; EI; NOP; HALT with INT and BUSRQ low from HALT's T1H, 2 Tx; then one halted M1 ending in the INT; handler HALT",
+     20, code(asm(0, SPI, im(1), [EI], [NOP], [HALT], [NOP]), H38), plan=plan_for(int_low={("OCF", 5)}, busrq={("OCF", 5): 1}), txplan=txplan_for(2), vec=0xC9, halts=2)
+
 # ================================================================================================= driver
 def build(cs):
     mem = bytearray(65536)
     for a, d in cs["segs"]:
         mem[a:a + len(d)] = d
-    run = Run(mem, cs["banks"], cs["stim"], cs["plan"], cs["txplan"])
+    run = Run(mem, cs["banks"], cs["stim"], cs["plan"], cs["txplan"], cs["vec"])
     mark = {}
 
     def done(r):
-        if r.pass_no >= cs["passes"] and r.cpu.halted and not r.queue and "h" not in mark:
+        if r.pass_no >= cs["passes"] and r.cpu.halted and not r.queue and not r.resp and r.halts >= cs["halts"] and "h" not in mark:
             mark["h"] = len(r.rows)
         return "h" in mark and len(r.rows) >= mark["h"] + cs["tail"]
     run.run(done)
@@ -287,6 +427,15 @@ def write_vectors(cs, run):
         for h in range(len(run.rows)):
             v = [st.S(sg, h) for sg in ("wait", "busrq", "int", "nmi", "reset")]
             f.write(f"{v[0] | v[1] << 1 | v[2] << 2 | v[3] << 3 | v[4] << 4:02X}\n")
+    vecp = os.path.join(d, "vec.hex")
+    if any(b != INTVEC for _, _, b in run.vec_ranges):     # INTA data per half (the harness defaults to FFH)
+        v = [INTVEC] * len(run.rows)
+        for a, b, byte in run.vec_ranges:
+            v[a:b] = [byte] * (b - a)
+        with open(vecp, "w") as f:
+            f.write("\n".join(f"{x:02X}" for x in v) + "\n")
+    elif os.path.exists(vecp):
+        os.remove(vecp)
     with open(os.path.join(d, "exp.hex"), "w") as fe, open(os.path.join(d, "mask.hex"), "w") as fm:
         for r in run.rows:
             v, m = pack(r)
@@ -306,7 +455,8 @@ def crosscheck(cs, run, log):
     ports = []
     z.io_in = lambda p: (ports.append(("in", p, io_data(p))), io_data(p))[1]
     z.io_out = lambda p, v: ports.append(("out", p, v))
-    z.int_data = lambda: INTVEC
+    vecs = {}
+    z.int_data = lambda: vecs["v"]
     bad = 0
     nstep = 0
     for st in run.steps:
@@ -316,9 +466,10 @@ def crosscheck(cs, run, log):
                 for a, d in cs["banks"][st[1]]:
                     z.mem[a:a + len(d)] = d
             continue
-        _, name, T, pc, i, r, cyc, intl = st
+        _, name, T, pc, i, r, cyc, resp, info = st
         ports.clear()
-        z.int_line = intl
+        z.nmi_pending, z.int_line = info["samp"]            # what the sample at the end of the previous instruction saw (BUSRQ low = neither)
+        vecs["v"] = next((c["data"] for c in cyc if c["k"] == "INTA"), INTVEC)
         try:
             t = z.step()
         except Exception as e:                           # noqa: BLE001
@@ -326,8 +477,8 @@ def crosscheck(cs, run, log):
             bad += 1
             break
         exp_ports = [("in" if c["k"] == "PR" else "out", c["a"], c["data"]) for c in cyc if c["k"] in ("PR", "PW")]
-        got = (t, z.pc, z.i, z.r, ports[:])
-        want = (T, pc, i, r, exp_ports)
+        got = (t, z.pc, z.i, z.r, ports[:], z.iff1, z.iff2, z.im, z.halted, (z.f >> 2 & 1) if info["pv"] is not None else None)
+        want = (T, pc, i, r, exp_ports, info["iff1"], info["iff2"], info["im"], info["halted"], info["pv"])
         if got != want:
             bad += 1
             log.write(f"  {cs['id']} step {nstep} {name}: DISAGREE ref (T,pc,i,r,ports)={got} trace={want}\n")
@@ -344,7 +495,8 @@ def main():
     out, total_bad = [], 0
     logp = os.path.join(ROOT, "logs", "z80-bus-crosscheck.log")
     os.makedirs(os.path.dirname(logp), exist_ok=True)
-    only = sys.argv[1:]
+    steps = "--steps" in sys.argv
+    only = [a for a in sys.argv[1:] if a != "--steps"]
     with open(logp, "w") as log:
         log.write("Z80 bus-cycle expected traces (tests/z80_bus/cases.py) vs ref/refz80.py: per-instruction T states, PC, I, R,\n"
                   "I/O port accesses (address incl. A15:8, data) and the final memory image. 'DISAGREE' lines are findings.\n\n")
@@ -352,6 +504,15 @@ def main():
             if only and cs["id"] not in only:
                 continue
             run = build(cs)
+            if steps:
+                k = {}
+                for st in run.steps:
+                    if st[0] != "step":
+                        print("  RESET"); continue
+                    ids = []
+                    for c in st[6]:
+                        ids.append(f"{c['k']}{k.get(c['k'], 0)}"); k[c["k"]] = k.get(c["k"], 0) + 1
+                    print(f"  {st[1]:12s} T={st[2]:2d} pc={st[3]:04X} iff={st[8]['iff1']}{st[8]['iff2']} samp={st[8]['samp']} {' '.join(ids)}")
             nev, nrows = write_vectors(cs, run)
             nstep, bad = crosscheck(cs, run, log)
             total_bad += bad
