@@ -254,6 +254,8 @@ Exactly the pins of spec §2: `clk`; `reset_n`, `wait_n`, `int_n`, `nmi_n`, `bus
 | `m1_n`, `mreq_n`, `iorq_n`, `rd_n`, `wr_n`, `rfsh_n` | out | 1 each | The pins, per the tables of spec §4.1–4.5 and the lengthened-cycle rule (§6.1). Registered |
 | `d_oe`, `bus_oe`, `busak_n` | out | 1 each | Pins, spec §4.2–4.4 and §5. Registered |
 
+Reset edges (spec §5 item 3a, chip-z80#11). `reset` is synchronous on `clk`, which ticks every half, so it can rise at a falling Φ edge (E0+1) and fall at one (E+1). Timing must still match the spec: the **first T1H after reset starts at a rising edge (E+2)**, so the half E+1 stays a reset half (`bus_oe` = 0, `m1_n` = 1). The outputs at E0+1 aren't compared.
+
 ### `z80_decode` (Zura)
 In: `prefix` (3, §2.7), `ir` (8). Out: `documented` (1, the opcode is one of spec §6.0's 698 forms; checked by script against `ref/refz80.py`'s census) and the cycle-plan row and per-instruction fields, whose encoding is Zura's own (control and decode are both hers).
 
