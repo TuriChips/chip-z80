@@ -81,3 +81,28 @@ Two workarounds live in `sw/cpm_ref.py`, in subclasses, because `ref/` is Beru's
   of bytes after every taken jump: about 800 instructions/s, a hundredth of the speed without it.
 - `LenientPush` (`--lenient-push`): `PUSH AF` of an X flag does not raise. zexdoc's own setup does `ADD HL,DE` then
   pushes AF, so without this it cannot start under *any* policy. Safe for zexdoc because its flag masks hide X flags.
+
+## Acceptance on the RTL (spec §9 item 1): `run_rtl.py`
+
+```
+python3 -I sw/exerciser/run_rtl.py prelim                      # seconds -> logs/acc-rtl/prelim.log
+python3 -I sw/exerciser/run_rtl.py zexdoc [--groups N,N] [--jobs J]   # -> logs/acc-rtl/zexdoc.log (one line per group)
+```
+It builds `z80_system` (CPM=1) with Verilator and the bench `z80_acc_tb.sv`, then runs `prelim.com` and `zexdoc.com`
+fetched by `fetch.sh` (sha256 recorded in each log header). zexdoc is run **one group per simulation** (the test table is
+patched to hold that group), so groups run in parallel and one failing group cannot hide another.
+The run exits 0 only if every group prints OK, the CP/M stub reaches warm boot (`done=1`) and `bus_conflict` stays 0.
+
+**Cost.** The RTL simulates about 1.1 million half-clocks per second per core (about 19 half-clocks per instruction,
+measured: `logs/acc-rtl/prelim.log` 17,484 half-clocks for 898 instructions). The reference model's table
+(`logs/acc-ref/zexdoc-mostek-nmos-summary.log`) puts the 67 groups at several billion instructions, so the full zexdoc is
+**tens of core-hours**, and one group (5, `aluop a,<b,c,d,e,h,l,(hl),a>`) is over 10^9 instructions on its own.
+That is why the full run is a nightly/manual job (issue #58 asks Tesla for `make acceptance`), not PR CI.
+
+**Logs.**
+- `logs/acc-rtl/prelim.log`: complete run.
+- `logs/acc-rtl/zexdoc-partial.log`: the short groups only, run to show the runner works end to end. **Not the release evidence.**
+- `logs/acc-rtl/zexdoc.log` (all 67 groups; the final all-OK run is the release evidence): not committed yet, see issue #55.
+
+Groups 6, 28-31, 48, 50, 59, 60 need decision 9's U1-U3 forms (chip-z80 #51, #52, #53) and are expected to fail until
+those land. They are run and logged, never skipped.
