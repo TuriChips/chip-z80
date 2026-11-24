@@ -6,8 +6,7 @@
 // Ports are the §2 names exactly: clk reset_n wait_n int_n nmi_n busrq_n d_in | a d_out d_oe m1_n mreq_n iorq_n rd_n wr_n rfsh_n
 // halt_n busak_n bus_oe.
 //
-// Per case (tests/z80_bus/vectors/<id>/): prog.hex (+ prog<k>.hex reloaded at a stimulus event's bank field), stim.hex (32-bit words
-// {h[23:0], bank[1:0], reset_n, nmi_n, busrq... see below}), exp.hex / mask.hex (36-bit expected pin vector and compare mask per half).
+// Per case (tests/z80_bus/vectors/<id>/): prog.hex (+ prog<k>.hex reloaded at a stimulus event's bank field), stim.hex (32-bit words, layout below), exp.hex / mask.hex (36-bit expected pin vector and compare mask per half).
 //   stim word: [31:8] h = half index the new input values start at; [7] 0; [6:5] bank (0 = none); [4] reset_n; [3] nmi_n; [2] int_n;
 //              [1] busrq_n; [0] wait_n. All inputs take their new value at the edge that starts half h and are seen by samples after it
 //              (§8.4 general rule). Before the first edge: reset_n = 0, everything else 1.
