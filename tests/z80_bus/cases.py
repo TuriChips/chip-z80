@@ -157,12 +157,12 @@ case("C2-08-halt", "§4.7 (halt_n falls at T4L of HALT's M1; halted M1s with ref
      4 * 2 * 6, prog([NOP, NOP, HALT, 0xAA, 0xBB]))
 
 # ----------------------------------------------------------------------------------------------- C3
-WPROG = prog(ld_dd_nn(2, 0x2000), [NOP], ld_r_hl(B), ld_hl_r(B), in_a_n(0x40), out_n_a(0x41), ld_a_nn(0x2000), [HALT]) + \
+WPROG = prog(ld_r_n(A, 0x00), ld_dd_nn(2, 0x2000), [NOP], ld_r_hl(B), ld_hl_r(B), in_a_n(0x40), out_n_a(0x41), ld_a_nn(0x2000), [HALT]) + \
     [(0x2000, bytes([0x5C]))]
 for k in (1, 2, 3):
     case(f"C3-0{k}-wait-m1", "§4.1 T2L row (Tw repeats it); §4.0 WAIT sampled at the edge starting T2L and each TwL",
          f"{k} wait state(s) in the M1 of NOP, of LD B,(HL) and in both M1s of the ED prefix of LD I,A",
-         20, prog(ld_dd_nn(2, 0x2000), [NOP], ld_r_hl(B), LD_I_A, [NOP, HALT]) + [(0x2000, bytes([0x5C]))],
+         20, prog(ld_dd_nn(2, 0x2000), [NOP], ld_r_hl(B), ld_r_n(A, 0x00), LD_I_A, [NOP, HALT]) + [(0x2000, bytes([0x5C]))],
          plan=plan_for(waits={("OCF", 1): k, ("OCF", 2): k, ("OCF", 3): k, ("OCF", 4): k}))
     case(f"C3-0{3 + k}-wait-mem", "§4.2 (Tw between T2 and T3, WAIT at T2L, WR stays low in Tw; read data taken at T3L); §4.0",
          f"{k} wait state(s) in an operand read, a memory read, a memory write and the last cycle of LD A,(nn)",
@@ -185,7 +185,7 @@ for k in (1, 2):
          20, INTPROG, plan=plan_for(int_low={("OCF", 4)}, waits={("INTA", 0): k}))
 
 # ----------------------------------------------------------------------------------------------- C5
-BPROG = prog(ld_dd_nn(2, 0x2000), [NOP], ld_r_hl(B), ld_hl_r(B), in_a_n(0x40), out_n_a(0x41), ld_a_nn(0x2000), [NOP, HALT]) + \
+BPROG = prog(ld_r_n(A, 0x00), ld_dd_nn(2, 0x2000), [NOP], ld_r_hl(B), ld_hl_r(B), in_a_n(0x40), out_n_a(0x41), ld_a_nn(0x2000), [NOP, HALT]) + \
     [(0x2000, bytes([0x5C]))]
 bi = 0
 for kind, occ, label in (("OCF", 2, "M1 of a NOP"), ("OCF", 3, "M1 of LD B,(HL)"), ("MR", 0, "memory read"), ("MW", 0, "memory write"),
