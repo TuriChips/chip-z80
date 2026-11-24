@@ -49,5 +49,31 @@ C6-06-reset-in-nop-T4: 304 halves, 3 stim events, 19 steps checked vs ref, AGREE
 C6-07-reset-from-halt: 346 halves, 3 stim events, 25 steps checked vs ref, AGREE
 C6-08-reset-twice: 356 halves, 5 stim events, 21 steps checked vs ref, AGREE
 C6-09-reset-iff-im: 320 halves, 9 stim events, 24 steps checked vs ref, AGREE
+C4-01-ei-delay: 98 halves, 3 stim events, 7 steps checked vs ref, AGREE
+C4-02-ei-ei: 106 halves, 3 stim events, 8 steps checked vs ref, AGREE
+C4-03-di-own-sample: 106 halves, 2 stim events, 10 steps checked vs ref, AGREE
+C4-04-retn-own-sample: 164 halves, 5 stim events, 11 steps checked vs ref, AGREE
+C4-05-nmi-iff1-1: 260 halves, 3 stim events, 16 steps checked vs ref, AGREE
+C4-06-nmi-iff1-0: 260 halves, 4 stim events, 16 steps checked vs ref, AGREE
+C4-07-reti-iff: 240 halves, 5 stim events, 16 steps checked vs ref, AGREE
+C4-08-int-mode1: 176 halves, 3 stim events, 11 steps checked vs ref, AGREE
+C4-09-int-mode0-rst10: 98 halves, 3 stim events, 7 steps checked vs ref, AGREE
+C4-10-int-mode0-rst28: 98 halves, 3 stim events, 7 steps checked vs ref, AGREE
+C4-11-int-mode2: 220 halves, 3 stim events, 13 steps checked vs ref, AGREE
+C4-12-int-mode2-fe: 160 halves, 3 stim events, 10 steps checked vs ref, AGREE
+C4-13-ld-a-ir-pv: 278 halves, 1 stim events, 17 steps checked vs ref, AGREE
+C4-14-ld-a-i-int: 204 halves, 3 stim events, 12 steps checked vs ref, AGREE
+C4-15-ld-a-r-int: 204 halves, 3 stim events, 12 steps checked vs ref, AGREE
+C4-16-nmi-edge: 270 halves, 5 stim events, 22 steps checked vs ref, AGREE
+C4-17-nmi-over-int: 166 halves, 4 stim events, 10 steps checked vs ref, AGREE
+C4-18-nmi-in-response: 198 halves, 5 stim events, 13 steps checked vs ref, AGREE
+C4-19-nmi-at-ei: 124 halves, 3 stim events, 8 steps checked vs ref, AGREE
+C4-20-busrq-blocks-int-nmi: 186 halves, 5 stim events, 12 steps checked vs ref, AGREE
+C4-21-int-withdrawn: 116 halves, 3 stim events, 9 steps checked vs ref, AGREE
+C4-22-halt-exit-int: 192 halves, 3 stim events, 15 steps checked vs ref, AGREE
+C4-23-halt-exit-nmi: 156 halves, 3 stim events, 12 steps checked vs ref, AGREE
+C4-24-halt-own-m1-int: 152 halves, 3 stim events, 10 steps checked vs ref, AGREE
+C4-25-halt-own-m1-nmi: 118 halves, 4 stim events, 8 steps checked vs ref, AGREE
+C4-26-halt-own-m1-busrq: 136 halves, 4 stim events, 10 steps checked vs ref, AGREE
 
-48 cases, 0 disagreements
+74 cases, 0 disagreements

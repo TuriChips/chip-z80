@@ -243,7 +243,7 @@ class PinSim:
     `gen` (optional) provides ensure(cpu) -> bool (False = stop) called before every instruction step, and
     seen(events) after every step.
     Stimulus legality (spec v1 §8.4 item 7): wait changes at rising edges only; int_n, nmi_n and busrq_n change only
-    at a T1H (busrq_n also at Tx rising edges, to release); int_n/nmi_n are forced high at the T1H of HALT (SPEC-GAP 3).
+    at a T1H (busrq_n also at Tx rising edges, to release); HALT's T1H is no exception (§4.7).
     """
 
     def __init__(self, cpu, stim, gen=None):
@@ -327,8 +327,6 @@ class PinSim:
 
     def _t1h_inputs(self):
         want_int, want_nmi, want_br = self.stim.t1h(self.int_n, self.nmi_n, self.busrq_n)
-        if self.ctx["halt"]:                       # SPEC-GAP 3
-            want_int, want_nmi = 1, 1
         if want_br == 0 and self.busrq_n == 1:
             self.count("busrq_asserted")
         if want_int == 0 and self.int_n == 1:
@@ -383,7 +381,8 @@ class PinSim:
         def t4l():
             hp = {}
             if halt == "fall":
-                hp = dict(halt_n=0)
+                # §4.7: an interrupt accepted at the sample of HALT's own M1 means halt_n never falls
+                hp = {} if (self.vis_nmi or (self.vis_int and self.cpu.iff1)) else dict(halt_n=0)
             elif halt == "accept":
                 hp = dict(halt_n=1) if (self.vis_nmi or (self.vis_int and self.cpu.iff1)) else {}
             return dict(rf, mreq_n=1, **hp)
@@ -524,10 +523,6 @@ class PinSim:
             self.ctx = dict(sample=sample, halt=halt_instr, final=j == len(cyc) - 1)
             self.emit(c, j == len(cyc) - 1)
         self.sampled = sample
-        # SPEC-GAP 3: an interrupt visible at the end of HALT's own M1 has no defined halt_n; stop the run
-        if halt_instr and (self.vis_nmi or (self.vis_int and cpu.iff1)):
-            self.count("undetermined_halt_end")
-            return True
         return False
 
     # -- output ---------------------------------------------------------------------------------------------

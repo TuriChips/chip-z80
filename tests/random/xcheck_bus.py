@@ -37,12 +37,14 @@ def main():
         cd = os.path.join(d, name)
         evs = [int(x, 16) for x in words(os.path.join(cd, "stim.hex"))]
         cur, rows, ei = (1, 1, 1, 1, 0), [], 0
+        vp = os.path.join(cd, "vec.hex")     # INTA byte per half, written only when not FFH (C4-09..12)
+        vecs = [int(x, 16) for x in words(vp)] if os.path.exists(vp) else []
         for h in range(nh + 300):
             if ei < len(evs) and evs[ei] >> 8 == h:
                 w = evs[ei]
                 cur = (w & 1, (w >> 2) & 1, (w >> 3) & 1, (w >> 1) & 1, (w >> 4) & 1)   # wait int nmi busrq reset
                 ei += 1
-            rows.append((h,) + cur + (0xFF,))
+            rows.append((h,) + cur + (vecs[h] if h < len(vecs) else 0xFF,))
         if os.path.exists(os.path.join(cd, "prog1.hex")) or any(r[5] == 0 for r in rows[10:nh]):
             print("SKIP %s (reset after power-up or memory banks)" % name)
             skip += 1
@@ -69,6 +71,10 @@ def main():
             mm = [int(x, 16) for x in words(os.path.join(t, "mask.hex"))]
         exp = [int(x, 16) for x in words(os.path.join(cd, "exp.hex"))]
         msk = [int(x, 16) for x in words(os.path.join(cd, "mask.hex"))]
+        if len(mine) < nh:
+            bad += 1
+            print("DIFF %s: model made only %d of %d halves (stopped: %s)" % (name, len(mine), nh, sim.stop_reason))
+            continue
         diff = [h for h in range(nh) if (mine[h] ^ exp[h]) & msk[h] or msk[h] & ~mm[h]]
         if diff or sim.h < nh:
             bad += 1
