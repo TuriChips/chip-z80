@@ -5,6 +5,7 @@
 #   1b. cross-check of the pin model against Titus's directed bus vectors (tests/z80_bus/vectors), once they exist
 #   2. C8: SEEDS seeds. Each makes a random program + WAIT/INT/NMI/BUSRQ stimulus (spec §7 C8, §8.4), the reference
 #      model's expected pin trace, the DUT trace, and compares every pin in every half T state.
+#   2b. decode-xcheck: simulated rtl/control/z80_decode.v vs the pin model's M-cycle layouts (xcheck_decode.py, #39)
 #   3. coverage: executed count per documented form (698 minus the excluded set), stimulus kinds hit.
 # DUT=ref (default, until RTL exists): the DUT trace is the reference model replaying the image and stimulus alone.
 # DUT=rtl RTL_TRACE_CMD='scripts/rtl_trace.sh': the one-line switch. The command gets HEX STIM OUT.pins and must
@@ -27,6 +28,11 @@ if [ -f tests/z80_bus/vectors/cases.txt ]; then
   step bus-xcheck "$run/random-bus-xcheck.log" py tests/random/xcheck_bus.py
 else
   echo "SKIP bus-xcheck (tests/z80_bus/vectors not in the tree yet: chip-z80 PR #12)"
+fi
+if [ -f rtl/control/z80_decode.v ] && command -v verilator >/dev/null; then
+  step decode-xcheck "$run/random-decode-xcheck.log" py tests/random/xcheck_decode.py
+else
+  echo "SKIP decode-xcheck (rtl/control/z80_decode.v or verilator missing)"
 fi
 out="build/c8"; rm -rf "$out"; mkdir -p "$out"
 seq "$FIRST" $((FIRST + SEEDS - 1)) | xargs -P "$JOBS" -I{} tests/random/seed.sh {} "$out" "$INSTR" >"$run/random-c8-seeds.unsorted" 2>&1

@@ -21,6 +21,7 @@ Logs go to `$RUN_DIR` (default `logs/<timestamp>/`), one `random-*.log` per step
 | `compare.py` | diff two traces: first difference with half, pin, both values, instruction in flight |
 | `cover.py` | per-form executed counts (698 - excluded) and stimulus kinds hit |
 | `xcheck_bus.py` | model vs Titus's directed bus vectors (two implementations of §4, same spec) |
+| `xcheck_decode.py`, `decode_tb.v` | simulated `z80_decode.v` (all 2048 prefix/ir) vs the pin model: documented, is_prefix, every outcome's M-cycle (type, len) layout; independent of gen_decode.py |
 | `seed.sh`, `run.sh` | glue, toolchain test convention (chip-6502#52) |
 | `../../ref/pinsz80.py` | the pin-level model: M-cycle layout per §6.1, half-T rows per §4.1-4.7, stimulus rules |
 
