@@ -216,16 +216,19 @@ module z80_alu (
     wire [7:0] f_nxt  = is_rd ? f_rd : nf & 8'hD7;            // F[5] = F[3] = 0 on every update
 
     integer i;
+    initial begin   // only keeps 4-state runs free of X before the first write
+        for (i = 0; i < 2; i = i + 1) begin
+            a_r[i] = 8'd0;
+            f_r[i] = 8'd0;
+        end
+        bank = 1'b0;
+        c16  = 1'b0;
+        z16  = 1'b0;
+    end
+
     always @(posedge clk) begin
-        if (reset) begin
-            for (i = 0; i < 2; i = i + 1) begin
-                a_r[i] <= 8'd0;
-                f_r[i] <= 8'd0;
-            end
-            bank <= 1'b0;
-            c16  <= 1'b0;
-            z16  <= 1'b0;
-        end else begin
+        // Spec section 5 decision 1: reset does not touch A, F, the alternates or the bank bit.
+        if (!reset) begin
             if (af_swap) bank <= ~bank;
             if (a_wr) a_r[bank] <= a_nxt;
             if (f_load)    f_r[bank] <= b;                    // wins over f_we

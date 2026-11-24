@@ -200,13 +200,16 @@ module z80_regs (
         end
     end
 
+    // Spec section 5 decision 1: reset changes only PC, I and R. Everything else keeps its value;
+    // the initial block only keeps 4-state runs free of X before the first write.
+    initial begin
+        bc[0] = 16'h0; bc[1] = 16'h0; de[0] = 16'h0; de[1] = 16'h0; hl[0] = 16'h0; hl[1] = 16'h0;
+        ix = 16'h0; iy = 16'h0; sp = 16'h0; wz = 16'h0; exx = 1'b0;
+    end
+
     always @(posedge clk) begin
         if (reset) begin
-            bc[0] <= 16'h0; bc[1] <= 16'h0;
-            de[0] <= 16'h0; de[1] <= 16'h0;
-            hl[0] <= 16'h0; hl[1] <= 16'h0;
-            ix <= 16'h0; iy <= 16'h0; sp <= 16'h0; pcr <= 16'h0; wz <= 16'h0;
-            ir_i <= 8'h00; ir_r <= 8'h00; exx <= 1'b0;
+            pcr <= 16'h0; ir_i <= 8'h00; ir_r <= 8'h00;
         end else begin
             bc[0] <= n_bc[0]; bc[1] <= n_bc[1];
             de[0] <= n_de[0]; de[1] <= n_de[1];
