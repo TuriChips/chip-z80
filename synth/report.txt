@@ -1,17 +1,29 @@
-Z80 synthesis, sky130_fd_sc_hd tt_025C_1v80, yosys 0.33, clock 100 ns, ideal wires.
+Z80 synthesis, sky130_fd_sc_hd tt_025C_1v80, yosys 0.33, clock 100 ns, ideal wires. Toolchain v0.9 (Makefile pin); RTL = main 8b11e74.
 block          cells  flops  latch    area_um2  worst path: data arrival ns (slack)
-z80_alu          683     35      0 4759.564800  4.470 (slack 95.412 at 100 ns)
-z80_regs        2176    193      0 15660.019200  11.474 (slack 88.297 at 100 ns)
+z80_alu          693     35      0 4858.409600  4.444 (slack 95.432 at 100 ns)
+z80_regs        2336    193      0 16554.627200  11.959 (slack 87.924 at 100 ns)
 z80_timing       166     19      0 1247.446400  3.797 (slack 96.075 at 100 ns)
+z80_control     1946     42      0 11106.902400  8.697 (slack 91.231 at 100 ns)
 
-== full chip z80: skipped, rtl/files.f is not on main yet (Zura's top/control issue)
+== full chip (rtl/files.f, top z80, check -assert held)
+z80             5375    289      0 34485.574400  14.684 (slack 85.192 at 100 ns)
 
 == warnings
+z80: Warning: Replacing memory \hl with list of registers. See rtl/datapath/z80_regs.v:216, rtl/datapath/z80_regs.v:206
+z80: Warning: Replacing memory \de with list of registers. See rtl/datapath/z80_regs.v:215, rtl/datapath/z80_regs.v:206
+z80: Warning: Replacing memory \bc with list of registers. See rtl/datapath/z80_regs.v:214, rtl/datapath/z80_regs.v:206
+z80: Warning: Replacing memory \n_hl with list of registers. See rtl/datapath/z80_regs.v:125
+z80: Warning: Replacing memory \n_de with list of registers. See rtl/datapath/z80_regs.v:124
+z80: Warning: Replacing memory \n_bc with list of registers. See rtl/datapath/z80_regs.v:123
+z80: ABC: Warning: Detected 9 multi-output gates (for example, "sky130_fd_sc_hd__fa_1").
+z80: Warnings: 32 unique messages, 240 total
 z80_alu: ABC: Warning: Detected 9 multi-output gates (for example, "sky130_fd_sc_hd__fa_1").
 z80_alu: Warnings: 26 unique messages, 234 total
-z80_regs: Warning: Replacing memory \hl with list of registers. See rtl/datapath/z80_regs.v:207
-z80_regs: Warning: Replacing memory \de with list of registers. See rtl/datapath/z80_regs.v:206
-z80_regs: Warning: Replacing memory \bc with list of registers. See rtl/datapath/z80_regs.v:205
+z80_control: ABC: Warning: Detected 9 multi-output gates (for example, "sky130_fd_sc_hd__fa_1").
+z80_control: Warnings: 26 unique messages, 234 total
+z80_regs: Warning: Replacing memory \hl with list of registers. See rtl/datapath/z80_regs.v:216, rtl/datapath/z80_regs.v:206
+z80_regs: Warning: Replacing memory \de with list of registers. See rtl/datapath/z80_regs.v:215, rtl/datapath/z80_regs.v:206
+z80_regs: Warning: Replacing memory \bc with list of registers. See rtl/datapath/z80_regs.v:214, rtl/datapath/z80_regs.v:206
 z80_regs: Warning: Replacing memory \n_hl with list of registers. See rtl/datapath/z80_regs.v:125
 z80_regs: Warning: Replacing memory \n_de with list of registers. See rtl/datapath/z80_regs.v:124
 z80_regs: Warning: Replacing memory \n_bc with list of registers. See rtl/datapath/z80_regs.v:123
