@@ -1,0 +1,7 @@
+# cpm_ref: zexdoc.com 8704 bytes, policy x6=taint daa=nmos lenient-push, limit 60.0s
+# group | result | instructions | seconds | detail
+10 cpd<r>........................ | TIMEOUT | 0 | 60 | time limit 60.0s after 28753920 instructions
+11 cpi<r>........................ | TIMEOUT | 0 | 60 | time limit 60.0s after 29622272 instructions
+12 <daa,cpl,scf,ccf>............. | TIMEOUT | 0 | 60 | time limit 60.0s after 29655040 instructions
+52 ldd<r> (1).................... | ERROR | 106844 | 0 | ldd<r> (1)....................  ERROR **** crc expected:94f42769 found:0eb29fca Tests complete
+54 ldi<r> (1).................... | ERROR | 106847 | 0 | ldi<r> (1)....................  ERROR **** crc expected:9abdf6b5 found:baa208b1 Tests complete

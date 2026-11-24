@@ -390,6 +390,13 @@ def test_decision6_switch():
         c.step(); assert False
     except Unspecified:
         pass
+    c = cpu([0xED, 0xA0, 0xF5], policy=Policy("taint", pushaf="pass")); c.step(); c.step()   # opt-in: just moves F
+    assert c.mem[c.sp] == c.f
+
+
+def test_last_is_capped():
+    c = cpu([0xC3, 0x00, 0x90]); c.step()                                      # jump forward 0x9000
+    assert len(c.last.split()) <= 4
 
 
 # ---- R, HALT, interrupts ------------------------------------------------------------------------------------------
