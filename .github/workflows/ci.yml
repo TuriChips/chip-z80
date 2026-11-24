@@ -2,7 +2,7 @@ name: ci
 on: [pull_request, push]
 jobs:
   ci:
-    uses: TuriChips/toolchain/.github/workflows/ci.yml@v0.10.1
+    uses: TuriChips/toolchain/.github/workflows/ci.yml@v0.10.2
     with:
-      toolchain_ref: v0.10.1
+      toolchain_ref: v0.10.2
     secrets: inherit
