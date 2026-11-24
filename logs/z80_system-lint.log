@@ -1,2 +1,2 @@
-# verilator --lint-only -Wall -Irtl/control --top-module z80_system <files.f RTL> rtl/datapath/z80_mem.v rtl/control/z80_system.v (Verilator 5.020 2024-01-01 rev (Debian 5.020-1)) 2026-11-24T12:51:47Z
+# verilator --lint-only -Wall -Irtl/control --top-module z80_system <files.f RTL> rtl/datapath/z80_mem.v rtl/control/z80_system.v (Verilator 5.020 2024-01-01 rev (Debian 5.020-1)) 2026-11-24T14:02:57Z
 exit=0
