@@ -63,9 +63,12 @@ class Mini:
 
     def reset(self):                          # §5: PC, I, R, IFF, IM only
         self.pc = self.i = self.r = 0
-        self.iff = self.im = 0
+        self.iff1 = self.iff2 = 0
+        self.im = 0
         self.halted = False
         self.ei_cnt = 0
+        self.pv = None                                        # P/V after LD A,I / LD A,R (= IFF2, §8.1); None = not set by those
+        self.vec = INTVEC                                     # byte on the bus in the next INTA (set by the scheduler per case)
 
     def rp(self, p):
         return self.sp if p == 3 else self.reg[2 * p] << 8 | self.reg[2 * p + 1]
@@ -121,11 +124,11 @@ class Mini:
             c0["halt"] = True
         elif op == 0xFB:
             name = "EI"
-            self.iff = 1
-            self.ei_cnt = 2                                   # blocks INT at the end of EI and the next instruction (§8.4 item 5, conservative)
+            self.iff1 = self.iff2 = 1
+            self.ei_cnt = 1                                   # §8.1/§8.4 item 5: INT blocked at the end of EI only; EI;EI restarts it
         elif op == 0xF3:
             name = "DI"
-            self.iff = 0
+            self.iff1 = self.iff2 = 0
         elif x == 0 and z == 1 and q == 0:                    # LD dd,nn
             lo = self.od(); hi = self.od(); cy += [lo, hi]
             self.setrp(p, lo["data"] | hi["data"] << 8); name = "LD dd,nn"
@@ -176,31 +179,71 @@ class Mini:
             elif op2 == 0x4F:
                 self.r = self.reg[A_]; name = "LD R,A"      # §6.3 rule 3: R = A after its own increments
             elif op2 == 0x57:
-                self.reg[A_] = self.i; name = "LD A,I"
+                self.reg[A_] = self.i; name = "LD A,I"; self.pv = self.iff2
             elif op2 == 0x5F:
-                self.reg[A_] = self.r; name = "LD A,R"      # R after both of its increments
+                self.reg[A_] = self.r; name = "LD A,R"; self.pv = self.iff2      # R after both of its increments
             elif op2 in (0x46, 0x56, 0x5E):
                 self.im = {0x46: 0, 0x56: 1, 0x5E: 2}[op2]; name = f"IM {self.im}"
             elif x2 == 1 and z2 == 0 and y2 != 6:
-                io = self.pr(self.rp(0)); cy.append(io); self.reg[y2] = io["data"]; name = "IN r,(C)"
+                io = self.pr(self.rp(0)); cy.append(io); self.reg[y2] = io["data"]; name = "IN r,(C)"; self.pv = None
             elif x2 == 1 and z2 == 1 and y2 != 6:
                 cy.append(self.pw(self.rp(0), self.reg[y2])); name = "OUT (C),r"
+            elif op2 in (0x45, 0x4D):                         # RETN / RETI: OCF(4) OCF(4) MR(3) MR(3) = 14 T (§6.1)
+                lo = self.mr(self.sp); hi = self.mr(self.sp + 1); cy += [lo, hi]
+                self.sp = (self.sp + 2) & 0xFFFF
+                self.pc = lo["data"] | hi["data"] << 8
+                if op2 == 0x45:
+                    self.iff1 = self.iff2; name = "RETN"        # §8.1: IFF1 <- IFF2
+                else:
+                    name = "RETI"                               # §8.1: IFF unchanged
             else:
                 raise ValueError(f"ED {op2:02X} not in this subset")
+        elif op in (0xC3, 0xE2, 0xEA):                        # JP nn / JP PO,nn / JP PE,nn: OCF OD OD, no extra cycle either way
+            lo = self.od(); hi = self.od(); cy += [lo, hi]
+            nn = lo["data"] | hi["data"] << 8
+            assert op == 0xC3 or self.pv is not None, "JP PO/PE needs P/V set by LD A,I / LD A,R"
+            if op == 0xC3 or (op == 0xEA) == bool(self.pv):
+                self.pc = nn
+            name = {0xC3: "JP nn", 0xE2: "JP PO,nn", 0xEA: "JP PE,nn"}[op]
         else:
             raise ValueError(f"opcode {op:02X} at {pc0:04X} not in this subset")
         return name, cy
 
-    def inta(self):
-        """Mode 0 INTA with RST 38H on the bus: INTA(6) SWH SWL = 12 T (§4.5, §8.2)."""
-        assert self.im == 0
-        c0 = dict(k="INTA", T=6, a=self.pc, ra=self.i << 8 | self.r, data=INTVEC)
-        self.r = (self.r & 0x80) | ((self.r + 1) & 0x7F)
-        self.iff = 0
+    def push_pc(self):
         w1 = self.mw(self.sp - 1, self.pc >> 8); w2 = self.mw(self.sp - 2, self.pc & 255)
         self.sp = (self.sp - 2) & 0xFFFF
-        self.pc = INTVEC & 0x38
-        return "INT0 RST 38", [c0, w1, w2]
+        return [w1, w2]
+
+    def inta(self):
+        """INT accepted (§4.5, §8.2). Mode 0: INTA(6) SWH SWL = 12 T with RST p on the bus; mode 1: INTA(7) SWH SWL = 13 T, bus ignored;
+        mode 2: INTA(7) SWH SWL MRL MRH = 19 T, vector byte on the bus. IFF1 = IFF2 = 0 (§8.1)."""
+        self.halted = False
+        c0 = dict(k="INTA", T=6 if self.im == 0 else 7, a=self.pc, ra=self.i << 8 | self.r, data=self.vec)
+        self.r = (self.r & 0x80) | ((self.r + 1) & 0x7F)
+        self.iff1 = self.iff2 = 0
+        cy = [c0] + self.push_pc()
+        if self.im == 0:
+            assert self.vec & 0xC7 == 0xC7, "mode 0 tests insert RST p only (§8.2)"
+            self.pc = self.vec & 0x38
+            return f"INT0 RST {self.pc:02X}", cy
+        if self.im == 1:
+            self.pc = 0x38
+            return "INT1", cy
+        assert self.vec & 1 == 0, "mode 2 vector bit 0 = 0 (§8.2)"
+        ptr = self.i << 8 | self.vec
+        lo = self.mr(ptr); hi = self.mr(ptr + 1)
+        self.pc = lo["data"] | hi["data"] << 8
+        return f"INT2 {self.vec:02X}", cy + [lo, hi]
+
+    def nmi(self):
+        """NMI accepted (§4.6, §8.2): OCF(5) with the data byte ignored and PC not advanced, SWH, SWL = 11 T; PC = 0066H; IFF1 = 0, IFF2 kept."""
+        self.halted = False
+        c0 = self.ocf(5, ignored=True)
+        c0["nmi"] = True
+        self.iff1 = 0
+        cy = [c0] + self.push_pc()
+        self.pc = 0x66
+        return "NMI", cy
 
 
 # ------------------------------------------------------------------------------------- row builders
@@ -215,7 +258,7 @@ def tx_row(halt):
                 busak=0, bus_oe=0, d_oe=0)
 
 
-def cycle_rows(c, h0, S, halt_in):
+def cycle_rows(c, h0, S, halt_in, accept=False):
     """Rows of one M cycle starting at half h0 (its T1H), waits taken from S. Returns (rows, index of the H half
     of the last T state, halt_n value after the cycle)."""
     k, rows = c["k"], []
@@ -243,7 +286,8 @@ def cycle_rows(c, h0, S, halt_in):
         ex = dict(a=ra, m1=1)
         rows += [row(halt=halt, a=ra, m1=1, rfsh=0), row(halt=halt, **t3l), row(halt=halt, **t3l)]
         if c.get("halt") and not inta:
-            halt = 0                                          # §4.7: halt_n falls at the edge starting T4L
+            halt = 1 if accept else 0                         # §4.7: halt_n falls at the edge starting T4L of HALT's own M1, rises at T4L of the halted M1 whose
+                                                              # T4 sample accepts an interrupt; if HALT's own M1 accepts, it never falls (§4.7, chip-z80#24)
         rows += [row(halt=halt, a=ra, m1=1, mreq=1, rfsh=0)]
         for _ in range(c["T"] - 4 if not inta else c["T"] - 6):   # §6.1 lengthened cycles: extra T after T4, a not compared
             rows += [row(halt=halt), row(halt=halt)]
@@ -298,9 +342,9 @@ def reset_rows(E0, E):
 class Run:
     """Lays out cycles on the half-T timeline for a program + stimulus plan. `plan(n, c, h0, stim, run)` may add input events
     (including reset) for halves >= h0 before M cycle number n starts at h0; `txplan(e, j, stim)` before the j-th Tx at rising
-    edge e. `run.pass_no` counts the resets seen so far."""
+    edge e. `run.pass_no` counts the resets seen so far. `vec` = the byte on the bus in INTA (int, or list: one per INTA)."""
 
-    def __init__(self, mem, banks, stim, plan=None, txplan=None):
+    def __init__(self, mem, banks, stim, plan=None, txplan=None, vec=INTVEC):
         self.mem = bytearray(mem)
         self.banks = banks
         self.stim = stim
@@ -308,18 +352,25 @@ class Run:
         self.txplan = txplan or (lambda *a: None)
         self.rows = []
         self.cpu = Mini(self.mem)
-        self.steps = []          # ('step', name, T, pc_after, i, r, cycles, int_taken) or ('reset', bank)
+        self.steps = []          # ('step', name, T, pc_after, i, r, cycles, response, info) or ('reset', bank)
         self.n = 0
         self.halt = 1
         self.pass_no = -1        # power-up reset makes it 0; each later reset adds 1
         self.queue = []          # remaining cycles of the current instruction
         self.cur = None
-        self.pending_int = False
+        self.resp = None         # 'NMI' / 'INT': accepted at the last instruction end, runs as the next "instruction"
         self.done_pairs = 0
         self.last_TH = 0
+        self.vecs = vec if isinstance(vec, list) else [vec]
+        self.n_inta = 0
+        self.vec_ranges = []     # (first half, last half + 1, byte on the bus) per INTA
+        self.nmi_pend, self.nmi_scan = False, 0
+        self.dec = (False, False)       # (NMI pending, INT low) seen by the sample at the end of the current instruction, BUSRQ low = both False
+        self.samp_prev = (False, False)
+        self.halts = 0
 
     def S(self, sig, h):
-        return self.stim.S(sig, h)
+        return self.stim.S(sig, max(h, -1))
 
     def pairs(self):
         """Reset intervals [E0, E) from the stimulus (E0 = first half with reset_n = 0)."""
@@ -348,7 +399,9 @@ class Run:
                 self.steps.append(("reset", bank))
                 self.cpu.reset()
                 self.halt = 1
-                self.pending_int = False
+                self.resp = None
+                self.nmi_pend, self.nmi_scan = False, len(self.rows)
+                self.dec = self.samp_prev = (False, False)
                 self.queue, self.cur = [], None
                 self.done_pairs += 1
                 self.pass_no += 1
@@ -364,26 +417,37 @@ class Run:
         if not self.queue:
             if self.cur is not None:
                 self.finish_instruction()
-            if self.pending_int:
-                self.pending_int = False
+            resp, self.resp = self.resp, None
+            if resp == "NMI":
+                name, cyc = self.cpu.nmi()
+            elif resp == "INT":
+                self.cpu.vec = self.vecs[min(self.n_inta, len(self.vecs) - 1)]
+                self.n_inta += 1
                 name, cyc = self.cpu.inta()
-                intl = True
             else:
                 name, cyc = self.cpu.step()
-                intl = False
-            self.cur = (name, cyc, intl)
+                self.halts += name == "HALT"
+            self.cur = (name, cyc, resp)
             self.queue = list(cyc)
-        self.m_cycle(self.queue.pop(0))
+        c = self.queue.pop(0)
+        self.m_cycle(c, last=not self.queue)
 
-    def m_cycle(self, c):
+    def m_cycle(self, c, last):
         h0 = len(self.rows)
         self.plan(self.n, c, h0, self.stim, self)
         self.n += 1
-        rows, lastTH, self.halt = cycle_rows(c, h0, self.S, self.halt)
-        self.rows += rows
+        rows, lastTH, halt = cycle_rows(c, h0, self.S, self.halt)
         self.last_TH = h0 + lastTH
         # BUSRQ sampled at the edge starting the last T state (§8.4 item 4, §4.4)
         self.busrq_at_end = self.S("busrq", self.last_TH - 1) == 0
+        if last and self.cur[2] is None:
+            self.dec = self.sample()
+        if c.get("halt") and last and self.resp:
+            rows, lastTH, halt = cycle_rows(c, h0, self.S, self.halt, accept=True)
+        self.halt = halt
+        self.rows += rows
+        if c["k"] == "INTA":
+            self.vec_ranges.append((h0, len(self.rows), c["data"]))
         if self.busrq_at_end:
             e, j = len(self.rows), 0
             while True:
@@ -399,18 +463,33 @@ class Run:
                 if rel:
                     break
 
-    def finish_instruction(self):
-        """INT: sampled at the edge starting the last T state of the instruction's last M cycle; ignored when BUSRQ is low at that
-        sample (§4.5, §8.4 items 4-5) or IFF1 = 0. EI blocks the end of EI and of the next instruction (conservative reading of
-        §8.1 vs §8.4 item 5; tests never put INT low that early)."""
-        name, cyc, intl = self.cur
-        c = self.cpu
-        self.steps.append(("step", name, sum(x["T"] for x in cyc), c.pc, c.i, c.r, cyc, intl))
-        self.cur = None
-        if intl:
-            return
+    def sample(self):
+        """INT and NMI at the edge P starting the last T state of an instruction (§8.4 item 4): BUSRQ low at P blocks both. NMI: a falling edge
+        of nmi_n becomes pending at the edge where it is sampled 0 after 1 (item 6 rule 1), and P sees what became pending at an edge before P.
+        NMI beats INT; INT needs IFF1 and not the end of EI (§8.1, item 5). Sets self.resp. Returns (NMI pending, INT low) for the ref."""
+        c, P = self.cpu, self.last_TH
+        for e in range(self.nmi_scan, P):
+            if self.S("nmi", e - 1) == 0 and self.S("nmi", e - 2) == 1:
+                self.nmi_pend = True
+        self.nmi_scan = max(self.nmi_scan, P)
         blocked = c.ei_cnt > 0
-        c.ei_cnt = max(0, c.ei_cnt - 1)
-        sample_int = self.S("int", self.last_TH - 1) == 0
-        if c.iff and sample_int and not self.busrq_at_end and not blocked and not c.halted:
-            self.pending_int = True
+        c.ei_cnt = 0
+        if self.busrq_at_end:
+            return (False, False)
+        int_low = self.S("int", P - 1) == 0
+        res = (self.nmi_pend, int_low)
+        if self.nmi_pend:
+            self.nmi_pend = False
+            self.resp = "NMI"
+        elif int_low and c.iff1 and not blocked:
+            self.resp = "INT"
+        return res
+
+    def finish_instruction(self):
+        """Closes the step: records the state the ref model is compared against (after the instruction, before any response it triggers)."""
+        name, cyc, resp = self.cur
+        c = self.cpu
+        info = dict(samp=self.samp_prev, iff1=c.iff1, iff2=c.iff2, im=c.im, pv=c.pv, halted=c.halted)
+        self.steps.append(("step", name, sum(x["T"] for x in cyc), c.pc, c.i, c.r, cyc, resp, info))
+        self.cur = None
+        self.samp_prev = (False, False) if resp else self.dec

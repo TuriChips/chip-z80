@@ -1,0 +1,81 @@
+# z80_bus on the RTL, 74 cases (C2 C3 C5 C6 + C4 new)
+# date (UTC): 2026-11-24T20:46:13Z
+# repo HEAD before commit: ae4b43a (origin/main f097fe4 + PR #12 branch titus/chip-z80-7 + this branch's uncommitted C4 work)
+# Verilator 5.020 2024-01-01 rev (Debian 5.020-1)
+# python3 tests/z80_bus/cases.py ; verilator --binary --timing -Wall --Mdir build/z80_bus -f tb/z80_bus/files.f --top tb ; build/z80_bus/Vtb
+ok   C2-01-nop-fetch: 102 halves, 0 errors
+ok   C2-02-ld-reg-fetch: 144 halves, 0 errors
+ok   C2-03-refresh-I: 182 halves, 0 errors
+ok   C2-04-refresh-R7: 246 halves, 0 errors
+ok   C2-05-mem-read: 324 halves, 0 errors
+ok   C2-06-mem-write: 342 halves, 0 errors
+ok   C2-07-io: 242 halves, 0 errors
+ok   C2-08-halt: 82 halves, 0 errors
+ok   C3-01-wait-m1: 128 halves, 0 errors
+ok   C3-04-wait-mem: 186 halves, 0 errors
+ok   C3-07-wait-io: 182 halves, 0 errors
+ok   C3-02-wait-m1: 136 halves, 0 errors
+ok   C3-05-wait-mem: 194 halves, 0 errors
+ok   C3-08-wait-io: 186 halves, 0 errors
+ok   C3-03-wait-m1: 144 halves, 0 errors
+ok   C3-06-wait-mem: 202 halves, 0 errors
+ok   C3-09-wait-io: 190 halves, 0 errors
+ok   C3-10-wait-unsampled: 178 halves, 0 errors
+ok   C3-11-wait-mixed: 196 halves, 0 errors
+ok   C3-12-wait-inta: 116 halves, 0 errors
+ok   C3-13-wait-inta: 118 halves, 0 errors
+ok   C5-01-busrq-ocf2-tx2: 190 halves, 0 errors
+ok   C5-02-busrq-ocf2-tx3: 192 halves, 0 errors
+ok   C5-03-busrq-ocf3-tx2: 190 halves, 0 errors
+ok   C5-04-busrq-ocf3-tx3: 192 halves, 0 errors
+ok   C5-05-busrq-mr0-tx2: 190 halves, 0 errors
+ok   C5-06-busrq-mr0-tx3: 192 halves, 0 errors
+ok   C5-07-busrq-mw0-tx2: 190 halves, 0 errors
+ok   C5-08-busrq-mw0-tx3: 192 halves, 0 errors
+ok   C5-09-busrq-pr0-tx2: 190 halves, 0 errors
+ok   C5-10-busrq-pr0-tx3: 192 halves, 0 errors
+ok   C5-11-busrq-pw0-tx2: 190 halves, 0 errors
+ok   C5-12-busrq-pw0-tx3: 192 halves, 0 errors
+ok   C5-13-busrq-od5-tx2: 190 halves, 0 errors
+ok   C5-14-busrq-od5-tx3: 192 halves, 0 errors
+ok   C5-15-busrq-wait: 194 halves, 0 errors
+ok   C5-16-busrq-twice: 194 halves, 0 errors
+ok   C5-17-no-int-during-busrq: 126 halves, 0 errors
+ok   C5-18-int-without-busrq: 114 halves, 0 errors
+ok   C6-01-powerup-min: 84 halves, 0 errors
+ok   C6-02-powerup-long: 88 halves, 0 errors
+ok   C6-03-reset-in-nop-T1: 298 halves, 0 errors
+ok   C6-04-reset-in-nop-T2: 300 halves, 0 errors
+ok   C6-05-reset-in-nop-T3: 302 halves, 0 errors
+ok   C6-06-reset-in-nop-T4: 304 halves, 0 errors
+ok   C6-07-reset-from-halt: 346 halves, 0 errors
+ok   C6-08-reset-twice: 356 halves, 0 errors
+ok   C6-09-reset-iff-im: 320 halves, 0 errors
+ok   C4-01-ei-delay: 98 halves, 0 errors
+ok   C4-02-ei-ei: 106 halves, 0 errors
+ok   C4-03-di-own-sample: 106 halves, 0 errors
+ok   C4-04-retn-own-sample: 164 halves, 0 errors
+ok   C4-05-nmi-iff1-1: 260 halves, 0 errors
+ok   C4-06-nmi-iff1-0: 260 halves, 0 errors
+ok   C4-07-reti-iff: 240 halves, 0 errors
+ok   C4-08-int-mode1: 176 halves, 0 errors
+ok   C4-09-int-mode0-rst10: 98 halves, 0 errors
+ok   C4-10-int-mode0-rst28: 98 halves, 0 errors
+ok   C4-11-int-mode2: 220 halves, 0 errors
+ok   C4-12-int-mode2-fe: 160 halves, 0 errors
+ok   C4-13-ld-a-ir-pv: 278 halves, 0 errors
+ok   C4-14-ld-a-i-int: 204 halves, 0 errors
+ok   C4-15-ld-a-r-int: 204 halves, 0 errors
+ok   C4-16-nmi-edge: 270 halves, 0 errors
+ok   C4-17-nmi-over-int: 166 halves, 0 errors
+ok   C4-18-nmi-in-response: 198 halves, 0 errors
+ok   C4-19-nmi-at-ei: 124 halves, 0 errors
+ok   C4-20-busrq-blocks-int-nmi: 186 halves, 0 errors
+ok   C4-21-int-withdrawn: 116 halves, 0 errors
+ok   C4-22-halt-exit-int: 192 halves, 0 errors
+ok   C4-23-halt-exit-nmi: 156 halves, 0 errors
+ok   C4-24-halt-own-m1-int: 152 halves, 0 errors
+ok   C4-25-halt-own-m1-nmi: 118 halves, 0 errors
+ok   C4-26-halt-own-m1-busrq: 136 halves, 0 errors
+PASS 74 cases
+- tb/z80_bus/tb.sv:27: Verilog $finish

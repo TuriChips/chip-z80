@@ -1,0 +1,7 @@
+# harness self-test, replay DUT (files_mock.f), 74 cases
+ok   C4-26-halt-own-m1-busrq: 136 halves, 0 errors
+PASS 74 cases
+- tb/z80_bus/tb.sv:27: Verilog $finish
+# with +MUTATE=100 (m1_n flipped in half 100: must FAIL)
+FAIL 74 cases, 68 half-state mismatches
+- tb/z80_bus/tb.sv:27: Verilog $finish
