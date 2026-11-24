@@ -76,7 +76,7 @@ Only the pins of `z80` (spec §2) and of `z80_system` are normative for tests. T
 | 6 | I | | 14 | PCH |
 | 7 | R | | 15 | PCL |
 
-B–L mean **the current bank** (EXX, `pair_op` 4). IXH/IXL/IYH/IYL are only used internally (PUSH/POP IX, LD IX,(nn), ADD IX,pp); no documented instruction names them (spec §1). WZ is not readable or writable through `r8`; it has `wz_op`.
+B–L mean **the current bank** (EXX, `pair_op` 4). IXH/IXL/IYH/IYL are used internally (PUSH/POP IX, LD IX,(nn), ADD IX,pp) and, since decision 9 (b), named directly by spec §6.0a **U1**: under DD, an `r` field of 4 (H) becomes code **8 (IXH)** and 5 (L) becomes **9 (IXL)**; under FD, 4 → **10 (IYH)** and 5 → **11 (IYL)**. That applies to both fields of LD r,r' (DD 65 = LD IXH,IXL: source 9, destination 8), LD r,n, INC/DEC r and the ALU-A,r group, and only to the U1 opcodes listed there. Forms with (HL) keep the real H and L (DD 66 = LD H,(IX+d) writes code 4). U2 (DD/FD before LD r,r' with r, r' ∈ {B, C, D, E, A}) uses the same codes as the unprefixed form. WZ is not readable or writable through `r8`; it has `wz_op`.
 
 **`pair_sel`** (3 bits), a 16-bit pair for `pair_op`, and as the source of `pc_op` 6 and `sp_op` 3:
 
@@ -163,7 +163,7 @@ During refresh (`rfsh` = 1 from timing, the T3–T4 of OCF and INTA) `addr` = **
 | 8 | CP | `a_in` − `b` | as SUB. **A is never written**, even with `a_we` = 1 |
 | 9 | INC | `b` + 1 | SZ, H, V (`b` = 7FH); N = 0; C kept |
 | 10 | DEC | `b` − 1 | SZ, H, V (`b` = 80H); N = 1; C kept. Also B − 1 of INI…OTDR (spec §6.2: Z = B = 0, N = 1, S/H/P/V are X) |
-| 11–18 | RLC, RRC, RL, RR, SLA, SRA, *(17 unused: SLL)*, SRL | `b` rotated/shifted | SZ, P, C (the bit shifted out); H = 0, N = 0 |
+| 11–18 | RLC, RRC, RL, RR, SLA, SRA, SLL, SRL | `b` rotated/shifted; **17 SLL** (spec §6.0a U3) = (`b` << 1) \| 1, i.e. SLA with bit 0 = 1 | SZ, P, C (the bit shifted out: `b`[7] for SLL); H = 0, N = 0 |
 | 19–22 | RLCA, RRCA, RLA, RRA | `b` rotated (`b` = A) | C; H = 0, N = 0; S, Z, P/V kept |
 | 23 | DAA | `b` (= A) adjusted per spec §6.2 (and decision 8) | SZ, P, C; H per decision 8; N kept |
 | 24 | CPL | ~`b` | H = 1, N = 1 |
@@ -227,7 +227,7 @@ Codes 1–8 are 1 + `ir[5:3]` of the `10 xxx rrr` / `11 xxx 110` ALU opcodes; 11
 TMP is an 8-bit latch in control, output `tmp`. **`tmp_src`** (1 bit, internal to control but listed here per the 6502 #35 lesson): 0 = `d_in` (a read whose byte is written later or tested later: RMW reads, LDI/CPI/OUTI's MR, INI's PR, LD (IX+d),n's n), 1 = ALU `result` (the half in which the modify is done: TMP ← `result` at the same edge as `f_we`, so the write cycle sends the modified byte, §1 lessons).
 
 ### 2.7 Prefix state (`z80_control` → `z80_decode`)
-`prefix` (3 bits): 0 none, 1 CB, 2 DD, 3 ED, 4 FD, 5 DD CB, 6 FD CB, 7 unused. A DD or FD followed by DD, ED or FD isn't a documented form (spec §6.0) and isn't tested.
+`prefix` (3 bits): 0 none, 1 CB, 2 DD, 3 ED, 4 FD, 5 DD CB, 6 FD CB, 7 unused. A DD or FD followed by DD, ED or FD isn't a specified form (spec §6.0, §6.0a U2) and isn't tested.
 
 ## 3. Ports
 
@@ -257,7 +257,7 @@ Exactly the pins of spec §2: `clk`; `reset_n`, `wait_n`, `int_n`, `nmi_n`, `bus
 Reset edges (spec §5 item 3a, chip-z80#11). `reset` is synchronous on `clk`, which ticks every half, so it can rise at a falling Φ edge (E0+1) and fall at one (E+1). Timing must still match the spec: the **first T1H after reset starts at a rising edge (E+2)**, so the half E+1 stays a reset half (`bus_oe` = 0, `m1_n` = 1). The outputs at E0+1 aren't compared.
 
 ### `z80_decode` (Zura)
-In: `prefix` (3, §2.7), `ir` (8). Out: `documented` (1, the opcode is one of spec §6.0's 698 forms; checked by script against `ref/refz80.py`'s census) and the cycle-plan row and per-instruction fields, whose encoding is Zura's own (control and decode are both hers).
+In: `prefix` (3, §2.7), `ir` (8). Out: `specified` (1, the opcode is one of spec §6.0's **850** specified forms: the 698 documented plus decision 9's 152, §6.0a U1–U3; checked by script against `ref/refz80.py`'s census; renamed from `documented`, chip-z80#50) and the cycle-plan row and per-instruction fields, whose encoding is Zura's own (control and decode are both hers).
 
 ### `z80_control` (Zura)
 | Port | Dir | Width | Meaning |
@@ -282,7 +282,7 @@ In: `prefix` (3, §2.7), `ir` (8). Out: `documented` (1, the opcode is one of sp
 - **Conditions:** `ir[5:3]` for JP cc, CALL cc, RET cc (0 NZ, 1 Z, 2 NC, 3 C, 4 PO, 5 PE, 6 P, 7 M: Z is F[6], C F[0], P/V F[2], S F[7]); `ir[4:3]` for JR cc (0 NZ, 1 Z, 2 NC, 3 C).
 - **`rst_vec`** = `ir` AND 38H for RST p and for mode 0's vector.
 - **`bit_n`** = `ir[5:3]`; **`alu_op`** for the ALU, CB rotate and 07…3F groups as §2.3's arithmetic.
-- **Register fields:** `ir[5:3]` and `ir[2:0]` → `r8` 0–5, with 6 meaning (HL) and 7 meaning A (`alu_*_sel`, `a_we`, `d_out_sel` 0).
+- **Register fields:** `ir[5:3]` and `ir[2:0]` → `r8` 0–5, with 6 meaning (HL) and 7 meaning A (`alu_*_sel`, `a_we`, `d_out_sel` 0). For spec §6.0a U1 opcodes under DD/FD, 4 and 5 map to 8/9 (DD) or 10/11 (FD) (§2.2 note).
 - **Pair fields:** `ir[5:4]` (dd/ss/qq/pp/rr: 0 BC, 1 DE, 2 HL or IX/IY under a prefix, 3 SP or, for PUSH/POP qq, AF).
 - **IM 0/1/2** (ED 46, 56, 5E): the mode from `ir[4:3]` (0 → 0, 2 → 1, 3 → 2).
 
