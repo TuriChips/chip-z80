@@ -1,0 +1,21 @@
+Z80 synthesis, sky130_fd_sc_hd tt_025C_1v80, yosys 0.33, clock 100 ns, ideal wires. main 6568843
+block          cells  flops  latch    area_um2  worst path: data arrival ns (slack)
+z80_alu          683     35      0 4759.564800  4.470 (slack 95.412 at 100 ns)
+z80_regs        2176    193      0 15660.019200  11.474 (slack 88.297 at 100 ns)
+z80_timing       166     19      0 1247.446400  3.797 (slack 96.075 at 100 ns)
+
+== full chip z80: skipped, rtl/files.f is not on main yet (Zura's top/control issue)
+
+== warnings
+ABC: Warning: Detected 9 multi-output gates (for example, "sky130_fd_sc_hd__fa_1").
+Warnings: 26 unique messages, 234 total
+Warning: Replacing memory \hl with list of registers. See rtl/datapath/z80_regs.v:207
+Warning: Replacing memory \de with list of registers. See rtl/datapath/z80_regs.v:206
+Warning: Replacing memory \bc with list of registers. See rtl/datapath/z80_regs.v:205
+Warning: Replacing memory \n_hl with list of registers. See rtl/datapath/z80_regs.v:125
+Warning: Replacing memory \n_de with list of registers. See rtl/datapath/z80_regs.v:124
+Warning: Replacing memory \n_bc with list of registers. See rtl/datapath/z80_regs.v:123
+ABC: Warning: Detected 9 multi-output gates (for example, "sky130_fd_sc_hd__fa_1").
+Warnings: 32 unique messages, 240 total
+ABC: Warning: Detected 9 multi-output gates (for example, "sky130_fd_sc_hd__fa_1").
+Warnings: 26 unique messages, 234 total

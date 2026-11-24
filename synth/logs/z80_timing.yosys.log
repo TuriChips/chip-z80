@@ -1,0 +1,1197 @@
+
+ /----------------------------------------------------------------------------\
+ |                                                                            |
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |                                                                            |
+ |  Copyright (C) 2012 - 2020  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |                                                                            |
+ |  Permission to use, copy, modify, and/or distribute this software for any  |
+ |  purpose with or without fee is hereby granted, provided that the above    |
+ |  copyright notice and this permission notice appear in all copies.         |
+ |                                                                            |
+ |  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES  |
+ |  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF          |
+ |  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR   |
+ |  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES    |
+ |  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN     |
+ |  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF   |
+ |  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.            |
+ |                                                                            |
+ \----------------------------------------------------------------------------/
+
+ Yosys 0.33 (git sha1 2584903a060)
+
+
+-- Running command `read_liberty -lib /tmp/tmp.6cLRqUW4ob/f.lib; read_verilog rtl/control/z80_timing.v;
+   hierarchy -check -top z80_timing; proc; flatten; opt; wreduce; alumacc; opt; memory -nomap -nordff; memory_map; opt -full; techmap; opt -fast;
+   dfflegalize -cell $_DFF_P_ 01 -cell $_DLATCH_P_ x;
+   dfflibmap -liberty /tmp/tmp.6cLRqUW4ob/f.lib; abc -D 100000 -liberty /tmp/tmp.6cLRqUW4ob/f.lib; opt_clean -purge; check -assert;
+   tee -o synth/logs/z80_timing.stat.txt stat -liberty /tmp/tmp.6cLRqUW4ob/f.lib; write_verilog -noattr -noexpr /tmp/tmp.6cLRqUW4ob/z80_timing.v' --
+
+1. Executing Liberty frontend: /tmp/tmp.6cLRqUW4ob/f.lib
+Imported 364 cell types from liberty file.
+
+2. Executing Verilog-2005 frontend: rtl/control/z80_timing.v
+Parsing Verilog input from `rtl/control/z80_timing.v' to AST representation.
+Generating RTLIL representation for module `\z80_timing'.
+Successfully finished Verilog frontend.
+
+3. Executing HIERARCHY pass (managing design hierarchy).
+
+3.1. Analyzing design hierarchy..
+Top module:  \z80_timing
+
+3.2. Analyzing design hierarchy..
+Top module:  \z80_timing
+Removed 0 unused modules.
+
+4. Executing PROC pass (convert processes to netlists).
+
+4.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+4.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 2 switch rules as full_case in process $proc$rtl/control/z80_timing.v:113$89 in module z80_timing.
+Marked 9 switch rules as full_case in process $proc$rtl/control/z80_timing.v:76$80 in module z80_timing.
+Removed a total of 0 dead cases.
+
+4.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 28 assignments to connections.
+
+4.4. Executing PROC_INIT pass (extract init attributes).
+
+4.5. Executing PROC_ARST pass (detect async resets in processes).
+
+4.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~14 debug messages>
+
+4.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+     1/2: $0\bq_s[0:0]
+     2/2: $0\wait_s[0:0]
+Creating decoders for process `\z80_timing.$proc$rtl/control/z80_timing.v:113$89'.
+     1/14: $2\p_rfsh[0:0]
+     2/14: $2\p_rd[0:0]
+     3/14: $2\p_mreq[0:0]
+     4/14: $2\p_m1[0:0]
+     5/14: $2\p_doe[0:0]
+     6/14: $2\p_wr[0:0]
+     7/14: $2\p_iorq[0:0]
+     8/14: $1\p_doe[0:0]
+     9/14: $1\p_rfsh[0:0]
+    10/14: $1\p_wr[0:0]
+    11/14: $1\p_rd[0:0]
+    12/14: $1\p_iorq[0:0]
+    13/14: $1\p_mreq[0:0]
+    14/14: $1\p_m1[0:0]
+Creating decoders for process `\z80_timing.$proc$rtl/control/z80_timing.v:76$80'.
+     1/36: $8\n_txl[0:0]
+     2/36: $8\n_tx[0:0]
+     3/36: $7\n_txl[0:0]
+     4/36: $7\n_tx[0:0]
+     5/36: $7\n_t[2:0]
+     6/36: $6\n_tw[0:0]
+     7/36: $5\n_tw[0:0]
+     8/36: $6\n_txl[0:0]
+     9/36: $6\n_tx[0:0]
+    10/36: $6\n_t[2:0]
+    11/36: $5\n_t[2:0]
+    12/36: $5\n_txl[0:0]
+    13/36: $5\n_tx[0:0]
+    14/36: $4\n_txl[0:0]
+    15/36: $4\n_tx[0:0]
+    16/36: $4\n_t[2:0]
+    17/36: $4\n_tw[0:0]
+    18/36: $4\n_ph[0:0]
+    19/36: $3\n_txl[0:0]
+    20/36: $3\n_tx[0:0]
+    21/36: $3\n_tw[0:0]
+    22/36: $3\n_t[2:0]
+    23/36: $3\n_run[0:0]
+    24/36: $3\n_ph[0:0]
+    25/36: $2\n_run[0:0]
+    26/36: $2\n_ph[0:0]
+    27/36: $2\n_txl[0:0]
+    28/36: $2\n_tx[0:0]
+    29/36: $2\n_tw[0:0]
+    30/36: $2\n_t[2:0]
+    31/36: $1\n_txl[0:0]
+    32/36: $1\n_tx[0:0]
+    33/36: $1\n_tw[0:0]
+    34/36: $1\n_ph[0:0]
+    35/36: $1\n_t[2:0]
+    36/36: $1\n_run[0:0]
+
+4.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+No latch inferred for signal `\z80_timing.\p_m1' from process `\z80_timing.$proc$rtl/control/z80_timing.v:113$89'.
+No latch inferred for signal `\z80_timing.\p_mreq' from process `\z80_timing.$proc$rtl/control/z80_timing.v:113$89'.
+No latch inferred for signal `\z80_timing.\p_iorq' from process `\z80_timing.$proc$rtl/control/z80_timing.v:113$89'.
+No latch inferred for signal `\z80_timing.\p_rd' from process `\z80_timing.$proc$rtl/control/z80_timing.v:113$89'.
+No latch inferred for signal `\z80_timing.\p_wr' from process `\z80_timing.$proc$rtl/control/z80_timing.v:113$89'.
+No latch inferred for signal `\z80_timing.\p_rfsh' from process `\z80_timing.$proc$rtl/control/z80_timing.v:113$89'.
+No latch inferred for signal `\z80_timing.\p_doe' from process `\z80_timing.$proc$rtl/control/z80_timing.v:113$89'.
+No latch inferred for signal `\z80_timing.\n_t' from process `\z80_timing.$proc$rtl/control/z80_timing.v:76$80'.
+No latch inferred for signal `\z80_timing.\n_ph' from process `\z80_timing.$proc$rtl/control/z80_timing.v:76$80'.
+No latch inferred for signal `\z80_timing.\n_tw' from process `\z80_timing.$proc$rtl/control/z80_timing.v:76$80'.
+No latch inferred for signal `\z80_timing.\n_tx' from process `\z80_timing.$proc$rtl/control/z80_timing.v:76$80'.
+No latch inferred for signal `\z80_timing.\n_txl' from process `\z80_timing.$proc$rtl/control/z80_timing.v:76$80'.
+No latch inferred for signal `\z80_timing.\n_run' from process `\z80_timing.$proc$rtl/control/z80_timing.v:76$80'.
+
+4.9. Executing PROC_DFF pass (convert process syncs to FFs).
+Creating register for signal `\z80_timing.\t' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$682' with positive edge clock.
+Creating register for signal `\z80_timing.\tw' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$683' with positive edge clock.
+Creating register for signal `\z80_timing.\ph' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$684' with positive edge clock.
+Creating register for signal `\z80_timing.\tx' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$685' with positive edge clock.
+Creating register for signal `\z80_timing.\mreq_n' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$686' with positive edge clock.
+Creating register for signal `\z80_timing.\iorq_n' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$687' with positive edge clock.
+Creating register for signal `\z80_timing.\rd_n' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$688' with positive edge clock.
+Creating register for signal `\z80_timing.\wr_n' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$689' with positive edge clock.
+Creating register for signal `\z80_timing.\rfsh_n' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$690' with positive edge clock.
+Creating register for signal `\z80_timing.\d_oe' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$691' with positive edge clock.
+Creating register for signal `\z80_timing.\bus_oe' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$692' with positive edge clock.
+Creating register for signal `\z80_timing.\busak_n' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$693' with positive edge clock.
+Creating register for signal `\z80_timing.\m1_q' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$694' with positive edge clock.
+Creating register for signal `\z80_timing.\run' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$695' with positive edge clock.
+Creating register for signal `\z80_timing.\wait_s' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$696' with positive edge clock.
+Creating register for signal `\z80_timing.\bq_s' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$697' with positive edge clock.
+Creating register for signal `\z80_timing.\tx_last' using process `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+  created $dff cell `$procdff$698' with positive edge clock.
+
+4.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+4.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Found and cleaned up 3 empty switches in `\z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+Removing empty process `z80_timing.$proc$rtl/control/z80_timing.v:154$182'.
+Found and cleaned up 2 empty switches in `\z80_timing.$proc$rtl/control/z80_timing.v:113$89'.
+Removing empty process `z80_timing.$proc$rtl/control/z80_timing.v:113$89'.
+Found and cleaned up 9 empty switches in `\z80_timing.$proc$rtl/control/z80_timing.v:76$80'.
+Removing empty process `z80_timing.$proc$rtl/control/z80_timing.v:76$80'.
+Cleaned up 14 empty switches.
+
+4.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+<suppressed ~62 debug messages>
+
+5. Executing FLATTEN pass (flatten design).
+
+6. Executing OPT pass (performing simple optimizations).
+
+6.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+
+6.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+<suppressed ~315 debug messages>
+Removed a total of 105 cells.
+
+6.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \z80_timing..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+      Replacing known input bits on port A of cell $procmux$504: \tx -> 1'1
+      Replacing known input bits on port B of cell $procmux$443: \tx -> 1'0
+      Replacing known input bits on port A of cell $procmux$360: \tx -> 1'0
+      Replacing known input bits on port A of cell $procmux$322: \tx -> 1'0
+  Analyzing evaluation results.
+    dead port 1/2 on $mux $procmux$416.
+    dead port 1/2 on $mux $procmux$410.
+    dead port 2/2 on $mux $procmux$407.
+    dead port 2/2 on $mux $procmux$404.
+    dead port 1/2 on $mux $procmux$401.
+    dead port 1/2 on $mux $procmux$398.
+    dead port 1/2 on $mux $procmux$393.
+    dead port 2/2 on $mux $procmux$390.
+    dead port 2/2 on $mux $procmux$387.
+    dead port 1/2 on $mux $procmux$384.
+    dead port 1/2 on $mux $procmux$381.
+    dead port 1/2 on $mux $procmux$375.
+    dead port 2/2 on $mux $procmux$372.
+    dead port 2/2 on $mux $procmux$369.
+    dead port 1/2 on $mux $procmux$366.
+    dead port 1/2 on $mux $procmux$363.
+    dead port 1/2 on $mux $procmux$357.
+    dead port 2/2 on $mux $procmux$354.
+    dead port 2/2 on $mux $procmux$351.
+    dead port 1/2 on $mux $procmux$348.
+    dead port 1/2 on $mux $procmux$345.
+    dead port 1/2 on $mux $procmux$339.
+    dead port 2/2 on $mux $procmux$336.
+    dead port 2/2 on $mux $procmux$333.
+    dead port 1/2 on $mux $procmux$330.
+    dead port 1/2 on $mux $procmux$327.
+    dead port 2/2 on $mux $procmux$324.
+    dead port 1/2 on $mux $procmux$318.
+    dead port 2/2 on $mux $procmux$315.
+    dead port 2/2 on $mux $procmux$312.
+    dead port 1/2 on $mux $procmux$309.
+    dead port 1/2 on $mux $procmux$306.
+    dead port 2/2 on $mux $procmux$303.
+    dead port 2/2 on $mux $procmux$276.
+    dead port 2/2 on $mux $procmux$268.
+    dead port 2/2 on $mux $procmux$260.
+    dead port 2/2 on $mux $procmux$252.
+    dead port 2/2 on $mux $procmux$245.
+    dead port 2/2 on $mux $procmux$236.
+    dead port 2/2 on $mux $procmux$226.
+    dead port 1/2 on $mux $procmux$425.
+    dead port 1/2 on $mux $procmux$446.
+    dead port 2/2 on $mux $procmux$506.
+    dead port 1/2 on $mux $procmux$662.
+    dead port 1/2 on $mux $procmux$656.
+    dead port 1/2 on $mux $procmux$500.
+    dead port 1/2 on $mux $procmux$650.
+    dead port 1/2 on $mux $procmux$644.
+    dead port 2/2 on $mux $procmux$497.
+    dead port 1/2 on $mux $procmux$638.
+    dead port 2/2 on $mux $procmux$494.
+    dead port 2/2 on $mux $procmux$419.
+    dead port 2/2 on $mux $procmux$422.
+    dead port 2/2 on $mux $procmux$491.
+    dead port 1/2 on $mux $procmux$632.
+    dead port 1/2 on $mux $procmux$440.
+    dead port 1/2 on $mux $procmux$626.
+    dead port 1/2 on $mux $procmux$623.
+    dead port 2/2 on $mux $procmux$437.
+    dead port 1/2 on $mux $procmux$617.
+    dead port 1/2 on $mux $procmux$485.
+    dead port 1/2 on $mux $procmux$614.
+    dead port 2/2 on $mux $procmux$482.
+    dead port 2/2 on $mux $procmux$479.
+    dead port 1/2 on $mux $procmux$608.
+    dead port 2/2 on $mux $procmux$434.
+    dead port 2/2 on $mux $procmux$605.
+    dead port 2/2 on $mux $procmux$476.
+    dead port 1/2 on $mux $procmux$599.
+    dead port 2/2 on $mux $procmux$596.
+    dead port 1/2 on $mux $procmux$590.
+    dead port 2/2 on $mux $procmux$587.
+    dead port 1/2 on $mux $procmux$470.
+    dead port 1/2 on $mux $procmux$581.
+    dead port 2/2 on $mux $procmux$578.
+    dead port 2/2 on $mux $procmux$467.
+    dead port 1/2 on $mux $procmux$572.
+    dead port 2/2 on $mux $procmux$569.
+    dead port 1/2 on $mux $procmux$563.
+    dead port 2/2 on $mux $procmux$560.
+    dead port 2/2 on $mux $procmux$557.
+    dead port 1/2 on $mux $procmux$551.
+    dead port 2/2 on $mux $procmux$464.
+    dead port 1/2 on $mux $procmux$461.
+    dead port 2/2 on $mux $procmux$548.
+    dead port 2/2 on $mux $procmux$545.
+    dead port 1/2 on $mux $procmux$431.
+    dead port 1/2 on $mux $procmux$455.
+    dead port 1/2 on $mux $procmux$539.
+    dead port 2/2 on $mux $procmux$452.
+    dead port 2/2 on $mux $procmux$536.
+    dead port 2/2 on $mux $procmux$449.
+    dead port 2/2 on $mux $procmux$533.
+    dead port 1/2 on $mux $procmux$527.
+    dead port 2/2 on $mux $procmux$524.
+    dead port 2/2 on $mux $procmux$521.
+    dead port 1/2 on $mux $procmux$515.
+    dead port 2/2 on $mux $procmux$512.
+    dead port 2/2 on $mux $procmux$509.
+Removed 99 multiplexer ports.
+<suppressed ~16 debug messages>
+
+6.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \z80_timing.
+    New ctrl vector for $pmux cell $procmux$272: { $auto$opt_reduce.cc:134:opt_pmux$700 $procmux$273_CMP }
+    New ctrl vector for $pmux cell $procmux$240: { $procmux$251_CMP $auto$opt_reduce.cc:134:opt_pmux$702 $procmux$273_CMP }
+  Optimizing cells in module \z80_timing.
+Performed a total of 2 changes.
+
+6.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+<suppressed ~3 debug messages>
+Removed a total of 1 cells.
+
+6.6. Executing OPT_DFF pass (perform DFF optimizations).
+Adding SRST signal on $procdff$686 ($dff) from module z80_timing (D = $2\p_mreq[0:0], Q = \mreq_n, rval = 1'1).
+Adding SRST signal on $procdff$687 ($dff) from module z80_timing (D = $2\p_iorq[0:0], Q = \iorq_n, rval = 1'1).
+Adding SRST signal on $procdff$688 ($dff) from module z80_timing (D = $2\p_rd[0:0], Q = \rd_n, rval = 1'1).
+Adding SRST signal on $procdff$689 ($dff) from module z80_timing (D = $2\p_wr[0:0], Q = \wr_n, rval = 1'1).
+Adding SRST signal on $procdff$690 ($dff) from module z80_timing (D = $2\p_rfsh[0:0], Q = \rfsh_n, rval = 1'1).
+Adding SRST signal on $procdff$691 ($dff) from module z80_timing (D = $2\p_doe[0:0], Q = \d_oe, rval = 1'0).
+Adding SRST signal on $procdff$694 ($dff) from module z80_timing (D = $2\p_m1[0:0], Q = \m1_q, rval = 1'1).
+Adding EN signal on $procdff$696 ($dff) from module z80_timing (D = \wait_n, Q = \wait_s).
+Adding SRST signal on $procdff$697 ($dff) from module z80_timing (D = $procmux$215_Y, Q = \bq_s, rval = 1'0).
+Adding EN signal on $auto$ff.cc:266:slice$711 ($sdff) from module z80_timing (D = $logic_not$rtl/control/z80_timing.v:159$196_Y, Q = \bq_s).
+
+6.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+Removed 11 unused cells and 468 unused wires.
+<suppressed ~19 debug messages>
+
+6.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+<suppressed ~1 debug messages>
+
+6.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+6.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \z80_timing..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~14 debug messages>
+
+6.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \z80_timing.
+Performed a total of 0 changes.
+
+6.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+Removed a total of 0 cells.
+
+6.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+6.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+Removed 0 unused cells and 1 unused wires.
+<suppressed ~1 debug messages>
+
+6.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+
+6.16. Rerunning OPT passes. (Maybe there is more to do..)
+
+6.17. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \z80_timing..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~14 debug messages>
+
+6.18. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \z80_timing.
+Performed a total of 0 changes.
+
+6.19. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+Removed a total of 0 cells.
+
+6.20. Executing OPT_DFF pass (perform DFF optimizations).
+
+6.21. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+
+6.22. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+
+6.23. Finished OPT passes. (There is nothing left to do.)
+
+7. Executing WREDUCE pass (reducing word size of cells).
+Removed top 1 bits (of 3) from port B of cell z80_timing.$eq$rtl/control/z80_timing.v:69$61 ($eq).
+Removed top 1 bits (of 3) from port B of cell z80_timing.$le$rtl/control/z80_timing.v:119$94 ($le).
+Removed top 1 bits (of 3) from port B of cell z80_timing.$eq$rtl/control/z80_timing.v:139$152 ($eq).
+Removed top 2 bits (of 3) from port B of cell z80_timing.$eq$rtl/control/z80_timing.v:141$159 ($eq).
+Removed top 1 bits (of 3) from port B of cell z80_timing.$ge$rtl/control/z80_timing.v:141$161 ($ge).
+Removed top 1 bits (of 3) from port B of cell z80_timing.$eq$rtl/control/z80_timing.v:145$167 ($eq).
+Removed top 2 bits (of 3) from port B of cell z80_timing.$add$rtl/control/z80_timing.v:159$190 ($add).
+Removed top 2 bits (of 3) from port B of cell z80_timing.$eq$rtl/control/z80_timing.v:170$207 ($eq).
+Removed top 2 bits (of 3) from port B of cell z80_timing.$procmux$243_CMP0 ($eq).
+Removed top 1 bits (of 3) from port B of cell z80_timing.$procmux$267_CMP0 ($eq).
+Removed top 1 bits (of 3) from port B of cell z80_timing.$procmux$275_CMP0 ($eq).
+
+8. Executing ALUMACC pass (create $alu and $macc cells).
+Extracting $alu and $macc cells in module z80_timing:
+  creating $macc model for $add$rtl/control/z80_timing.v:159$190 ($add).
+  creating $alu model for $macc $add$rtl/control/z80_timing.v:159$190.
+  creating $alu model for $ge$rtl/control/z80_timing.v:141$161 ($ge): new $alu
+  creating $alu model for $le$rtl/control/z80_timing.v:119$94 ($le): merged with $ge$rtl/control/z80_timing.v:141$161.
+  creating $alu model for $le$rtl/control/z80_timing.v:144$165 ($le): new $alu
+  creating $alu model for $eq$rtl/control/z80_timing.v:139$152 ($eq): merged with $ge$rtl/control/z80_timing.v:141$161.
+  creating $alu model for $eq$rtl/control/z80_timing.v:145$169 ($eq): merged with $le$rtl/control/z80_timing.v:144$165.
+  creating $alu cell for $le$rtl/control/z80_timing.v:144$165, $eq$rtl/control/z80_timing.v:145$169: $auto$alumacc.cc:485:replace_alu$715
+  creating $alu cell for $ge$rtl/control/z80_timing.v:141$161, $le$rtl/control/z80_timing.v:119$94, $eq$rtl/control/z80_timing.v:139$152: $auto$alumacc.cc:485:replace_alu$728
+  creating $alu cell for $add$rtl/control/z80_timing.v:159$190: $auto$alumacc.cc:485:replace_alu$743
+  created 3 $alu and 0 $macc cells.
+
+9. Executing OPT pass (performing simple optimizations).
+
+9.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+
+9.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+Removed a total of 0 cells.
+
+9.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \z80_timing..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~14 debug messages>
+
+9.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \z80_timing.
+Performed a total of 0 changes.
+
+9.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+Removed a total of 0 cells.
+
+9.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+9.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+Removed 0 unused cells and 5 unused wires.
+<suppressed ~1 debug messages>
+
+9.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+
+9.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+9.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \z80_timing..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~14 debug messages>
+
+9.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \z80_timing.
+Performed a total of 0 changes.
+
+9.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+Removed a total of 0 cells.
+
+9.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+9.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+
+9.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+
+9.16. Finished OPT passes. (There is nothing left to do.)
+
+10. Executing MEMORY pass.
+
+10.1. Executing OPT_MEM pass (optimize memories).
+Performed a total of 0 transformations.
+
+10.2. Executing OPT_MEM_PRIORITY pass (removing unnecessary memory write priority relations).
+Performed a total of 0 transformations.
+
+10.3. Executing OPT_MEM_FEEDBACK pass (finding memory read-to-write feedback paths).
+
+10.4. Executing MEMORY_BMUX2ROM pass (converting muxes to ROMs).
+
+10.5. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+
+10.6. Executing MEMORY_SHARE pass (consolidating $memrd/$memwr cells).
+
+10.7. Executing OPT_MEM_WIDEN pass (optimize memories where all ports are wide).
+Performed a total of 0 transformations.
+
+10.8. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+
+10.9. Executing MEMORY_COLLECT pass (generating $mem cells).
+
+11. Executing MEMORY_MAP pass (converting memories to logic and flip-flops).
+
+12. Executing OPT pass (performing simple optimizations).
+
+12.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+<suppressed ~10 debug messages>
+
+12.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+Removed a total of 0 cells.
+
+12.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \z80_timing..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~17 debug messages>
+
+12.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \z80_timing.
+    Consolidated identical input bits for $mux cell $ternary$rtl/control/z80_timing.v:57$12:
+      Old ports: A=3'000, B=3'100, Y=$ternary$rtl/control/z80_timing.v:57$12_Y
+      New ports: A=1'0, B=1'1, Y=$ternary$rtl/control/z80_timing.v:57$12_Y [2]
+      New connections: $ternary$rtl/control/z80_timing.v:57$12_Y [1:0] = 2'00
+  Optimizing cells in module \z80_timing.
+    Consolidated identical input bits for $mux cell $ternary$rtl/control/z80_timing.v:56$13:
+      Old ports: A=$ternary$rtl/control/z80_timing.v:57$12_Y, B=3'011, Y=$ternary$rtl/control/z80_timing.v:56$13_Y
+      New ports: A={ $ternary$rtl/control/z80_timing.v:57$12_Y [2] 1'0 }, B=2'01, Y={ $ternary$rtl/control/z80_timing.v:56$13_Y [2] $ternary$rtl/control/z80_timing.v:56$13_Y [0] }
+      New connections: $ternary$rtl/control/z80_timing.v:56$13_Y [1] = $ternary$rtl/control/z80_timing.v:56$13_Y [0]
+  Optimizing cells in module \z80_timing.
+Performed a total of 2 changes.
+
+12.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+Removed a total of 0 cells.
+
+12.6. Executing OPT_SHARE pass.
+
+12.7. Executing OPT_DFF pass (perform DFF optimizations).
+
+12.8. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+Removed 0 unused cells and 3 unused wires.
+<suppressed ~1 debug messages>
+
+12.9. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+<suppressed ~1 debug messages>
+
+12.10. Rerunning OPT passes. (Maybe there is more to do..)
+
+12.11. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \z80_timing..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~17 debug messages>
+
+12.12. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \z80_timing.
+Performed a total of 0 changes.
+
+12.13. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+Removed a total of 0 cells.
+
+12.14. Executing OPT_SHARE pass.
+
+12.15. Executing OPT_DFF pass (perform DFF optimizations).
+
+12.16. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+Removed 0 unused cells and 1 unused wires.
+<suppressed ~1 debug messages>
+
+12.17. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+
+12.18. Rerunning OPT passes. (Maybe there is more to do..)
+
+12.19. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \z80_timing..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~17 debug messages>
+
+12.20. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \z80_timing.
+Performed a total of 0 changes.
+
+12.21. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+Removed a total of 0 cells.
+
+12.22. Executing OPT_SHARE pass.
+
+12.23. Executing OPT_DFF pass (perform DFF optimizations).
+
+12.24. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+
+12.25. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+
+12.26. Finished OPT passes. (There is nothing left to do.)
+
+13. Executing TECHMAP pass (map to technology primitives).
+
+13.1. Executing Verilog-2005 frontend: /usr/bin/../share/yosys/techmap.v
+Parsing Verilog input from `/usr/bin/../share/yosys/techmap.v' to AST representation.
+Generating RTLIL representation for module `\_90_simplemap_bool_ops'.
+Generating RTLIL representation for module `\_90_simplemap_reduce_ops'.
+Generating RTLIL representation for module `\_90_simplemap_logic_ops'.
+Generating RTLIL representation for module `\_90_simplemap_compare_ops'.
+Generating RTLIL representation for module `\_90_simplemap_various'.
+Generating RTLIL representation for module `\_90_simplemap_registers'.
+Generating RTLIL representation for module `\_90_shift_ops_shr_shl_sshl_sshr'.
+Generating RTLIL representation for module `\_90_shift_shiftx'.
+Generating RTLIL representation for module `\_90_fa'.
+Generating RTLIL representation for module `\_90_lcu'.
+Generating RTLIL representation for module `\_90_alu'.
+Generating RTLIL representation for module `\_90_macc'.
+Generating RTLIL representation for module `\_90_alumacc'.
+Generating RTLIL representation for module `\$__div_mod_u'.
+Generating RTLIL representation for module `\$__div_mod_trunc'.
+Generating RTLIL representation for module `\_90_div'.
+Generating RTLIL representation for module `\_90_mod'.
+Generating RTLIL representation for module `\$__div_mod_floor'.
+Generating RTLIL representation for module `\_90_divfloor'.
+Generating RTLIL representation for module `\_90_modfloor'.
+Generating RTLIL representation for module `\_90_pow'.
+Generating RTLIL representation for module `\_90_pmux'.
+Generating RTLIL representation for module `\_90_demux'.
+Generating RTLIL representation for module `\_90_lut'.
+Successfully finished Verilog frontend.
+
+13.2. Continuing TECHMAP pass.
+Using extmapper simplemap for cells of type $logic_or.
+Using extmapper simplemap for cells of type $mux.
+Using extmapper simplemap for cells of type $reduce_bool.
+Using extmapper simplemap for cells of type $eq.
+Using extmapper simplemap for cells of type $logic_and.
+Using extmapper simplemap for cells of type $logic_not.
+Using template $paramod$3ef7d3dd227da7627a99c5e5a6a4deb817573e39\_90_alu for cells of type $alu.
+Using template $paramod$79fc7abbb3333dbd5736999d565fd903198fb1eb\_90_alu for cells of type $alu.
+Using extmapper simplemap for cells of type $and.
+Using extmapper simplemap for cells of type $not.
+Using template $paramod$c5c783b17ab1d780abfad8cfe6563a0a7b47a3b0\_90_pmux for cells of type $pmux.
+Using template $paramod$d629d85c8826a74239b9178d1930215a43b0ceb0\_90_pmux for cells of type $pmux.
+Using extmapper simplemap for cells of type $reduce_or.
+Using extmapper simplemap for cells of type $sdff.
+Using extmapper simplemap for cells of type $or.
+Using extmapper simplemap for cells of type $reduce_and.
+Using template $paramod$78e969f2586efcf3a5b0b0440bcca0db83d5cca2\_90_alu for cells of type $alu.
+Using extmapper simplemap for cells of type $dff.
+Using extmapper simplemap for cells of type $dffe.
+Using extmapper simplemap for cells of type $sdffe.
+Using extmapper simplemap for cells of type $pos.
+Using template $paramod\_90_lcu\WIDTH=32'00000000000000000000000000000011 for cells of type $lcu.
+Using extmapper simplemap for cells of type $xor.
+No more expansions possible.
+<suppressed ~529 debug messages>
+
+14. Executing OPT pass (performing simple optimizations).
+
+14.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module z80_timing.
+<suppressed ~94 debug messages>
+
+14.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\z80_timing'.
+<suppressed ~108 debug messages>
+Removed a total of 36 cells.
+
+14.3. Executing OPT_DFF pass (perform DFF optimizations).
+
+14.4. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+Removed 5 unused cells and 246 unused wires.
+<suppressed ~6 debug messages>
+
+14.5. Finished fast OPT passes.
+
+15. Executing DFFLEGALIZE pass (convert FFs to types supported by the target).
+
+16. Executing DFFLIBMAP pass (mapping DFF cells to sequential cells from liberty file).
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtn_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_4' - skipping.
+  cell sky130_fd_sc_hd__dfxtp_1 (noninv, pins=3, area=20.02) is a direct match for cell type $_DFF_P_.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtn_1' - skipping.
+  cell sky130_fd_sc_hd__dfrtn_1 (noninv, pins=4, area=25.02) is a direct match for cell type $_DFF_NN0_.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtn_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_4' - skipping.
+  cell sky130_fd_sc_hd__dfrtp_1 (noninv, pins=4, area=25.02) is a direct match for cell type $_DFF_PN0_.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_4' - skipping.
+  cell sky130_fd_sc_hd__dfstp_2 (noninv, pins=4, area=26.28) is a direct match for cell type $_DFF_PN1_.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtn_1' - skipping.
+  cell sky130_fd_sc_hd__dfbbn_1 (noninv, pins=6, area=32.53) is a direct match for cell type $_DFFSR_NNN_.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbn_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtn_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_4' - skipping.
+  cell sky130_fd_sc_hd__dfbbp_1 (noninv, pins=6, area=32.53) is a direct match for cell type $_DFFSR_PNN_.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE|IQ&!DE' in pin attribute of cell 'sky130_fd_sc_hd__edfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfbbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfrtp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfsbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfstp_4' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sdfxtp_4' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxbp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_1' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_2' - skipping.
+Warning: Found unsupported expression 'D&DE&!SCE|IQ&!DE&!SCE|SCD&SCE' in pin attribute of cell 'sky130_fd_sc_hd__sedfxtp_4' - skipping.
+  final dff cell mappings:
+    unmapped dff cell: $_DFF_N_
+    \sky130_fd_sc_hd__dfxtp_1 _DFF_P_ (.CLK( C), .D( D), .Q( Q));
+    \sky130_fd_sc_hd__dfrtn_1 _DFF_NN0_ (.CLK_N( C), .D( D), .Q( Q), .RESET_B( R));
+    unmapped dff cell: $_DFF_NN1_
+    unmapped dff cell: $_DFF_NP0_
+    unmapped dff cell: $_DFF_NP1_
+    \sky130_fd_sc_hd__dfrtp_1 _DFF_PN0_ (.CLK( C), .D( D), .Q( Q), .RESET_B( R));
+    \sky130_fd_sc_hd__dfstp_2 _DFF_PN1_ (.CLK( C), .D( D), .Q( Q), .SET_B( R));
+    unmapped dff cell: $_DFF_PP0_
+    unmapped dff cell: $_DFF_PP1_
+    \sky130_fd_sc_hd__dfbbn_1 _DFFSR_NNN_ (.CLK_N( C), .D( D), .Q( Q), .Q_N(~Q), .RESET_B( R), .SET_B( S));
+    unmapped dff cell: $_DFFSR_NNP_
+    unmapped dff cell: $_DFFSR_NPN_
+    unmapped dff cell: $_DFFSR_NPP_
+    \sky130_fd_sc_hd__dfbbp_1 _DFFSR_PNN_ (.CLK( C), .D( D), .Q( Q), .Q_N(~Q), .RESET_B( R), .SET_B( S));
+    unmapped dff cell: $_DFFSR_PNP_
+    unmapped dff cell: $_DFFSR_PPN_
+    unmapped dff cell: $_DFFSR_PPP_
+
+16.1. Executing DFFLEGALIZE pass (convert FFs to types supported by the target).
+Mapping DFF cells in module `\z80_timing':
+  mapped 19 $_DFF_P_ cells to \sky130_fd_sc_hd__dfxtp_1 cells.
+
+17. Executing ABC pass (technology mapping using ABC).
+
+17.1. Extracting gate netlist of module `\z80_timing' to `<abc-temp-dir>/input.blif'..
+Extracted 279 gates and 301 wires to a netlist network with 20 inputs and 25 outputs.
+
+17.1.1. Executing ABC.
+Running ABC command: "<yosys-exe-dir>/yosys-abc" -s -f <abc-temp-dir>/abc.script 2>&1
+ABC: ABC command line: "source <abc-temp-dir>/abc.script".
+ABC: 
+ABC: + read_blif <abc-temp-dir>/input.blif 
+ABC: + read_lib -w /tmp/tmp.6cLRqUW4ob/f.lib 
+ABC: Parsing finished successfully.  Parsing time =     0.07 sec
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__decap_12" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__decap_3" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__decap_4" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__decap_6" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__decap_8" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfbbn_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfbbn_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfbbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfrbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfrbp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfrtn_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfrtp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfrtp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfrtp_4".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfsbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfsbp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfstp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfstp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfstp_4".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfxbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfxbp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfxtp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfxtp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfxtp_4".
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__diode_2" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__dlclkp_1" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__dlclkp_2" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__dlclkp_4" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlrbn_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlrbn_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlrbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlrbp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlrtn_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlrtn_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlrtn_4".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlrtp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlrtp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlrtp_4".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlxbn_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlxbn_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlxbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlxtn_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlxtn_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlxtn_4".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dlxtp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__edfxbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__edfxtp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfbbn_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfbbn_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfbbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfrbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfrbp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfrtn_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfrtp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfrtp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfrtp_4".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfsbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfsbp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfstp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfstp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfstp_4".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfxbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfxbp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfxtp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfxtp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sdfxtp_4".
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__sdlclkp_1" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__sdlclkp_2" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__sdlclkp_4" without logic function.
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sedfxbp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sedfxbp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sedfxtp_1".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sedfxtp_2".
+ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sedfxtp_4".
+ABC: Library "sky130_fd_sc_hd__tt_025C_1v80" from "/tmp/tmp.6cLRqUW4ob/f.lib" has 290 cells (74 skipped: 62 seq; 0 tri-state; 12 no func; 0 dont_use).  Time =     0.11 sec
+ABC: Memory =   18.57 MB. Time =     0.11 sec
+ABC: Warning: Detected 9 multi-output gates (for example, "sky130_fd_sc_hd__fa_1").
+ABC: + strash 
+ABC: + &get -n 
+ABC: + &fraig -x 
+ABC: + &put 
+ABC: + scorr 
+ABC: Warning: The network is combinational (run "fraig" or "fraig_sweep").
+ABC: + dc2 
+ABC: + dretime 
+ABC: + retime -o -D 100000 
+ABC: + strash 
+ABC: + &get -n 
+ABC: + &dch -f 
+ABC: + &nf -D 100000 
+ABC: + &put 
+ABC: + write_blif <abc-temp-dir>/output.blif 
+
+17.1.2. Re-integrating ABC results.
+ABC RESULTS:   sky130_fd_sc_hd__and3b_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__a211o_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__nor2b_1 cells:        4
+ABC RESULTS:   sky130_fd_sc_hd__a2111o_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__a211oi_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__a21o_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__o311a_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__and4_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__or2_0 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__clkinv_1 cells:       10
+ABC RESULTS:   sky130_fd_sc_hd__nand4b_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__and3_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__a21boi_0 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__a41o_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__and2_0 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__a221oi_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__a311o_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__a2111oi_0 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__or3_1 cells:        5
+ABC RESULTS:   sky130_fd_sc_hd__o211ai_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__o311ai_0 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__nand2b_1 cells:        3
+ABC RESULTS:   sky130_fd_sc_hd__xor2_1 cells:        5
+ABC RESULTS:   sky130_fd_sc_hd__xnor2_1 cells:        3
+ABC RESULTS:   sky130_fd_sc_hd__nand3b_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__nor3b_1 cells:        3
+ABC RESULTS:   sky130_fd_sc_hd__mux2i_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__a311oi_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__a31oi_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__mux2_1 cells:        3
+ABC RESULTS:   sky130_fd_sc_hd__o31ai_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__a22oi_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__nor3_1 cells:       11
+ABC RESULTS:   sky130_fd_sc_hd__nor2_1 cells:       20
+ABC RESULTS:   sky130_fd_sc_hd__o21ai_0 cells:       15
+ABC RESULTS:   sky130_fd_sc_hd__nand2_1 cells:       16
+ABC RESULTS:   sky130_fd_sc_hd__nand4_1 cells:        3
+ABC RESULTS:   sky130_fd_sc_hd__a21oi_1 cells:        7
+ABC RESULTS:   sky130_fd_sc_hd__nand3_1 cells:        5
+ABC RESULTS:   sky130_fd_sc_hd__o41a_1 cells:        1
+ABC RESULTS:        internal signals:      256
+ABC RESULTS:           input signals:       20
+ABC RESULTS:          output signals:       25
+Removing temp directory.
+
+18. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \z80_timing..
+Removed 0 unused cells and 258 unused wires.
+<suppressed ~11 debug messages>
+
+19. Executing CHECK pass (checking for obvious problems).
+Checking module z80_timing...
+Found and reported 0 problems.
+
+20. Printing statistics.
+
+=== z80_timing ===
+
+   Number of wires:                168
+   Number of wire bits:            176
+   Number of public wires:          35
+   Number of public wire bits:      43
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                166
+     sky130_fd_sc_hd__a2111o_1       1
+     sky130_fd_sc_hd__a2111oi_0      2
+     sky130_fd_sc_hd__a211o_1        1
+     sky130_fd_sc_hd__a211oi_1       2
+     sky130_fd_sc_hd__a21boi_0       1
+     sky130_fd_sc_hd__a21o_1         1
+     sky130_fd_sc_hd__a21oi_1        7
+     sky130_fd_sc_hd__a221oi_1       1
+     sky130_fd_sc_hd__a22oi_1        1
+     sky130_fd_sc_hd__a311o_1        1
+     sky130_fd_sc_hd__a311oi_1       1
+     sky130_fd_sc_hd__a31oi_1        1
+     sky130_fd_sc_hd__a41o_1         1
+     sky130_fd_sc_hd__and2_0         1
+     sky130_fd_sc_hd__and3_1         1
+     sky130_fd_sc_hd__and3b_1        2
+     sky130_fd_sc_hd__and4_1         1
+     sky130_fd_sc_hd__clkinv_1      10
+     sky130_fd_sc_hd__dfxtp_1       19
+     sky130_fd_sc_hd__mux2_1         3
+     sky130_fd_sc_hd__mux2i_1        2
+     sky130_fd_sc_hd__nand2_1       16
+     sky130_fd_sc_hd__nand2b_1       3
+     sky130_fd_sc_hd__nand3_1        5
+     sky130_fd_sc_hd__nand3b_1       2
+     sky130_fd_sc_hd__nand4_1        3
+     sky130_fd_sc_hd__nand4b_1       1
+     sky130_fd_sc_hd__nor2_1        20
+     sky130_fd_sc_hd__nor2b_1        4
+     sky130_fd_sc_hd__nor3_1        11
+     sky130_fd_sc_hd__nor3b_1        3
+     sky130_fd_sc_hd__o211ai_1       2
+     sky130_fd_sc_hd__o21ai_0       15
+     sky130_fd_sc_hd__o311a_1        2
+     sky130_fd_sc_hd__o311ai_0       1
+     sky130_fd_sc_hd__o31ai_1        2
+     sky130_fd_sc_hd__o41a_1         1
+     sky130_fd_sc_hd__or2_0          2
+     sky130_fd_sc_hd__or3_1          5
+     sky130_fd_sc_hd__xnor2_1        3
+     sky130_fd_sc_hd__xor2_1         5
+
+   Chip area for module '\z80_timing': 1247.446400
+
+21. Executing Verilog backend.
+Dumping module `\z80_timing'.
+
+Warnings: 26 unique messages, 234 total
+End of script. Logfile hash: 41106e03e3, CPU: user 0.70s system 0.03s, MEM: 37.57 MB peak
+Yosys 0.33 (git sha1 2584903a060)
+Time spent: 27% 1x abc (0 sec), 16% 2x read_liberty (0 sec), ...
