@@ -1,0 +1,17 @@
+# zexdoc on the RTL: z80_system CPM=1 under Verilator 5.020 2024-01-01 rev (Debian 5.020-1), bench sw/exerciser/z80_acc_tb.sv, runner sw/exerciser/run_rtl.py
+# rtl commit d17e950, run 2026-11-24T14:00:40Z
+# zexdoc.com sha256 34923a7ed82285d3038b2d54bd64899e12173eebb61f9d07b4fc72e78af2ae8f (pinned by sw/exerciser/fetch.sh)
+# per-group runs (10 of 67 groups in this log; all 67 count, decision 9 (b)). Groups 6, 28-31, 48, 50, 59, 60 execute undocumented forms and need
+# U1-U3 (chip-z80 #51 ref, #52 Ada SLL, #53 Zura decode); until those merge they are expected to fail, they are NOT skipped.
+# half-clock limit per group 400000000000; line: group | name | result | done,timeout,bus_conflict,half-clocks | wall s | program output
+ 8 | bit n,(<ix,iy>+1)............. | OK | 1,0,0,80491494 | 222 | Z80 instruction exerciser  bit n,(<ix,iy>+1).............  OK  Tests complete
+13 | <inc,dec> a................... | OK | 1,0,0,119784198 | 322 | Z80 instruction exerciser  <inc,dec> a...................  OK  Tests complete
+14 | <inc,dec> b................... | OK | 1,0,0,119784198 | 294 | Z80 instruction exerciser  <inc,dec> b...................  OK  Tests complete
+15 | <inc,dec> bc.................. | OK | 1,0,0,61390456 | 146 | Z80 instruction exerciser  <inc,dec> bc..................  OK  Tests complete
+16 | <inc,dec> c................... | OK | 1,0,0,119784198 | 284 | Z80 instruction exerciser  <inc,dec> c...................  OK  Tests complete
+18 | <inc,dec> de.................. | OK | 1,0,0,61390456 | 147 | Z80 instruction exerciser  <inc,dec> de..................  OK  Tests complete
+21 | <inc,dec> hl.................. | OK | 1,0,0,61390456 | 143 | Z80 instruction exerciser  <inc,dec> hl..................  OK  Tests complete
+22 | <inc,dec> ix.................. | OK | 1,0,0,61462136 | 145 | Z80 instruction exerciser  <inc,dec> ix..................  OK  Tests complete
+23 | <inc,dec> iy.................. | OK | 1,0,0,61462136 | 143 | Z80 instruction exerciser  <inc,dec> iy..................  OK  Tests complete
+26 | <inc,dec> sp.................. | OK | 1,0,0,61390456 | 126 | Z80 instruction exerciser  <inc,dec> sp..................  OK  Tests complete
+# SUMMARY 10/10 OK; not OK: none; of those in decision 9: []
