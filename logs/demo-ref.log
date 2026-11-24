@@ -1,0 +1,6 @@
+# demo.com on sw/cpm_ref.py --x6 mostek --daa nmos, rtl commit 5cb2d82
+TuriChips Z80 demo
+LDIR copied this string.
+IX sum of 10,20..80 = 68
+DJNZ count: 0123456789
+Demo finished.
