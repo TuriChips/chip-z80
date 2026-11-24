@@ -6,6 +6,6 @@ Output: `synth/report.txt` (cells, flops, latches, area, worst path per block), 
 - Blocks: `z80_alu`, `z80_regs`, `z80_timing`, `z80_control` (with `z80_decode` inside, as instantiated; `BLOCKS` entries are `name:file[,file...]`). `z80_mem` is a test RAM (blocks.md §1) and is not synthesized.
 - Full chip: runs on `TOP` (default `z80`) from `rtl/files.f` (`+incdir+` lines become `-I rtl/control`). `z80_system` joins it when it is added to files.f. Latch column is 0 for every row; `check -assert` holds for the full chip too.
 - `PERIOD_NS` (default 100) is a stand-in clock: the spec has no electrical timing. Blocks with no `clk` port get a virtual clock (input-to-output paths).
-- `BLOCKS="name:dir ..."` overrides the block list.
-- `check -assert` runs on each block, so a latch-free, driver-clean netlist is asserted, not just hoped for. 
+- `BLOCKS="name:file[,file] ..."` overrides the block list.
+- `check -assert` runs on each block, so a latch-free, driver-clean netlist is asserted, not just hoped for.
 - Not done: placement and layout (later issue, after C2-C8 pass).
