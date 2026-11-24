@@ -100,12 +100,12 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 | T2L | address | 0 | 0 | **0** | 1 |
 | T3H | address | 0 | 0 | 0 | 1 |
 | T3L | address | **1** | **1** | **1** | 1 |
-| next T1H | next address | | | | 0 |
+| next rising edge (T1H, or Tx1H after a BUSRQ sample) | next address | | | | 0 |
 
 - WAIT is sampled at the edge that starts T2L, and Tw states are inserted between T2 and T3, as in M1 (Figure 4.0-2A). **TwH and TwL repeat the T2L row**, for reads and writes alike: `mreq_n` = 0, `rd_n` = 0 in a read, **`wr_n` = 0 in a write** (WR has already fallen at T2L), `d_oe` = 1 in a write. WAIT is sampled again at the edge that starts each TwL (chip-z80#11 item 3).
 - **On reads `d_oe` = 0 in every half**; the `d_oe` column applies to writes only. Likewise `wr_n` = 1 throughout a read and `rd_n` = 1 throughout a write.
 - **Read data is taken at the edge that starts T3L.** TM §11, p.70: tSΦ̄(D) is "Data Setup Time to **Falling** Edge of Clock During M2 to M5", while M1 uses tSΦ(D), the "Rising Edge of Clock During M1 Cycle" (§4.1). This confirms the figure, whose IN window ends at T3's falling edge.
-- On writes, `d_oe` drops at the next T1H: tF(D), data float, is measured from that rising edge (p.71).
+- On writes, `d_oe` drops at **the rising edge after the write's T3L**: tF(D), data float, is measured from that rising edge (p.71). For a basic 3-T write that edge starts the next T1H, as in the table. For a **lengthened write** (MW(5) of LDI/LDD/LDIR/LDDR, SWL(5) of EX (SP),HL/IX/IY) it starts **T4H**, so `d_oe` = 0 in every half of T4 and T5, as the lengthened-cycle rule 2 of §6.1 says (chip-z80#18 item 2). *Decision (proposed)*: p.71 draws only a 3-T write followed by T1, so it doesn't say whether the data stays driven through internal T states; we take the rising edge that ends T3 in both cases, which is one rule for the RTL and agrees with rule 2.
 - `m1_n` = 1 and `rfsh_n` = 1 throughout.
 
 ### 4.3 I/O read and write (Figure 4.0-3, 4.0-3A, page image p.15), 4 T states plus waits
@@ -160,6 +160,7 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 ### 4.7 HALT and HALT exit (Figure 4.0-7, page image p.18)
 - After HALT, "each cycle in the halt state is a normal M1 (fetch) cycle except that the data received from the memory is ignored and a NOP instruction is forced internally". So a halted CPU shows the §4.1 sequence every 4 T states, with refresh (TM p.18). The address is HALT + 1 every time (§6.3).
 - `halt_n` falls at the edge that starts **T4L** of the HALT instruction's M1, and rises at the edge that starts T4L of the halted M1 in which the interrupt was accepted. Both are falling edges: TM p.70 tD(HT), "HALT Delay Time From Falling Edge of Clock", and Figure 4.0-7.
+- **Interrupt accepted at the end of HALT's own M1** (*Decision* proposed, chip-z80#18 item 1). HALT's M1 is an instruction end, so INT and NMI are sampled at the rising edge that starts its T4 (§8.4 item 4). That edge comes **before** the T4L edge at which `halt_n` would fall. If NMI, or INT with IFF1 = 1 and not behind EI's delay, is accepted there, the CPU **never enters the halt state**: **`halt_n` stays 1** in every half, there's no halted M1, the next cycle is the acknowledge (§4.5 or §4.6), and the pushed PC is HALT + 1 (§6.3, HALT item 1). Read the rule above as: `halt_n` = 0 from T4L of HALT's M1 up to T4L of the M1 whose T4 sample accepts the interrupt; when that M1 is HALT's own, the interval is empty. Reached, for example, by `EI; HALT` with `int_n` = 0 (HALT is the instruction after EI, so EI's delay has ended), or by an NMI still pending (§8.4 item 6) when a handler's first instruction is HALT; also by IFF1 already 1 with `int_n` falling at HALT's own T1H, or by an INT or NMI that BUSRQ blocked at the end of the instruction before HALT. *Why this and not a pulse*: the manuals don't draw this case, and no source gives a `halt_n` pulse width; a 1-half pulse at T4L followed by a rise at the next T1H would be a rule with no page behind it. If BUSRQ is sampled 0 at that same edge, it blocks the interrupt (§8.4 item 4): `halt_n` falls at T4L as usual, the bus request runs, then halted M1s follow.
 - `int_n` and `nmi_n` are "sampled with the rising clock edge during each T4 state". If NMI, or INT with IFF set, is accepted, the next cycle is the matching interrupt acknowledge (§4.5 or §4.6). **NMI wins if both are present.**
 
 ## 5. Reset
@@ -374,7 +375,7 @@ RST p's restart addresses (p = 00H, 08H, …, 38H) and the encodings follow from
 - **What the manuals give:** a fetch cycle "is four, five or six T cycles long" and other machine cycles "may have anywhere from three to five T cycles" (TM p.11). "Clock state T3 and T4 of a fetch cycle are used to refresh dynamic memories" (TM p.12), so **refresh ends with T4**, and a T5 or T6 has `rfsh_n` = 1 and no refresh MREQ. The figures of TM §4 and MK3880 §4 show only the basic lengths.
 - **What we specify:**
   1. The extra T states **follow the cycle's basic T states**: T5, T6 after T4 of an OCF, and T4, T5 after T3 of a read or write. They are not inserted before them, and they are not like the Tw of a WAIT, which sits between T2 and T3.
-  2. During the extra T states, `mreq_n`, `iorq_n`, `rd_n`, `wr_n` = 1, `m1_n` = 1, `rfsh_n` = 1, `d_oe` = 0, and `a` is **not compared**. The manuals don't say what's on the address bus then.
+  2. During the extra T states, `mreq_n`, `iorq_n`, `rd_n`, `wr_n` = 1, `m1_n` = 1, `rfsh_n` = 1, `d_oe` = 0 (in a lengthened write too: `d_oe` drops at the edge that starts T4H, §4.2, chip-z80#18), and `a` is **not compared**. The manuals don't say what's on the address bus then.
   3. WAIT isn't sampled in them. The extra T states extend the internal operation, not the bus cycle.
   4. An **IO** cycle (any length) has the same pin values throughout, and `a` isn't compared.
 - This is the one place where a C2 pin rule rests on our choice rather than a page. Beru's model and the RTL both follow it.
@@ -523,7 +524,7 @@ zexdoc masks these bits, so it's indifferent. zexall would fail, and isn't our a
 | C1 | Every one of the 698 documented opcodes (§6.0): registers, memory and flags per §6.2 and F[5:3] per §6.3; only the flags §6.2 leaves X (and the decision-6 flags until Sai rules) are masked |
 | C2 | Pin timing per half T state (§4) for every cycle type of §6.1, including waits (WAIT), lengthened cycles and the refresh address {I, R} |
 | C3 | WAIT in M1, memory and I/O cycles, and in interrupt acknowledge after the automatic Tw\* |
-| C4 | Interrupts: IFF1/IFF2 per §8.1 (EI delay, DI and RETN visible to their own sample (§8.4 item 5), BUSRQ at an instruction end (§8.4 item 4), NMI saving IFF1, RETN, RETI leaving IFF alone, LD A,I/R → P/V); NMI to 0066H; modes 0 (RST only), 1 and 2; NMI over INT; HALT and HALT exit (§4.7) |
+| C4 | Interrupts: IFF1/IFF2 per §8.1 (EI delay, DI and RETN visible to their own sample (§8.4 item 5), BUSRQ at an instruction end (§8.4 item 4), NMI saving IFF1, RETN, RETI leaving IFF alone, LD A,I/R → P/V); NMI to 0066H; modes 0 (RST only), 1 and 2; NMI over INT; HALT and HALT exit, including an interrupt accepted at the end of HALT's own M1 with `halt_n` staying 1 (§4.7) |
 | C5 | Bus request/acknowledge (§4.4): floating outputs, BUSAK edges, no interrupts accepted during it |
 | C6 | Reset (§5): what's reset, outputs during reset, the first M1 |
 | C7 | No X/Z on driven pins, no bus conflict, with the positive-case test (8080 lesson) |
