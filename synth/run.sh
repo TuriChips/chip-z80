@@ -9,6 +9,10 @@ cd "$(git rev-parse --show-toplevel)"
 D=synth; L=$D/logs; mkdir -p $L; W=$(mktemp -d); trap 'rm -rf $W' EXIT
 TOP=${TOP:-z80}; PERIOD_NS=${PERIOD_NS:-100}; export PERIOD_NS
 S=$PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd
+# CI (toolchain v0.9) fetches only the sky130 Verilog models and has no openroad: skip cleanly, keep the committed report.
+# Needs from the toolchain (issue for Tesla): the liberty file and openroad/sta. Local runs use eda-env.sh and are unaffected.
+[ -f "$S/lib/sky130_fd_sc_hd__tt_025C_1v80.lib" ] || { echo "synth: SKIP, liberty not found under $S/lib (CI has only the Verilog models). Committed synth/report.txt is from a local run."; exit 0; }
+command -v openroad >/dev/null || { echo "synth: SKIP, openroad (OpenSTA) not installed. Committed synth/report.txt is from a local run."; exit 0; }
 python3 -I $D/sky130/filter_lib.py $S/lib/sky130_fd_sc_hd__tt_025C_1v80.lib $W/f.lib > $L/filter_lib.log
 BLOCKS=${BLOCKS:-"z80_alu:rtl/datapath z80_regs:rtl/datapath z80_timing:rtl/control"}
 
