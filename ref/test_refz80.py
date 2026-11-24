@@ -39,15 +39,46 @@ def flags(c):
 # ---- §6.0: the opcode set ---------------------------------------------------------------------------
 def test_census():
     forms, groups = census()
-    assert groups == {"main": 252, "CB": 248, "DD": 70, "ED": 58, "FD": 70}, groups   # spec §6.0 table
-    assert len(forms) == 698
-    for must in (("ED", 0x4F), ("ED", 0x5F), ("ED", 0x63), ("ED", 0x6B), ("main", 0xE9)):
-        assert must in forms
-    for must_not in (("CB", 0x30), ("CB", 0x36), ("ED", 0x70), ("ED", 0x71), ("DD", 0x44), ("DD", 0x26),
-                     ("DD", 0x00), ("DD", 0xDD), ("ED", 0x4C)):
+    assert groups == {"main": 252, "CB": 256, "DD": 142, "ED": 58, "FD": 142}, groups   # §6.0: 698 + 152 = 850
+    assert len(forms) == 850
+    for must in (("ED", 0x4F), ("ED", 0x5F), ("ED", 0x63), ("ED", 0x6B), ("main", 0xE9), ("CB", 0x30), ("CB", 0x37),
+                 ("DD", 0x44), ("DD", 0x26), ("FD", 0x24), ("DD", 0x40), ("DD", 0x7F), ("DD", "CB", 0x36), ("FD", "CB", 0x36)):
+        assert must in forms, must
+    for must_not in (("ED", 0x70), ("ED", 0x71), ("DD", 0x00), ("DD", 0xDD), ("ED", 0x4C), ("DD", 0x76)):
         assert must_not not in forms, must_not
-    assert ("DD", "CB", 0x06) in forms and ("DD", "CB", 0x46) in forms and ("DD", "CB", 0x36) not in forms
-    assert ("DD", "CB", 0x00) not in forms and ("FD", "CB", 0x47) not in forms
+    assert ("DD", "CB", 0x06) in forms and ("DD", "CB", 0x46) in forms
+    assert ("DD", "CB", 0x00) not in forms and ("FD", "CB", 0x47) not in forms and ("DD", "CB", 0x37) not in forms
+
+
+def test_sll():
+    c = cpu([0xCB, 0x30]); c.reg[0] = 0x81; c.f = 0
+    assert c.step() == 8 and c.reg[0] == 0x03 and c.f & C_ and not c.f & (H_ | N_)
+    c = cpu([0xCB, 0x37]); c.reg[7] = 0x80; c.f = 0
+    c.step(); assert c.reg[7] == 1 and c.f & C_ and not c.f & PV_
+    c = cpu([0xCB, 0x36]); c.reg[4], c.reg[5] = 0x90, 0x00; c.mem[0x9000] = 0x40; c.f = 0
+    assert c.step() == 15 and c.mem[0x9000] == 0x81 and not c.f & C_ and c.f & S_
+    c = cpu([0xDD, 0xCB, 2, 0x36]); c.ix = 0x9000; c.mem[0x9002] = 0xFF
+    assert c.step() == 23 and c.mem[0x9002] == 0xFF and c.f & C_
+
+
+def test_halves():
+    c = cpu([0xDD, 0x65]); c.ix = 0x1234; c.reg[4], c.reg[5] = 0xAA, 0xBB   # LD IXH,IXL
+    assert c.step() == 8 and c.ix == 0x3434 and (c.reg[4], c.reg[5]) == (0xAA, 0xBB)
+    c = cpu([0xFD, 0x2E, 0x77]); c.iy = 0x1234
+    assert c.step() == 11 and c.iy == 0x1277 and c.pc == 0x103
+    c = cpu([0xDD, 0x24]); c.ix = 0x7F00; c.f = 0
+    assert c.step() == 8 and c.ix == 0x8000 and c.f & PV_
+    c = cpu([0xDD, 0x85]); c.reg[7] = 1; c.ix = 0x00FF; c.reg[5] = 9
+    assert c.step() == 8 and c.reg[7] == 0 and c.f & Z_
+    c = cpu([0xDD, 0x7C]); c.ix = 0x5500
+    c.step(); assert c.reg[7] == 0x55
+    c = cpu([0xDD, 0x66, 1]); c.ix = 0x9000; c.mem[0x9001] = 0x42   # documented: real H
+    assert c.step() == 19 and c.reg[4] == 0x42 and c.ix == 0x9000
+
+
+def test_noeffect_prefix():
+    c = cpu([0xFD, 0x41]); c.reg[0], c.reg[1] = 5, 9
+    assert c.step() == 8 and c.reg[0] == 9 and c.r == 2 and c.pc == 0x102   # FD 41 = LD B,C
 
 
 # ---- §6.1: T states (PM per-instruction totals) -----------------------------------------------------------
@@ -70,6 +101,8 @@ TSTATES = [
     ([0xED, 0x44], 8), ([0xED, 0x46], 8), ([0xED, 0x4A], 15), ([0xED, 0x42], 15), ([0xED, 0x67], 18),
     ([0xED, 0x40], 12), ([0xED, 0x41], 12), ([0xED, 0xA2], 16), ([0xED, 0xA3], 16), ([0xED, 0x4D], 14),
     ([0xED, 0x45], 14),
+    ([0xCB, 0x30], 8), ([0xCB, 0x36], 15), ([0xDD, 0xCB, 0, 0x36], 23), ([0xDD, 0x65], 8), ([0xFD, 0x2E, 1], 11),
+    ([0xDD, 0x24], 8), ([0xDD, 0xBD], 8), ([0xFD, 0x41], 8), ([0xDD, 0x7F], 8),
 ]
 
 
@@ -483,7 +516,7 @@ def test_interrupts():
 
 
 def test_undocumented_raise():
-    for code in ([0xCB, 0x30], [0xED, 0x70], [0xDD, 0x26, 1], [0xDD, 0x44], [0xDD, 0xCB, 0, 0x00], [0xDD, 0xDD], [0xED, 0x00], [0xFD, 0xCB, 0, 0x36]):
+    for code in ([0xED, 0x70], [0xDD, 0x00], [0xDD, 0x76], [0xDD, 0xCB, 0, 0x00], [0xDD, 0xDD], [0xED, 0x00], [0xFD, 0xCB, 0, 0x37]):
         c = cpu(code)
         try:
             c.step(); assert False, code

@@ -2,7 +2,7 @@
 """C8 coverage report (Beru, chip-z80#8): per-form execution counts and stimulus kinds over all seeds.
 
   python3 tests/random/cover.py build/c8/*.cov.json [--min-hits N]
-Prints a PASS/FAIL line. Forms are the 698 of spec §6.0 (ref/refz80.census); the EXCLUDED set of gen.py is listed
+Prints a PASS/FAIL line. Forms are the 850 of spec §6.0 (698 + the 152 of §6.0a) (ref/refz80.census); the EXCLUDED set of gen.py is listed
 with its reason and not counted as missing. FAIL if an allowed form was never executed or a stimulus kind never hit.
 """
 import argparse

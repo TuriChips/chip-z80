@@ -1,7 +1,7 @@
 # C8: random programs vs the reference model (`tests/random/`)
 
 Beru, chip-z80#8. Spec: draft `docs/z80/spec.md` §7 C8, §8.4, with spec v1 candidate (chip-z80#10) readings where it
-settles something. Nothing here reads RTL. C8 = random programs over the 698 documented forms, random
+settles something. Nothing here reads RTL. C8 = random programs over the 850 specified forms, random
 WAIT/INT/NMI/BUSRQ stimulus, every pin compared in every half T state.
 
 ## Run it
@@ -19,7 +19,7 @@ Logs go to `$RUN_DIR` (default `logs/<timestamp>/`), one `random-*.log` per step
 | `gen.py` | seeded generator: image + stimulus + the model's expected pin trace (`--seed N --out base`) |
 | `refrun.py` | the model as a DUT: replays image + stimulus only and writes a trace (ref-vs-ref) |
 | `compare.py` | diff two traces: first difference with half, pin, both values, instruction in flight |
-| `cover.py` | per-form executed counts (698 - excluded) and stimulus kinds hit |
+| `cover.py` | per-form executed counts (850 - excluded) and stimulus kinds hit |
 | `xcheck_bus.py` | model vs Titus's directed bus vectors (two implementations of §4, same spec) |
 | `xcheck_decode.py`, `decode_tb.v` | simulated `z80_decode.v` (all 2048 prefix/ir) vs the pin model: documented, is_prefix, every outcome's M-cycle (type, len) layout; independent of gen_decode.py |
 | `seed.sh`, `run.sh` | glue, toolchain test convention (chip-6502#52) |
@@ -51,7 +51,7 @@ states, `d_out` while `d_oe` = 0). Per seed `gen.py` writes `sN.pins` (expected)
 Until then `DUT=rtl RTL_TRACE_CMD=...` can wrap any testbench that dumps the format above.
 
 ## Generator rules (so every case is determined)
-- **Forms**: all 698 documented forms (§6.0) from `ref/refz80.census()`, minus `gen.EXCLUDED`, the one list that
+- **Forms**: all 850 specified forms (§6.0, §6.0a) from `ref/refz80.census()`, minus `gen.EXCLUDED`, the one list that
   holds the forms the model raises `Unspecified` on in every state: LDI/LDD/LDIR/LDDR, CPI/CPD/CPIR/CPDR (decision 6),
   CCF (decision 6): 9 forms. When Sai settles decisions 6 and 8, delete rows there and switch the model's `Policy`.
   Every other `Unspecified` is state-dependent (DAA outside the 13-row table, consuming a don't-care flag) and is

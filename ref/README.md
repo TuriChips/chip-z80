@@ -11,8 +11,9 @@ chip-z80#2 get re-checked.
   independent arithmetic (Python ints, BCD maths), not from the model. Log: `logs/ref-selftest.log`.
 
 ## What it covers
-698 documented forms (§6.0), checked by `census()`: main 252, CB 248, DD 70, ED 58, FD 70. Every other
-encoding (SLL, IXH/IXL, DD CB register copies, ED 70, DD-prefixed non-IX opcodes, ...) raises `Undocumented`.
+850 specified forms (§6.0 + §6.0a, decision 9 (b)), checked by `census()`: main 252, CB 256, DD 142, ED 58, FD 142
+(698 documented + U1 92 IXH/IXL/IYH/IYL halves, U2 50 no-effect prefixes, U3 10 SLL). Every other
+encoding (DD CB register copies, ED 70, DD-prefixed non-IX opcodes, ...) raises `Undocumented`.
 Registers, alternate set, IX/IY, I, R (§6.3: +1 per M1, prefixes count, DD CB op byte doesn't, halted M1s and
 INTA/NMI count), IFF1/IFF2, IM 0/1/2 (mode 0 only RST, mode 2 vector bit 0 must be 0), EI delay, NMI/INT per
 §8.4, HALT (PC stays at HALT+1), flags per §6.2 with F5/F3 as real state (§6.3 rule 1: any Table 6.0-1 row

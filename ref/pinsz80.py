@@ -144,6 +144,11 @@ def tokens(events, T):
             tk = ["F4", "F4", "D3", "I5", "R4", "W3"]
         elif op == 0x36:
             tk = ["F4", "F4", "D3", "D5", "W3"]
+        elif (x == 1 and op != 0x76 and y != 6 and z != 6) or (x == 2 and z in (4, 5)) \
+                or op in (0x24, 0x25, 0x2C, 0x2D):      # §6.0a U1/U2: unprefixed 8-bit register form + a prefix OCF
+            tk = ["F4", "F4"]
+        elif op in (0x26, 0x2E):                        # §6.0a U1: LD IXH/IXL,n
+            tk = ["F4", "F4", "D3"]
         elif x == 2 and z == 6 or x == 1 and z == 6:
             tk = ["F4", "F4", "D3", "I5", "R3"]
         elif x == 1 and y == 6:

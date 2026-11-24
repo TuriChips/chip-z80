@@ -1,28 +1,4 @@
-ok test_16bit_arith
-ok test_addressing
-ok test_alu_exhaustive
-ok test_bit_set_res
-ok test_block_io_bus_b
-ok test_census
-ok test_daa_bcd_property
-ok test_daa_table
-ok test_decision6_switch
-ok test_decision8_switch
-ok test_f53_rules
-ok test_halt
-ok test_incdec
-ok test_interrupts
-ok test_io
-ok test_ld_a_i_r_flags
-ok test_ldir_cpir
-ok test_logic_flags
-ok test_r_register
-ok test_rotates
-ok test_tstates
-ok test_tstates_conditional_and_repeat
-ok test_undocumented_raise
-23 tests passed
-PASS T layout and bus-event kinds agree with the model for all 698 forms (4188 runs)
+PASS T layout and bus-event kinds agree with the model for all 850 forms (5100 runs)
 PASS §5 power-up: halves 0-1 uncompared, 2-9 floating with m1/halt/busak = 1, T1H at half 10 (a = 0000, m1_n = 0)
 PASS §4.1 M1 table (NOP, 8 halves)
 PASS §4.1/§6.3 refresh address = {I, R before increment}, R wraps 7F->00 and CB counts

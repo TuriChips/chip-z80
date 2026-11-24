@@ -10,16 +10,20 @@ ok test_decision6_switch
 ok test_decision8_switch
 ok test_f53_rules
 ok test_halt
+ok test_halves
 ok test_incdec
 ok test_interrupts
 ok test_io
+ok test_last_is_capped
 ok test_ld_a_i_r_flags
 ok test_ldir_cpir
 ok test_logic_flags
+ok test_noeffect_prefix
 ok test_r_register
 ok test_rotates
+ok test_sll
 ok test_tstates
 ok test_tstates_conditional_and_repeat
 ok test_undocumented_raise
-23 tests passed
-{'main': 252, 'CB': 248, 'DD': 70, 'ED': 58, 'FD': 70} total 698
+27 tests passed
+{'main': 252, 'CB': 256, 'DD': 142, 'ED': 58, 'FD': 142} total 850
