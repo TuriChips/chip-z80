@@ -1,0 +1,86 @@
+0100  11 99 01     ld de,banner
+0103  0e 09        ld c,0x09
+0105  cd 7c 01     call bdos
+0108  21 e6 01     ld hl,src
+010B  11 0a 02     ld de,buf
+010E  01 1b 00     ld bc,SRCLEN
+0111  ed b0        ldir
+0113  11 0a 02     ld de,buf
+0116  0e 09        ld c,0x09
+0118  cd 7c 01     call bdos
+011B  11 ae 01     ld de,m_ix
+011E  0e 09        ld c,0x09
+0120  cd 7c 01     call bdos
+0123  dd 21 01 02  ld ix,tbl
+0127  dd 7e 00     ld a,(ix+0)
+012A  dd 86 01     add a,(ix+1)
+012D  dd 86 02     add a,(ix+2)
+0130  dd 86 03     add a,(ix+3)
+0133  dd 86 04     add a,(ix+4)
+0136  dd 86 05     add a,(ix+5)
+0139  dd 86 06     add a,(ix+6)
+013C  dd 86 07     add a,(ix+7)
+013F  dd 77 08     ld (ix+8),a
+0142  cd 7f 01     call hex
+0145  1e 0d        ld e,0x0d
+0147  0e 02        ld c,0x02
+0149  cd 7c 01     call bdos
+014C  1e 0a        ld e,0x0a
+014E  0e 02        ld c,0x02
+0150  cd 7c 01     call bdos
+0153  11 c5 01     ld de,m_dj
+0156  0e 09        ld c,0x09
+0158  cd 7c 01     call bdos
+015B  06 0a        ld b,0x0a
+015D  1e 30        ld e,0x30
+015F               dj:
+015F  c5           push bc
+0160  0e 02        ld c,0x02
+0162  cd 7c 01     call bdos
+0165  c1           pop bc
+0166  1c           inc e
+0167  10 f6        djnz dj
+0169  11 d2 01     ld de,crlf
+016C  0e 09        ld c,0x09
+016E  cd 7c 01     call bdos
+0171  11 d5 01     ld de,done
+0174  0e 09        ld c,0x09
+0176  cd 7c 01     call bdos
+0179  c3 00 00     jp 0000h
+017C               bdos:
+017C  c3 05 00     jp 0005h
+017F               hex:
+017F  f5           push af
+0180  0f           rrca
+0181  0f           rrca
+0182  0f           rrca
+0183  0f           rrca
+0184  cd 88 01     call nib
+0187  f1           pop af
+0188               nib:
+0188  e6 0f        and 0fh
+018A  c6 30        add a,'0'
+018C  fe 3a        cp ':'
+018E  38 02        jr c nib_ok
+0190  c6 07        add a,7
+0192               nib_ok:
+0192  5f           ld e,a
+0193  0e 02        ld c,0x02
+0195  cd 05 00     call 0005h
+0198  c9           ret
+0199               banner:
+0199  54 75 72 69  db 'TuriChips Z80 demo\r\n$'
+01AE               m_ix:
+01AE  49 58 20 73  db 'IX sum of 10,20..80 = $'
+01C5               m_dj:
+01C5  44 4a 4e 5a  db 'DJNZ count: $'
+01D2               crlf:
+01D2  0d 0a 24     db '\r\n$'
+01D5               done:
+01D5  44 65 6d 6f  db 'Demo finished.\r\n$'
+01E6               src:
+01E6  4c 44 49 52  db 'LDIR copied this string.',13,10,'$'
+0201               tbl:
+0201  0a 14 1e 28  db 10,20,30,40,50,60,70,80,0
+020A               buf:
+020A  00 00 00 00  ds 27
