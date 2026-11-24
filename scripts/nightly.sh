@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
-# Long acceptance tests (zexdoc: hours). Run by the nightly workflow, never by PR CI.
-# Runs `make acceptance` (sw/exerciser/run_rtl.py: prelim + zexdoc on the RTL; logs in logs/acc-rtl/).
-# SKIPs cleanly until run_rtl.py exists.
+# Long tests: full C8 on the RTL, then acceptance (zexdoc: hours). Run by the nightly workflow, never by PR CI.
+# C8: `make c8-rtl SEEDS=64 INSTR=1000` (the default SEEDS=8 is the quick local run; PR CI does not run it); logs in logs/nightly-*/c8-rtl/.
+# Acceptance: `make acceptance` (sw/exerciser/run_rtl.py: prelim + zexdoc on the RTL; logs in logs/acc-rtl/), SKIPs until it exists.
 set -u
 cd "$(git rev-parse --show-toplevel)"
-[ -f sw/exerciser/run_rtl.py ] || { echo "SKIP nightly: sw/exerciser/run_rtl.py not there yet"; exit 0; }
 run="logs/nightly-$(date -u +%Y%m%dT%H%M%SZ)"; mkdir -p "$run"
-make acceptance 2>&1 | tee "$run/acceptance.log"; exit "${PIPESTATUS[0]}"
+rc=0
+make c8-rtl SEEDS=64 INSTR=1000 C8_RUN="$run/c8-rtl" 2>&1 | tee "$run/c8-rtl.log"; [ "${PIPESTATUS[0]}" -eq 0 ] || rc=1
+if [ -f sw/exerciser/run_rtl.py ]; then
+  make acceptance 2>&1 | tee "$run/acceptance.log"; [ "${PIPESTATUS[0]}" -eq 0 ] || rc=1
+else echo "SKIP acceptance: sw/exerciser/run_rtl.py not there yet"; fi
+exit $rc

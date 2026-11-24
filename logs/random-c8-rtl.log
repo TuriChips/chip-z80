@@ -1,0 +1,19 @@
+PASS seed 1: profile waits: 400 instructions, 10616 halves, stop=limit; PASS 10616 halves compared, 0 differences
+PASS seed 2: profile int: 386 instructions, 11288 halves, stop=limit; PASS 11288 halves compared, 0 differences
+PASS seed 3: profile nmi: 366 instructions, 5882 halves, stop=dead-end; PASS 5882 halves compared, 0 differences
+PASS seed 4: profile busrq: 400 instructions, 7330 halves, stop=limit; PASS 7330 halves compared, 0 differences
+PASS seed 5: profile all: 375 instructions, 10956 halves, stop=limit; PASS 10956 halves compared, 0 differences
+PASS seed 6: profile heavy: 105 instructions, 2720 halves, stop=dead-end; PASS 2720 halves compared, 0 differences
+PASS seed 7: profile quiet: 334 instructions, 5176 halves, stop=dead-end; PASS 5176 halves compared, 0 differences
+PASS seed 8: profile waits: 400 instructions, 7930 halves, stop=limit; PASS 7930 halves compared, 0 differences
+PASS c8
+
+PASS ref-selftest
+PASS pins-selftest
+PASS bus-xcheck
+PASS decode-xcheck
+C8 (DUT=rtl): 8/8 seeds pass, 300 instructions per seed, 0 fail
+FAIL coverage (logs/c8-rtl/random-c8-coverage.log)
+FAIL random
+
+# make c8-rtl SEEDS=8 INSTR=300, 2026-11-24T20:21:02Z, verilator Verilator 5.020 2024-01-01 rev (Debian 5.020-1), commit a4a11b7
