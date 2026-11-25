@@ -1,4 +1,4 @@
-# Long acceptance tests (zexdoc: hours). Skips cleanly until tests/acceptance/run.sh exists.
+# Nightly: full C8 on the RTL (64 seeds x 1000 instr, coverage enforced). Zexdoc is in zexdoc.yml (sharded), not here.
 name: nightly
 on:
   schedule: [{ cron: "30 20 * * *" }]   # 02:00 IST
@@ -6,7 +6,7 @@ on:
 jobs:
   nightly:
     runs-on: ubuntu-24.04
-    timeout-minutes: 350   # GitHub-hosted jobs are capped at 6h; if zexdoc needs longer, split it or use a self-hosted runner
+    timeout-minutes: 350   # hosted cap is 6h; the C8 run takes ~1h
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
