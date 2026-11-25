@@ -1,0 +1,75 @@
+# zexdoc on the RTL: z80_system CPM=1 under Verilator 5.020 2024-01-01 rev (Debian 5.020-1), bench sw/exerciser/z80_acc_tb.sv, runner sw/exerciser/run_rtl.py
+# rtl commit 59dc956, shard runs 2026-11-25T02:39:40Z .. 2026-11-25T02:40:26Z
+# run https://github.com/TuriChips/chip-z80/actions/runs/45534465163
+# zexdoc.com sha256 34923a7ed82285d3038b2d54bd64899e12173eebb61f9d07b4fc72e78af2ae8f (pinned by sw/exerciser/fetch.sh)
+# sharded run: 67 of 67 groups in this log; all 67 count, decision 9 (b). Groups 6, 28-31, 48, 50, 59, 60 execute undocumented forms and need
+# U1-U3 (chip-z80 #51 ref, #52 Ada SLL, #53 Zura decode); until those merge they are expected to fail, they are NOT skipped.
+# half-clock limit per group 400000000000; line: group | name | result | done,timeout,bus_conflict,half-clocks | wall s | program output (a missing group is MISSING = not OK)
+ 0 | <adc,sbc> hl,<bc,de,hl,sp>.... | OK | 1,0,0,4520940570 | 1100 | Z80 instruction exerciser  <adc,sbc> hl,<bc,de,hl,sp>....  OK  Tests complete
+ 1 | add hl,<bc,de,hl,sp>.......... | OK | 1,0,0,2249917386 | 631 | Z80 instruction exerciser  add hl,<bc,de,hl,sp>..........  OK  Tests complete
+ 2 | add ix,<bc,de,ix,sp>.......... | OK | 1,0,0,2251371466 | 602 | Z80 instruction exerciser  add ix,<bc,de,ix,sp>..........  OK  Tests complete
+ 3 | add iy,<bc,de,iy,sp>.......... | OK | 1,0,0,2251371466 | 491 | Z80 instruction exerciser  add iy,<bc,de,iy,sp>..........  OK  Tests complete
+ 4 | aluop a,nn.................... | OK | 1,0,0,1149384958 | 507 | Z80 instruction exerciser  aluop a,nn....................  OK  Tests complete
+ 5 | aluop a,<b,c,d,e,h,l,(hl),a>.. | OK | 1,0,0,40013830554 | 11214 | Z80 instruction exerciser  aluop a,<b,c,d,e,h,l,(hl),a>..  OK  Tests complete
+ 6 | aluop a,<ixh,ixl,iyh,iyl>..... | OK [decision 9] | 1,0,0,20339689578 | 5726 | Z80 instruction exerciser  aluop a,<ixh,ixl,iyh,iyl>.....  OK  Tests complete
+ 7 | aluop a,(<ix,iy>+1)........... | OK | 1,0,0,10245998390 | 2436 | Z80 instruction exerciser  aluop a,(<ix,iy>+1)...........  OK  Tests complete
+ 8 | bit n,(<ix,iy>+1)............. | OK | 1,0,0,80491494 | 40 | Z80 instruction exerciser  bit n,(<ix,iy>+1).............  OK  Tests complete
+ 9 | bit n,<b,c,d,e,h,l,(hl),a>.... | OK | 1,0,0,2580840696 | 689 | Z80 instruction exerciser  bit n,<b,c,d,e,h,l,(hl),a>....  OK  Tests complete
+10 | cpd<r>........................ | OK | 1,0,0,504370972 | 254 | Z80 instruction exerciser  cpd<r>........................  OK  Tests complete
+11 | cpi<r>........................ | OK | 1,0,0,505102738 | 255 | Z80 instruction exerciser  cpi<r>........................  OK  Tests complete
+12 | <daa,cpl,scf,ccf>............. | OK | 1,0,0,2217922824 | 984 | Z80 instruction exerciser  <daa,cpl,scf,ccf>.............  OK  Tests complete
+13 | <inc,dec> a................... | OK | 1,0,0,119784198 | 60 | Z80 instruction exerciser  <inc,dec> a...................  OK  Tests complete
+14 | <inc,dec> b................... | OK | 1,0,0,119784198 | 60 | Z80 instruction exerciser  <inc,dec> b...................  OK  Tests complete
+15 | <inc,dec> bc.................. | OK | 1,0,0,61390456 | 50 | Z80 instruction exerciser  <inc,dec> bc..................  OK  Tests complete
+16 | <inc,dec> c................... | OK | 1,0,0,119784198 | 61 | Z80 instruction exerciser  <inc,dec> c...................  OK  Tests complete
+17 | <inc,dec> d................... | OK | 1,0,0,119784198 | 60 | Z80 instruction exerciser  <inc,dec> d...................  OK  Tests complete
+18 | <inc,dec> de.................. | OK | 1,0,0,61390456 | 50 | Z80 instruction exerciser  <inc,dec> de..................  OK  Tests complete
+19 | <inc,dec> e................... | OK | 1,0,0,119784198 | 60 | Z80 instruction exerciser  <inc,dec> e...................  OK  Tests complete
+20 | <inc,dec> h................... | OK | 1,0,0,119784198 | 60 | Z80 instruction exerciser  <inc,dec> h...................  OK  Tests complete
+21 | <inc,dec> hl.................. | OK | 1,0,0,61390456 | 50 | Z80 instruction exerciser  <inc,dec> hl..................  OK  Tests complete
+22 | <inc,dec> ix.................. | OK | 1,0,0,61462136 | 51 | Z80 instruction exerciser  <inc,dec> ix..................  OK  Tests complete
+23 | <inc,dec> iy.................. | OK | 1,0,0,61462136 | 51 | Z80 instruction exerciser  <inc,dec> iy..................  OK  Tests complete
+24 | <inc,dec> l................... | OK | 1,0,0,119784198 | 60 | Z80 instruction exerciser  <inc,dec> l...................  OK  Tests complete
+25 | <inc,dec> (hl)................ | OK | 1,0,0,119834374 | 60 | Z80 instruction exerciser  <inc,dec> (hl)................  OK  Tests complete
+26 | <inc,dec> sp.................. | OK | 1,0,0,61390456 | 50 | Z80 instruction exerciser  <inc,dec> sp..................  OK  Tests complete
+27 | <inc,dec> (<ix,iy>+1)......... | OK | 1,0,0,250069498 | 109 | Z80 instruction exerciser  <inc,dec> (<ix,iy>+1).........  OK  Tests complete
+28 | <inc,dec> ixh................. | OK [decision 9] | 1,0,0,119927558 | 60 | Z80 instruction exerciser  <inc,dec> ixh.................  OK  Tests complete
+29 | <inc,dec> ixl................. | OK [decision 9] | 1,0,0,119927558 | 60 | Z80 instruction exerciser  <inc,dec> ixl.................  OK  Tests complete
+30 | <inc,dec> iyh................. | OK [decision 9] | 1,0,0,119927558 | 60 | Z80 instruction exerciser  <inc,dec> iyh.................  OK  Tests complete
+31 | <inc,dec> iyl................. | OK [decision 9] | 1,0,0,119927558 | 60 | Z80 instruction exerciser  <inc,dec> iyl.................  OK  Tests complete
+32 | ld <bc,de>,(nnnn)............. | OK | 1,0,0,1186246 | 1 | Z80 instruction exerciser  ld <bc,de>,(nnnn).............  OK  Tests complete
+33 | ld hl,(nnnn).................. | OK | 1,0,0,586398 | 0 | Z80 instruction exerciser  ld hl,(nnnn)..................  OK  Tests complete
+34 | ld sp,(nnnn).................. | OK | 1,0,0,586398 | 0 | Z80 instruction exerciser  ld sp,(nnnn)..................  OK  Tests complete
+35 | ld <ix,iy>,(nnnn)............. | OK | 1,0,0,1187606 | 1 | Z80 instruction exerciser  ld <ix,iy>,(nnnn).............  OK  Tests complete
+36 | ld (nnnn),<bc,de>............. | OK | 1,0,0,2727854 | 2 | Z80 instruction exerciser  ld (nnnn),<bc,de>.............  OK  Tests complete
+37 | ld (nnnn),hl.................. | OK | 1,0,0,586398 | 0 | Z80 instruction exerciser  ld (nnnn),hl..................  OK  Tests complete
+38 | ld (nnnn),sp.................. | OK | 1,0,0,586398 | 0 | Z80 instruction exerciser  ld (nnnn),sp..................  OK  Tests complete
+39 | ld (nnnn),<ix,iy>............. | OK | 1,0,0,2730494 | 2 | Z80 instruction exerciser  ld (nnnn),<ix,iy>.............  OK  Tests complete
+40 | ld <bc,de,hl,sp>,nnnn......... | OK | 1,0,0,2359544 | 2 | Z80 instruction exerciser  ld <bc,de,hl,sp>,nnnn.........  OK  Tests complete
+41 | ld <ix,iy>,nnnn............... | OK | 1,0,0,1187198 | 1 | Z80 instruction exerciser  ld <ix,iy>,nnnn...............  OK  Tests complete
+42 | ld a,<(bc),(de)>.............. | OK | 1,0,0,1722680 | 1 | Z80 instruction exerciser  ld a,<(bc),(de)>..............  OK  Tests complete
+43 | ld <b,c,d,e,h,l,(hl),a>,nn.... | OK | 1,0,0,2270386 | 2 | Z80 instruction exerciser  ld <b,c,d,e,h,l,(hl),a>,nn....  OK  Tests complete
+44 | ld (<ix,iy>+1),nn............. | OK | 1,0,0,1187538 | 1 | Z80 instruction exerciser  ld (<ix,iy>+1),nn.............  OK  Tests complete
+45 | ld <b,c,d,e>,(<ix,iy>+1)...... | OK | 1,0,0,20979936 | 17 | Z80 instruction exerciser  ld <b,c,d,e>,(<ix,iy>+1)......  OK  Tests complete
+46 | ld <h,l>,(<ix,iy>+1).......... | OK | 1,0,0,10424748 | 8 | Z80 instruction exerciser  ld <h,l>,(<ix,iy>+1)..........  OK  Tests complete
+47 | ld a,(<ix,iy>+1).............. | OK | 1,0,0,5036188 | 4 | Z80 instruction exerciser  ld a,(<ix,iy>+1)..............  OK  Tests complete
+48 | ld <ixh,ixl,iyh,iyl>,nn....... | OK [decision 9] | 1,0,0,1180612 | 1 | Z80 instruction exerciser  ld <ixh,ixl,iyh,iyl>,nn.......  OK  Tests complete
+49 | ld <bcdehla>,<bcdehla>........ | OK | 1,0,0,181725376 | 89 | Z80 instruction exerciser  ld <bcdehla>,<bcdehla>........  OK  Tests complete
+50 | ld <bcdexya>,<bcdexya>........ | OK [decision 9] | 1,0,0,373612226 | 101 | Z80 instruction exerciser  ld <bcdexya>,<bcdexya>........  OK  Tests complete
+51 | ld a,(nnnn) / ld (nnnn),a..... | OK | 1,0,0,1722496 | 1 | Z80 instruction exerciser  ld a,(nnnn) / ld (nnnn),a.....  OK  Tests complete
+52 | ldd<r> (1).................... | OK | 1,0,0,1723140 | 1 | Z80 instruction exerciser  ldd<r> (1)....................  OK  Tests complete
+53 | ldd<r> (2).................... | OK | 1,0,0,1724106 | 1 | Z80 instruction exerciser  ldd<r> (2)....................  OK  Tests complete
+54 | ldi<r> (1).................... | OK | 1,0,0,1723140 | 1 | Z80 instruction exerciser  ldi<r> (1)....................  OK  Tests complete
+55 | ldi<r> (2).................... | OK | 1,0,0,1724106 | 1 | Z80 instruction exerciser  ldi<r> (2)....................  OK  Tests complete
+56 | neg........................... | OK | 1,0,0,525435574 | 260 | Z80 instruction exerciser  neg...........................  OK  Tests complete
+57 | <rrd,rld>..................... | OK | 1,0,0,283066562 | 144 | Z80 instruction exerciser  <rrd,rld>.....................  OK  Tests complete
+58 | <rlca,rrca,rla,rra>........... | OK | 1,0,0,241626710 | 85 | Z80 instruction exerciser  <rlca,rrca,rla,rra>...........  OK  Tests complete
+59 | shf/rot (<ix,iy>+1)........... | OK [decision 9] | 1,0,0,16372502 | 5 | Z80 instruction exerciser  shf/rot (<ix,iy>+1)...........  OK  Tests complete
+60 | shf/rot <b,c,d,e,h,l,(hl),a>.. | OK [decision 9] | 1,0,0,366297224 | 99 | Z80 instruction exerciser  shf/rot <b,c,d,e,h,l,(hl),a>..  OK  Tests complete
+61 | <set,res> n,<bcdehl(hl)a>..... | OK | 1,0,0,367196162 | 152 | Z80 instruction exerciser  <set,res> n,<bcdehl(hl)a>.....  OK  Tests complete
+62 | <set,res> n,(<ix,iy>+1)....... | OK | 1,0,0,17140130 | 14 | Z80 instruction exerciser  <set,res> n,(<ix,iy>+1).......  OK  Tests complete
+63 | ld (<ix,iy>+1),<b,c,d,e>...... | OK | 1,0,0,47923200 | 32 | Z80 instruction exerciser  ld (<ix,iy>+1),<b,c,d,e>......  OK  Tests complete
+64 | ld (<ix,iy>+1),<h,l>.......... | OK | 1,0,0,10424748 | 9 | Z80 instruction exerciser  ld (<ix,iy>+1),<h,l>..........  OK  Tests complete
+65 | ld (<ix,iy>+1),a.............. | OK | 1,0,0,2432836 | 2 | Z80 instruction exerciser  ld (<ix,iy>+1),a..............  OK  Tests complete
+66 | ld (<bc,de>),a................ | OK | 1,0,0,3799488 | 2 | Z80 instruction exerciser  ld (<bc,de>),a................  OK  Tests complete
+# SUMMARY 67/67 OK; not OK: none; of those in decision 9: []
