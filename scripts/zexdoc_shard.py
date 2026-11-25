@@ -43,12 +43,14 @@ def merge(d, out, expect, url):
     first = next((l for _, l in headers if l.startswith("# zexdoc on the RTL")), "# zexdoc on the RTL")
     commits = sorted({re.search(r"rtl commit (\w+)", l).group(1) for l in pick("# rtl commit")})
     shas = pick("# zexdoc.com sha256")
+    runs = sorted({m.group(1) for l in pick("# rtl commit") for m in [re.search(r", run (\S+)", l)] if m})
+    lims = sorted({m.group(1) for l in pick("# half-clock limit") for m in [re.search(r"limit per group (\d+)", l)] if m})
     out_l = [first,
-             f"# rtl commit {','.join(commits) or '?'}" + ("  ** MIXED COMMITS **" if len(commits) > 1 else "") ,
+             f"# rtl commit {','.join(commits) or '?'}, shard runs {runs[0] + ' .. ' + runs[-1] if runs else '?'}" + ("  ** MIXED COMMITS **" if len(commits) > 1 else "") ,
              shas[0] if shas else "# zexdoc.com sha256 ? (no shard log carried one)",
              f"# sharded run: {len(expect)} of {N_GROUPS} groups in this log; all {N_GROUPS} count, decision 9 (b). Groups 6, 28-31, 48, 50, 59, 60 execute undocumented forms and need",
              "# U1-U3 (chip-z80 #51 ref, #52 Ada SLL, #53 Zura decode); until those merge they are expected to fail, they are NOT skipped.",
-             "# line: group | name | result | done,timeout,bus_conflict,half-clocks | wall s | program output (a missing group is MISSING = not OK)"]
+             f"# half-clock limit per group {','.join(lims) or '?'}; line: group | name | result | done,timeout,bus_conflict,half-clocks | wall s | program output (a missing group is MISSING = not OK)"]
     if url:
         out_l.insert(2, f"# run {url}")
     res = {}
