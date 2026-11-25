@@ -18,7 +18,7 @@ include $(TC)/chip.mk
 nightly:
 	@scripts/nightly.sh
 
-# Z80 exerciser acceptance on the RTL: prelim (seconds), then zexdoc (hours on 2 cores; nightly/manual, not PR CI).
+# Z80 exerciser acceptance on the RTL: prelim (seconds), then zexdoc (hours on 2 cores; manual via zexdoc.yml, not PR CI or nightly).
 # Writes logs/acc-rtl/{prelim,zexdoc}.log; non-zero exit if anything is not OK. Subset: make acceptance ACC_ARGS="--groups 0,1 --jobs 2"
 # Needs verilator 5.020 and curl (sw/exerciser/fetch.sh).
 .PHONY: acceptance
