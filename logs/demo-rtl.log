@@ -1,5 +1,5 @@
 # demo on the RTL: z80_system CPM=1 under Verilator 5.020 2024-01-01 rev (Debian 5.020-1), bench sw/exerciser/z80_acc_tb.sv, runner sw/exerciser/run_rtl.py
-# rtl commit 5cb2d82, run 2026-11-24T19:44:01Z
+# rtl commit 0eec87f, run 2026-11-25T00:38:48Z
 # demo.com sha256 00cc0010d6ad99838427fe09f0e3f18386631480a56df9c5f2ef04914f389202 (built by sw/demo/build_demo.py)
 # [acc] done=1 timeout=0 bus_conflict=0 half-T-clocks=4790
 TuriChips Z80 demo
@@ -7,4 +7,4 @@ LDIR copied this string.
 IX sum of 10,20..80 = 68
 DJNZ count: 0123456789
 Demo finished.
-# RESULT PASS: console output byte-identical to sw/cpm_ref.py (--x6 mostek --daa nmos), 0.1s wall
+# RESULT PASS: console output byte-identical to sw/cpm_ref.py (--x6 mostek --daa nmos), 0.0s wall

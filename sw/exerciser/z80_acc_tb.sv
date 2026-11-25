@@ -1,6 +1,6 @@
 // Homer's acceptance bench (sw/exerciser/run_rtl.sh): z80_system CPM=1 running one CP/M .COM, memory loaded from a hex file.
 // Plusargs: +hex=<file> ($readmemh into the 64 KiB RAM, '@0100' first)  +maxclk=<half-clock limit, default 4e9>
-// Prints con_char on con_strobe. At the end prints one '[acc]' line: done, bus_conflict, half-clock count. Not a test (the .COM judges).
+// Prints con_char on con_strobe. At the end prints one '[acc]' line: done, sticky bus_conflict (seen on any half-clock), half-clock count. Not a test (the .COM judges).
 module z80_acc_tb;
     reg clk = 0, reset_n = 0;
     wire [15:0] a; wire [7:0] d_out, con_char;
@@ -20,7 +20,7 @@ module z80_acc_tb;
         n <= n + 1;
         if (done || n >= maxclk) begin
             if (!done) timed_out = 1;
-            $display("\n[acc] done=%0d timeout=%0d bus_conflict=%0d half-T-clocks=%0d", done, timed_out, bus_conflict, n);
+            $display("\n[acc] done=%0d timeout=%0d bus_conflict=%0d half-T-clocks=%0d", done, timed_out, conflict_seen | bus_conflict, n);
             $finish;
         end
     end
