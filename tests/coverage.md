@@ -127,15 +127,15 @@ IFF1, IFF2, IM, halted and P/V after each step and what the INT/NMI samples saw 
 6. **Uninitialised A.** §5 doesn't reset A, so a test that shows A on the pins must load it first (C4-24 did not at first and the RTL's power-up A showed through: test bug, fixed).
 
 ## C7: no X/Z on driven pins, no bus conflict, with the positive case (spec §7 C7; chip-z80#85)
-The §4 harness (`tb/z80_bus`) uses its own stand-in system, so `bus_conflict` of the real `rtl/control/z80_system.v` is tested by a separate bench, `tb/z80_c7/` (`tb/z80_c7/run.sh`, program `tests/z80_c7/prog.hex`). No RTL change: the stimulus is a `force` of `mreq_n`/`rd_n` on the system, from the bench.
+The §4 harness (`tb/z80_bus`) uses its own stand-in system, so `bus_conflict` of the real `rtl/control/z80_system.v` is tested by a separate bench, `tb/z80_c7/` (`tb/z80_c7/run.sh`, program `tests/z80_c7/prog.hex`). No RTL change: the stimulus is a `force` of the system's strobes, from the bench, once per term of `sys_drive` (`mem_rd`, `io_rd`, `inta`), the other two held off, with a reset between runs.
 
 | Behaviour | Test | Evidence | Status |
 |---|---|---|---|
-| Positive case: `bus_conflict` goes 1 when the system drives the data bus in a half where `d_oe` = 1 (read strobe forced in a write half) | `tb/z80_c7` phase P | `logs/z80-bus-c7-rtl.log` (PASS) | run, PASS on RTL |
-| Sticky until reset: stays 1 for 40 clocks after the stimulus is gone, cleared only by `reset_n` = 0 | phase P | same | run, PASS |
-| The test detects a dead detector: with the line `if (d_oe && sys_drive) bus_conflict <= 1` removed (private copy), C7 FAILs | `run.sh mutant` | `logs/z80-bus-c7-mutant.log` (FAIL, as intended) | run |
+| Positive case, per source: `bus_conflict` goes 1 when the system drives the data bus in a half where `d_oe` = 1: memory read (`mreq_n`=`rd_n`=0), I/O read (`iorq_n`=`rd_n`=0, `m1_n`=1, `mreq_n`=1), INTA (`m1_n`=`iorq_n`=0, `mreq_n`=`rd_n`=1) | `tb/z80_c7` phase P, src 0/1/2 | `logs/z80-bus-c7-rtl.log` (PASS) | run, PASS on RTL |
+| Sticky until reset, per source: stays 1 for 40 clocks after the stimulus is gone, cleared only by `reset_n` = 0 | phase P, each source | same | run, PASS |
+| The test detects a dead or partial detector: private copies of `z80_system.v` with (a) the `bus_conflict <= 1` line removed, (b) `sys_drive = mem_rd` (io_rd, inta missing), (c) `= mem_rd \| io_rd` (inta missing), (d) `= mem_rd \| inta` (io_rd missing), (e) `= io_rd \| inta` (mem_rd missing): C7 FAILs on each | `run.sh mutant`, `memonly`, `nointa`, `noio`, `nomem` | `logs/z80-bus-c7-mutant.log` (5 x FAIL, as intended) | run |
 | Negative, per §6.1 cycle type M1, MR, MW, PR, PW, INTA: `bus_conflict` = 0 in every half of a 400-half program (EI, LD, LD (nn),A, LD A,(nn), OUT, IN, INT -> INTA, RST 38H); the bench counts the halves of each type seen (log line "cycle halves seen") | phase N | `logs/z80-bus-c7-rtl.log` | run, PASS |
 | Negative, all 74 §4 cases and the C8 / zexdoc runs: end-of-run `bus_conflict=0` | C2..C6 cases; `logs/acc-rtl/zexdoc-baseline-59dc956.log`, `logs/random-c8-rtl.log` | those logs | the 74 cases use the stand-in system, so they do not drive the real detector; the zexdoc and C8 runs report it |
-| No X/Z on driven pins (`a`, `d_out`, `d_oe`, strobes, `bus_oe`, `bus_conflict`) | phase N checks every half after reset; `tb/z80_bus` fails on X/Z on any compared pin in every half of the 74 cases | `logs/z80-bus-c7-rtl.log`, `logs/z80-bus-c4-rtl.log` | run, PASS |
+| No X/Z on driven pins (`a`, `d_out`, `d_oe`, strobes, `bus_oe`, `bus_conflict`) | phase N checks every half after reset, phase P checks the pins once before each stimulus; `tb/z80_bus` fails on X/Z on any compared pin in every half of the 74 cases | `logs/z80-bus-c7-rtl.log`, `logs/z80-bus-c4-rtl.log` | run, PASS |
 
-C7 is covered. Limit: the positive stimulus forces the system's strobe view; the CPU never overlaps `d_oe` and a read strobe by itself, so the negative cases show only that it doesn't.
+C7 is covered. Limit: the positive stimulus forces the system's strobe view (the `wrn`/`nosticky` mutants Beru tried are also caught, per her review, not in the log); the CPU never overlaps `d_oe` and a read strobe by itself, so the negative cases show only that it doesn't.
