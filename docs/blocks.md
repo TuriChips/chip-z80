@@ -1,6 +1,6 @@
 # Blocks: Zilog Z80 (Chip #4)
 
-Owner: Igris (Architect) · Spec: `docs/spec.md` · Status: **v1 candidate** (chip-z80#6), signed off with the spec. Moved from `TuriChips/turichips` `docs/z80/blocks.md` (draft v0, turichips#37), with §2 and §3 written. None of §2–§3 depends on open decisions 6 or 8; `mc_type` (§2.1) encodes the cycle types of decision 7, recommendation (a).
+Owner: Igris (Architect) · Spec: `docs/spec.md` · Status: **v1** (chip-z80#6), signed off with the spec (chip-z80#99, spec §3). Moved from `TuriChips/turichips` `docs/z80/blocks.md` (draft v0, turichips#37), with §2 and §3 written. None of §2–§3 depends on decisions 6 or 8; `mc_type` (§2.1) encodes the cycle types of decision 7 (a), MK3880 §12.
 
 Only the pins of `z80` (spec §2) and of `z80_system` are normative for tests. The internal ports below are the contract **between Zura (control) and Ada (datapath)**: tests don't bind to them, and neither designer changes one without a PR the other reviews. Ports between two of Zura's own blocks (`z80_timing` ↔ `z80_control` ↔ `z80_decode`) are written down here so the top can be wired, but Zura may change them alone.
 

@@ -1,6 +1,6 @@
-# Spec: Zilog Z80 (Chip #4) — v1 candidate, for sign-off
+# Spec: Zilog Z80 (Chip #4) — v1
 
-Status: **v1 candidate** (chip-z80#6), moved here from `TuriChips/turichips` `docs/z80/spec.md` (draft v0, turichips#37, 696e137). Nothing here is normative until Sai signs off; open decisions 6, 7 and 8 (§3) need Sai's call first. Every former [check] is now either confirmed in §10 or written as a *Decision*; none is left that a test depends on. Blocks and the control↔datapath contract: `docs/blocks.md`.
+Status: **v1** (chip-z80#6, sign-off chip-z80#99), moved here from `TuriChips/turichips` `docs/z80/spec.md` (draft v0, turichips#37, 696e137). **Normative from the merge of the sign-off PR**, which only Sai approves (`sai-review`): that approval accepts every ruling in §3's table. Every former [check] is either confirmed in §10 or written as a *Decision*; none is left that a test depends on. Blocks and the control↔datapath contract: `docs/blocks.md`.
 
 ## 1. Scope and sources
 
@@ -12,7 +12,7 @@ Status: **v1 candidate** (chip-z80#6), moved here from `TuriChips/turichips` `do
 
 As with the 6502, the manuals win. Secondary sources (emulators, test-vector sets) are cross-checks only, and each use is named where it's used.
 
-**Proposed scope decisions** (each to be confirmed before sign-off):
+**Scope decisions:**
 - **Documented instructions, plus exactly the 152 undocumented forms zexdoc executes.** The 698 documented forms (§6.0) and the 152 forms U1–U3 of §6.0a (decision 9 (b), Sai, chip-z80#14, PR #23) are **specified**: 850 forms in all, every one tested (C1, C1b). U1 = the IXH/IXL/IYH/IYL halves (92), U2 = a DD/FD prefix that changes nothing before LD r,r' with r, r' ∈ {B, C, D, E, A} (50), U3 = SLL (10). Every other opcode the 1977 manuals don't list (e.g. the `DD CB`/`FD CB` register-copy forms, a DD/FD before any other unprefixed opcode, the undocumented ED forms) is not specified, and tests don't execute it, as with the 6502's 105 undocumented opcodes.
 - **Undocumented flag bits** (bits 5 and 3 of F, the "X"/"Y" flags; TM §6.0 shows them as "X", unused): **our chip defines them** (§6.3: 0 after any flag-writing instruction, moved whole by POP AF and EX AF,AF'), and they are **compared as ordinary state**, like any other bit of F. This is our definition, not the NMOS part's (which copies result bits into them), so it matters for the acceptance test choice (§9): `zexall` checks them against real hardware and would fail; `zexdoc` masks them. (Changed from "not compared" in draft v0, which contradicted §6.3; Beru's point 3, chip-z80#2.)
 - **Refresh (R register and RFSH):** in scope. R's low 7 bits increment per M1, and the refresh address appears on A0–A6 in T3–T4 of M1 (TM §3.0, §4.0; exact rules in §4.1 and §6.3).
@@ -43,32 +43,53 @@ Active-low pins keep an `_n` suffix (`m1_n`, `mreq_n`, …), as the 8080 and 650
 | `bus_oe` | out | 1 | *Model pin, not on the package*: 1 while the CPU drives `a`, `mreq_n`, `iorq_n`, `rd_n`, `wr_n` and `rfsh_n`. 0 during a bus request (§4.4) and reset (§5). While it's 0, those pins aren't compared |
 | `d_oe` | out | 1 | *Model pin*: 1 while the CPU drives the data bus (writes, §4.2–4.3). While it's 0, `d_out` isn't compared |
 
-## 3. Open decisions (to settle before this spec can be normative)
-**Summary, for Sai.** Three decisions need your call (6, 7, 8); everything else below is a proposed *Decision* that sign-off accepts or changes.
-- **6.** Flags Zilog marks "X" but zexdoc checks: recommend Mostek MK78515 (§6.2).
-- **8.** DAA outside Zilog's and Mostek's 13-row table, and H after DAA: neither manual defines them, and zexdoc checks them. Recommend (a), a named secondary source as with the 6502 (§6.2).
-- **7.** Per-cycle bus types: recommend Mostek MK3880 §12, with Zilog's text governing where they differ (§6.1).
-- **9.** *Settled: (b).* zexdoc runs undocumented opcodes (IXH/IXL/IYH/IYL halves, a DD/FD prefix that changes nothing, SLL) in 9 of its 67 groups (chip-z80#14). Sai picked (b): exactly those 152 forms are specified (§6.0a, U1–U3) and all 67 groups count for acceptance (PR #23, merged 2026-11-24).
-- **Also open:**
-  - the mode-0 INTA length: proposed MK3880's 12 T (§8.2);
-  - the DD CB op-byte read (§6.1);
-  - where the extra T states of lengthened cycles fall (§6.1);
-  - the cycle types MK3880 doesn't give: LD (IX+d),n and CPI/CPD/CPIR/CPDR (§6.1);
-  - the per-iteration flags of the repeating block instructions (§6.2, Beru's point 2);
-  - F[5:3] defined by §6.3 and compared (§1, Beru's point 3).
+## 3. Decisions (sign-off, chip-z80#99)
+**How sign-off works.** Sai's approval of the PR that added this table is the sign-off: each row's ruling is accepted as written, and the section it governs is normative from that merge. To change a row, comment on that PR; the governing section changes with it, and so do the tests named.
 
-**What depends on what.** None of `docs/blocks.md` §2–§3 (the control↔datapath codes and ports) depends on 6 or 8: they only change *which* flag value the ALU computes for a few rows, not any port or code. Decision 7 fixes the cycle types that `mc_type` in blocks §2 encodes; if Sai picks (b) or (c) instead of (a), the codes stay and only per-instruction cycle plans change.
+**Evidence**, all on the RTL and all passing:
+- **zexdoc**: Actions run 45534465163, `logs/acc-rtl/zexdoc-baseline-59dc956.log`, 67/67 OK. Group numbers are 0-based (§9).
+- **C8**: `logs/c8-rtl-64x1000/` (64 seeds × 1000 instructions, every pin in every half T state against `ref/pinsz80.py`, random WAIT/INT/NMI/BUSRQ). Counts are executions from its `random-c8-coverage.log`.
+- **Bus cases**: `logs/z80-bus-c4-rtl.log`, 74 cases (C2, C3, C5, C6 and 26 C4), every pin in every half.
+- **Decode layout**: `tests/random/xcheck_decode.py` simulates `rtl/control/z80_decode.v` for all 2048 prefix/opcode pairs and compares each outcome's M-cycle (type, length) layout with the pin model. Rerun on main 431ff37 (2026-11-25): `forms 850, specified 850, mismatches 0`, PASS. The committed `logs/random-decode-xcheck.log` predates decision 9 (698 forms) and is due a refresh.
 
+**The decisions Sai rules on.**
 
-1. **How to model half-cycle edges.** *Settled in §4.0 (proposed): option (a), one model clock per half T state.* TM §4.0 has MREQ, RD and WR changing on the clock's **falling** edge within a T state (e.g. MREQ falls half-way through T1). Options: (a) a model clock at 2× the T-state rate, so every half T state is one model cycle; (b) one model cycle per T state, comparing each pin's value as it stands at the end of that T state, with the half-cycle detail stated as "not compared". The 8080 used per-T-state comparison. TM §4.0 has now been read in full (§10), and (a) is what §4.0 specifies.
-2. **Wait sampling point.** *Settled in §4.0*: WAIT is sampled at the falling edge that starts T2L and each TwL (TM p.12), and at Tw\*L for I/O and Tw\*2L for INTA (§4.3, §4.5).
-3. **Interrupt mode 0** puts an arbitrary instruction on the bus. The proposal is to test it only with RST n (single byte), as the 8080 spec did.
-4. **Undocumented behaviour:** confirm §1's scope list with Sai, especially the X/Y flags (it decides zexdoc vs zexall, §9). F[5:3] are now defined as 0 after any flag-writing instruction (§6.3).
-5. **Reset:** *proposed in §5* (≥ 3 T states; the first M1 at the first rising edge with `reset_n` = 1; registers other than PC, I, R, IFF and IM not reset). The TM gives no post-reset timing (searched 2026-11-18).
+| # | Item | Ruling | Governs | Evidence that runs this ruling |
+|---|------|--------|---------|--------------------------------|
+| 6 | Flags Zilog 1977 marks X but zexdoc checks: S, Z after LDI/LDD/LDIR/LDDR; H after CPI/CPD/CPIR/CPDR; H after CCF | **(a) Mostek MK78515 (Oct 1978)**: S, Z unchanged; H = borrow from bit 4; H after CCF = the old C. Zilog's other X flags stay not compared | §6.2 | zexdoc 10 `cpd<r>`, 11 `cpi<r>`, 12 `<daa,cpl,scf,ccf>`, 52–55 `ldd<r>`/`ldi<r>` (mask D7, checks these bits against hardware CRCs). **Not in C8 yet**: its generator excludes these 9 forms until this row is signed (follow-up for Beru) |
+| 7 | What each M cycle does on the bus | **(a) Mostek MK3880 §12** cycle types, cited per instruction; PM governs lengths where they differ (POP order, EX (SP),IX, CPI) | §6.1 | Decode layout, 850/850; C8 hits all 841 forms it draws (min 3 executions each); bus cases C2–C6 |
+| 8 | DAA outside the 13-row table, and H after DAA | **(a) Sean Young, *The Undocumented Z80 Documented* v0.91, §4.7** (read 2026-11-25, quoted in §6.2). Its tables cover all 2048 (A, C, H, N) inputs, and inside the 13 rows they equal PM's | §6.2 | zexdoc 12 (sweeps A and F through all values, checks A, C and H); C8 `main/27` 15 |
+| A1 | INT mode 0 | **RST p only, MK3880's INTA(6) SWH(3) SWL(3) = 12 T** (TM's "2 more" = 13 is noted as a disagreement); multi-byte instructions unspecified | §8.2 | C4-01..04, C4-09, C4-10; C5-18; C6-09; C8 `int_taken_mode0` 345 |
+| A2 | The op byte of DD CB d op / FD CB d op | **M3 = OD(5)**: a 3-T operand read at PC (`m1_n` = 1, no refresh) then 2 internal T, so R counts 2 | §6.1, §6.3 | C8 DD CB 32/32 forms, 1276 executions; FD CB 32/32, 679; decode layout |
+| A3 | Where the extra T states of a lengthened cycle fall | **After the basic T states**; strobes inactive, `d_oe` = 0, `a` not compared, WAIT not sampled | §6.1 (lengthened cycles), §4.2 | C2-03, C2-04 (OCF(5)); C8 with 31125 random wait states: `main/F9` LD SP,HL OCF(6) 13, `main/C5` PUSH 345, `main/E3` EX (SP),HL SWL(5) 32, `ED/B2` INIR IO(5) 2631 |
+| A4 | Cycle types MK3880 doesn't give | **LD (IX+d),n / LD (IY+d),n**: OCF(4) OCF(4) OD(3) OD(5) MW(3). **CPI/CPD/CPIR/CPDR**: 4th cycle IO(5), no write strobe | §6.1 | LD: C8 `DD/36` 6, `FD/36` 14; decode layout. CPI group: decode layout only, because C8 excludes it under row 6 (pin runs land with the same follow-up) |
+| A5 | Flags between iterations of a repeating block instruction | **Each iteration sets the flags exactly as its single-step form** | §6.2 | C8 `ED/B2` INIR 2631, `ED/B3` OTIR 2058, with random INT/NMI stimulus; LDIR/LDDR/CPIR/CPDR final flags: zexdoc 10, 11, 52–55 |
+| A6 | F[5] and F[3] | **0 after any flag-writing instruction, moved whole by POP AF / EX AF,AF', and compared** (our definition, not the NMOS part's; zexall would fail and isn't used) | §1, §6.3 | C8: PUSH AF (`main/F5` 35) puts F on `d_out`, compared every half; zexdoc masks these bits |
 
-## 4. Timing (TM §4.0, read in full; normative at sign-off)
+**The other *Decisions*, accepted with the same approval** (no page states them; each is exact so the RTL and the model can't disagree):
 
-### 4.0 The model clock (*Decision* proposed, settles §3 item 1 as option (a))
+| Decision | Section | Evidence |
+|----------|---------|----------|
+| One model clock = one half T state; WAIT sampled at T2L/TwL (Tw\*L for I/O, Tw\*2L for INTA) | §4.0 | every bus case; C3-01..13 |
+| `d_oe` drops at the rising edge after T3L, also in a lengthened write | §4.2 | C2-06, C2-07; C8 `main/E3` |
+| `rfsh_n` floats with `bus_oe` during a bus request | §4.4 | C5-01..18 |
+| An interrupt accepted at the end of HALT's own M1: `halt_n` stays 1 | §4.7 | C4-24, C4-25, C4-26 |
+| Reset: registers not reset, pins during reset, first M1 at E+2, reset-during-write stimulus rule | §5 | C6-01..09 |
+| Documented set = PM Appendix C's 694 + 4 = 698 | §6.0 | decode layout (`specified` port) |
+| Block I/O A8–A15 order (Zilog 1994 manual) | §6.1 | C8 `ED/A2` 8, `ED/A3` 33, `ED/B2`, `ED/B3` |
+| R counting, refresh {I, R}, LD A,R / LD R,A; HALT's PC | §6.3 | C2-01..04, C2-08, C4-22..25 |
+| LD A,I / LD A,R: P/V = IFF2 as during the instruction | §8.1 | C4-14, C4-15 |
+| Mode 2: vector bit 0 = 0; INTA(7)'s extra T after T4 | §8.2 | C4-11, C4-12; C8 `int_taken_mode2` 225 |
+| NMI edge detector every model edge; `nmi_n` low ≥ 2 T | §8.3, §8.4 item 6 | C4-16, C4-18, C4-25; C8 `nmi_taken` 1057 |
+| Sampling points, one-instruction units, IFF visibility, EI delay, stimulus rules | §8.4 | C4-01..21, C4-26; C5-17; C8 |
+
+**Settled earlier.** Decision 9 (b), Sai, PR #23 (§6.0a). The draft's items 1–5 are rows above: 1 and 2 → §4.0; 3 → A1; 4 → A6 and §1; 5 → §5.
+
+**What depends on what.** `docs/blocks.md` §2–§3 (the control↔datapath codes and ports) don't depend on 6 or 8: those only change which flag value the ALU computes for a few rows. Decision 7 fixes the cycle types that `mc_type` (blocks §2.1) encodes.
+
+## 4. Timing (TM §4.0, read in full)
+
+### 4.0 The model clock (*Decision*, §3)
 TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ each, and **several pins change on the falling edge of Φ, half-way through a T state**. Figure 4.0-1, page image p.12: MREQ and RD go active "one half clock time later" than the address, and in Figure 4.0-2 (p.13) WR falls mid-T2 and goes inactive "one half T state before the address and data bus contents are changed". A per-T-state model can't show those edges, so:
 
 - **One model clock = one half T state.** Each T state *Tn* is two model cycles: ***Tn*H** (Φ high, the first half, starting at Φ's rising edge) and ***Tn*L** (Φ low, starting at Φ's falling edge). A model edge is a Φ edge.
@@ -106,7 +127,7 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 - WAIT is sampled at the edge that starts T2L, and Tw states are inserted between T2 and T3, as in M1 (Figure 4.0-2A). **TwH and TwL repeat the T2L row**, for reads and writes alike: `mreq_n` = 0, `rd_n` = 0 in a read, **`wr_n` = 0 in a write** (WR has already fallen at T2L), `d_oe` = 1 in a write. WAIT is sampled again at the edge that starts each TwL (chip-z80#11 item 3).
 - **On reads `d_oe` = 0 in every half**; the `d_oe` column applies to writes only. Likewise `wr_n` = 1 throughout a read and `rd_n` = 1 throughout a write.
 - **Read data is taken at the edge that starts T3L.** TM §11, p.70: tSΦ̄(D) is "Data Setup Time to **Falling** Edge of Clock During M2 to M5", while M1 uses tSΦ(D), the "Rising Edge of Clock During M1 Cycle" (§4.1). This confirms the figure, whose IN window ends at T3's falling edge.
-- On writes, `d_oe` drops at **the rising edge after the write's T3L**: tF(D), data float, is measured from that rising edge (p.71). For a basic 3-T write that edge starts the next T1H, as in the table. For a **lengthened write** (MW(5) of LDI/LDD/LDIR/LDDR, SWL(5) of EX (SP),HL/IX/IY) it starts **T4H**, so `d_oe` = 0 in every half of T4 and T5, as the lengthened-cycle rule 2 of §6.1 says (chip-z80#18 item 2). *Decision (proposed)*: p.71 draws only a 3-T write followed by T1, so it doesn't say whether the data stays driven through internal T states; we take the rising edge that ends T3 in both cases, which is one rule for the RTL and agrees with rule 2.
+- On writes, `d_oe` drops at **the rising edge after the write's T3L**: tF(D), data float, is measured from that rising edge (p.71). For a basic 3-T write that edge starts the next T1H, as in the table. For a **lengthened write** (MW(5) of LDI/LDD/LDIR/LDDR, SWL(5) of EX (SP),HL/IX/IY) it starts **T4H**, so `d_oe` = 0 in every half of T4 and T5, as the lengthened-cycle rule 2 of §6.1 says (chip-z80#18 item 2). *Decision* (§3): p.71 draws only a 3-T write followed by T1, so it doesn't say whether the data stays driven through internal T states; we take the rising edge that ends T3 in both cases, which is one rule for the RTL and agrees with rule 2.
 - `m1_n` = 1 and `rfsh_n` = 1 throughout.
 
 ### 4.3 I/O read and write (Figure 4.0-3, 4.0-3A, page image p.15), 4 T states plus waits
@@ -134,9 +155,9 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 - **Exact halves** (chip-z80#11 item 1). Call the Tx states Tx1, Tx2, …, Txn. Tx1 starts at the rising edge after the last T state of the M cycle in which `busrq_n` was sampled 0. In every half of Tx1…Txn: `bus_oe` = 0, `d_oe` = 0, `busak_n` = 0, except **TxnL, where `busak_n` = 1**. Txn is the Tx at whose starting edge `busrq_n` is first sampled 1. T1H of the next M cycle starts at the rising edge after TxnL, with `bus_oe` = 1.
 - **Release and minimum length.** Under the stimulus rule (§8.4 item 7), `busrq_n` is released only at the edge that starts a TxH. Released at the edge that starts Tx*k*H, it's still sampled 0 at that edge (general rule, §8.4) and is first sampled 1 at the edge that starts Tx*k*+1. So **n = k + 1 and a bus request always lasts ≥ 2 Tx states**. **A 1-Tx request is not legal stimulus.** It would need `busrq_n` released between the last-T sample and Tx1, i.e. at the falling edge in the last T state, and tests never change `busrq_n` there. Real Z80 silicon accepts that timing, but our tests don't use it, so the RTL needn't do anything defined with it.
 - **Not floated:** `m1_n` and `halt_n` (not in the figure's list). TM §3 (pp.7–8, page image) calls both plain "Output", while MREQ, IORQ, RD and WR are "Tri-state output", so they agree.
-- **`rfsh_n` conflict:** TM §3 (p.8) calls RFSH "Output, active low" (not tri-state), but Figure 4.0-4 lists RFSH among the floating signals. *Decision (proposed)*: follow the figure, which describes the bus-request cycle itself. So `rfsh_n` floats with `bus_oe`, and isn't compared while `busak_n` = 0. Either way, a real RFSH can't be active during a bus request, because no M1 runs then.
+- **`rfsh_n` conflict:** TM §3 (p.8) calls RFSH "Output, active low" (not tri-state), but Figure 4.0-4 lists RFSH among the floating signals. *Decision* (§3): follow the figure, which describes the bus-request cycle itself. So `rfsh_n` floats with `bus_oe`, and isn't compared while `busak_n` = 0. Either way, a real RFSH can't be active during a bus request, because no M1 runs then.
 - "During a bus request cycle, the CPU cannot be interrupted by either a NMI or an INT signal" (p.14).
-- *Modelling (proposed):* a floating output is represented by a 1-bit output enable per group: `bus_oe` for `a`, `mreq_n`, `iorq_n`, `rd_n`, `wr_n` and `rfsh_n`; `d_oe` for data. When an output enable is 0, the pin's value is not compared. The same will apply during reset (§2).
+- *Modelling:* a floating output is represented by a 1-bit output enable per group: `bus_oe` for `a`, `mreq_n`, `iorq_n`, `rd_n`, `wr_n` and `rfsh_n`; `d_oe` for data. When an output enable is 0, the pin's value is not compared. The same will apply during reset (§2).
 
 ### 4.5 Interrupt acknowledge, mode-independent part (Figure 4.0-5, page image p.16)
 `int_n` is sampled "with the rising edge of the last clock at the end of any instruction" and ignored if the IFF is reset or `busrq_n` is 0 (TM p.16). It's accepted with a **special M1**: T1, T2, **Tw\***, **Tw\***, T3, T4.
@@ -161,7 +182,7 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 ### 4.7 HALT and HALT exit (Figure 4.0-7, page image p.18)
 - After HALT, "each cycle in the halt state is a normal M1 (fetch) cycle except that the data received from the memory is ignored and a NOP instruction is forced internally". So a halted CPU shows the §4.1 sequence every 4 T states, with refresh (TM p.18). The address is HALT + 1 every time (§6.3).
 - `halt_n` falls at the edge that starts **T4L** of the HALT instruction's M1, and rises at the edge that starts T4L of the halted M1 in which the interrupt was accepted. Both are falling edges: TM p.70 tD(HT), "HALT Delay Time From Falling Edge of Clock", and Figure 4.0-7.
-- **Interrupt accepted at the end of HALT's own M1** (*Decision* proposed, chip-z80#18 item 1). HALT's M1 is an instruction end, so INT and NMI are sampled at the rising edge that starts its T4 (§8.4 item 4). That edge comes **before** the T4L edge at which `halt_n` would fall. If NMI, or INT with IFF1 = 1 and not behind EI's delay, is accepted there, the CPU **never enters the halt state**: **`halt_n` stays 1** in every half, there's no halted M1, the next cycle is the acknowledge (§4.5 or §4.6), and the pushed PC is HALT + 1 (§6.3, HALT item 1). Read the rule above as: `halt_n` = 0 from T4L of HALT's M1 up to T4L of the M1 whose T4 sample accepts the interrupt; when that M1 is HALT's own, the interval is empty. Reached, for example, by `EI; HALT` with `int_n` = 0 (HALT is the instruction after EI, so EI's delay has ended), or by an NMI still pending (§8.4 item 6) when a handler's first instruction is HALT; also by IFF1 already 1 with `int_n` falling at HALT's own T1H, or by an INT or NMI that BUSRQ blocked at the end of the instruction before HALT. *Why this and not a pulse*: the manuals don't draw this case, and no source gives a `halt_n` pulse width; a 1-half pulse at T4L followed by a rise at the next T1H would be a rule with no page behind it. If BUSRQ is sampled 0 at that same edge, it blocks the interrupt (§8.4 item 4): `halt_n` falls at T4L as usual, the bus request runs, then halted M1s follow.
+- **Interrupt accepted at the end of HALT's own M1** (*Decision*, §3; chip-z80#18 item 1). HALT's M1 is an instruction end, so INT and NMI are sampled at the rising edge that starts its T4 (§8.4 item 4). That edge comes **before** the T4L edge at which `halt_n` would fall. If NMI, or INT with IFF1 = 1 and not behind EI's delay, is accepted there, the CPU **never enters the halt state**: **`halt_n` stays 1** in every half, there's no halted M1, the next cycle is the acknowledge (§4.5 or §4.6), and the pushed PC is HALT + 1 (§6.3, HALT item 1). Read the rule above as: `halt_n` = 0 from T4L of HALT's M1 up to T4L of the M1 whose T4 sample accepts the interrupt; when that M1 is HALT's own, the interval is empty. Reached, for example, by `EI; HALT` with `int_n` = 0 (HALT is the instruction after EI, so EI's delay has ended), or by an NMI still pending (§8.4 item 6) when a handler's first instruction is HALT; also by IFF1 already 1 with `int_n` falling at HALT's own T1H, or by an INT or NMI that BUSRQ blocked at the end of the instruction before HALT. *Why this and not a pulse*: the manuals don't draw this case, and no source gives a `halt_n` pulse width; a 1-half pulse at T4L followed by a rise at the next T1H would be a rule with no page behind it. If BUSRQ is sampled 0 at that same edge, it blocks the interrupt (§8.4 item 4): `halt_n` falls at T4L as usual, the bus request runs, then halted M1s follow.
 - `int_n` and `nmi_n` are "sampled with the rising clock edge during each T4 state". If NMI, or INT with IFF set, is accepted, the next cycle is the matching interrupt acknowledge (§4.5 or §4.6). **NMI wins if both are present.**
 
 ## 5. Reset
@@ -171,7 +192,7 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 - "During reset time, the address bus and data bus go to a high impedance state and all control output signals go to the inactive state" (p.9).
 - "The RESET signal must be active for a minimum of 3 clock cycles" (TM p.70, note C), and it's set up to the **rising** edge of Φ (tS(RS), p.70).
 
-**Not documented, so these are *Decisions* (proposed):**
+**Not documented, so these are *Decisions* (§3):**
 1. **Other registers are not reset:** A, F, B, C, D, E, H, L, the alternate set A'…L', IX, IY and SP. As for the 6502 and 8080, the C8 preamble writes every one of them before anything reads it. Comparison has **no exemption window**.
 2. **While in reset:** `bus_oe` = 0 and `d_oe` = 0 (floating, §4.4), so `a`, `mreq_n`, `iorq_n`, `rd_n`, `wr_n`, `rfsh_n` and the data bus are not compared. `m1_n` = 1, `halt_n` = 1 and `busak_n` = 1 ("inactive") are compared.
 3. **The first M1:** T1H of the first opcode fetch starts at **the first rising edge of Φ at which `reset_n` is sampled 1**, at address 0000H. The manuals give no delay here, so this is our choice. It's exact, so the RTL and the model can't disagree.
@@ -199,7 +220,7 @@ TM §4.0 times every machine cycle (M cycle) in T states, one clock period Φ ea
 - `ED 4F` **LD R,A** and `ED 5F` **LD A,R**. Both *are* documented elsewhere: TM §2.0 item 5 ("as the result of an LD R,A instruction") and TM §8.0 ("When a … (LD A,R) instruction is executed, the state of IFF2 is copied into the parity flag"). The listing is an assembler test, not an exhaustive list.
 - `ED 63` and `ED 6B`, the ED encodings of LD (nn),HL / LD HL,(nn) (the one-byte forms `22`/`2A` are listed). These *are* documented by PM's generic descriptions: `LD dd,(nn)` = ED 01dd1011 (PM p.57) and `LD (nn),dd` = ED 01dd0011 (PM p.62), each saying "Register pair dd defines BC, DE, HL, or SP", with HL = 10, 6 M cycles, "20 (4,4,3,3,3,3)" T states. So ED 6B = LD HL,(nn) and ED 63 = LD (nn),HL in 20 T states, alongside the 16-T one-byte forms.
 
-***Decision* (proposed):** the documented set is Appendix C's **694 forms plus the 4 the listing omits (`LD R,A`, `LD A,R`, `ED 63`, `ED 6B`) = 698**. That's exactly our structural count (252 + 248 + 58 + 70 + 70), so every row of the table above now agrees.
+***Decision* (§3):** the documented set is Appendix C's **694 forms plus the 4 the listing omits (`LD R,A`, `LD A,R`, `ED 63`, `ED 6B`) = 698**. That's exactly our structural count (252 + 248 + 58 + 70 + 70), so every row of the table above now agrees.
 
 **Specified set (decision 9 (b), §6.0a): 698 documented + 152 undocumented (U1 92, U2 50, U3 10) = 850 forms.** These 850 are what the design must execute and what C1/C1b test. By group: unprefixed 252, CB 256 (248 + CB 30–37), DD 142 (70 + 46 U1 + 25 U2 + 1 DD CB d 36), ED 58, FD 142 (as DD). Everything else is undocumented and unspecified: not executed by tests (§1). As for the 6502, the final opcode table (§6.1) will be cross-checked by script against this list.
 
@@ -226,7 +247,7 @@ So groups 6, 28–31 and 48 test nothing documented. **Groups 59 and 60 are zexd
 - **(b) Specify the 152 forms U1–U3 below**, and only those. They become tested (C1b), and zexdoc runs all 67 groups. Cost to the design is small, because `docs/blocks.md` already has `r8` codes 8–11 for IXH, IXL, IYH, IYL and reserves `alu_op` 17 for SLL: no port or width changes. Beru's model gains the 152 forms. zexdoc runs 148 of them; the other 4 (FD 24, 25, 2C, 2D, because of the slip above) are checked only by C1b.
 - **(c) Specify only U3 (SLL, 10 forms)** and exclude groups 6, 28–31, 48, 50 (7 groups). This keeps the shift/rotate check with the smallest addition. zexdoc's IX/IY half-register groups are lost.
 
-**Recommendation: (b)** (adopted). The 6502 precedent was to leave undocumented opcodes out because its acceptance test didn't need them. Here the acceptance test does, and (b) costs one decode rule, one prefix rule and one ALU op that blocks.md already reserves. These forms aren't in any manual we've read, so the hardware evidence is zexdoc's own CRCs, measured on real Z80s. That evidence is **partial for U1's reads** (Beru, PR #23 review): group 50's `ld8rrx` sets IX = IY = HL and never varies them, so for the LD forms that *read* a half (44, 45, 4C, 4D, 54, 55, 5C, 5D, 7C, 7D, and the source operand of 64, 65, 6C, 6D) a model reading the real H/L gives the same CRC. Half reads get a hardware check only from groups 6 and 28–31, where IX/IY differ from HL. C1b is the real check of those reads. If Sai wants a written secondary source as well, it's the same one as decision 8 (a), Sean Young's *The Undocumented Z80 Documented*. It must be read and quoted before it's used: [to read].
+**Recommendation: (b)** (adopted). The 6502 precedent was to leave undocumented opcodes out because its acceptance test didn't need them. Here the acceptance test does, and (b) costs one decode rule, one prefix rule and one ALU op that blocks.md already reserves. These forms aren't in any manual we've read, so the hardware evidence is zexdoc's own CRCs, measured on real Z80s. That evidence is **partial for U1's reads** (Beru, PR #23 review): group 50's `ld8rrx` sets IX = IY = HL and never varies them, so for the LD forms that *read* a half (44, 45, 4C, 4D, 54, 55, 5C, 5D, 7C, 7D, and the source operand of 64, 65, 6C, 6D) a model reading the real H/L gives the same CRC. Half reads get a hardware check only from groups 6 and 28–31, where IX/IY differ from HL. C1b is the real check of those reads. If Sai wants a written secondary source as well, it's the same one as decision 8 (a), Sean Young's *The Undocumented Z80 Documented*. It has been read for decision 8 (§6.2, 2026-11-25); its DD/FD sections (§3.2–3.3) aren't quoted here, because decision 9 rests on zexdoc's CRCs and C1b, not on it.
 
 **The forms (normative, decision 9 (b)).** Throughout, "as the unprefixed form" means registers, memory, flags (§6.2, §6.3) and bus behaviour exactly as that form's row, with the stated substitution. R counts each M1 as in §6.3, so every DD/FD form below adds 2 to R. A prefix and its opcode are one instruction for INT and NMI (§8.4 item 5).
 - **U1: index-register halves, 46 forms per prefix, 92 in all.** Under DD, an unprefixed opcode from the list below that names **H** or **L** as an 8-bit register (not as part of (HL)) uses **IXH = IX[15:8]** for H and **IXL = IX[7:0]** for L. Under FD it uses IYH = IY[15:8] and IYL = IY[7:0]. H, L and HL themselves are untouched.
@@ -240,7 +261,7 @@ So groups 6, 28–31 and 48 test nothing documented. **Groups 59 and 60 are zexd
 
 **Follow-on edits** (chip-z80#50, done): §1's scope bullet names U1–U3 as specified; §6.0's count is 698 documented + 152 = 850 specified; C1b is unconditional (§7); §9 item 1 has no group-skip text; blocks.md's `r8` note names codes 8–11 for U1, `alu_op` 17 = SLL, and `z80_decode`'s `documented` port is renamed `specified` (1 for the 850 forms). Implementation: Beru's model, census and `tests/random/` (C8) draw the 152 forms (chip-z80#51); Ada's ALU op 17 (chip-z80#52); Zura's decode and control (chip-z80#53).
 
-### 6.1 Per-instruction timing (in progress)
+### 6.1 Per-instruction timing
 The source per instruction is PM's "M CYCLES … T STATES n(t1,t2,…)" line, which gives each M cycle's length. TM §7 (p.43) gives only totals. Groups as in PM's contents (p.25): 8-bit load, 16-bit load, exchange/block transfer/search, 8-bit arithmetic and logic, general-purpose arithmetic and CPU control, 16-bit arithmetic, rotate and shift, bit set/reset/test, jump, call and return, input and output.
 
 **8-bit load group.** Lengths from PM pp.26–51 (text layer). Cycle types from **MK3880 §12, p.85** (page image). Legend (MK3880 p.85):
@@ -259,7 +280,7 @@ The source per instruction is PM's "M CYCLES … T STATES n(t1,t2,…)" line, wh
 | LD r,(IX+d); LD r,(IY+d) | 3 | 5 | 19 | OCF(4) OCF(4) OD(3) IO(5) MR(3) |
 | LD (IX+d),r; LD (IY+d),r | 3 | 5 | 19 | OCF(4) OCF(4) OD(3) IO(5) MW(3) |
 | LD (HL),n | 2 | 3 | 10 | OCF(4) OD(3) MW(3) |
-| LD (IX+d),n; LD (IY+d),n | 4 | 5 | 19 | **not in MK3880's table.** *Derived (decision 7(b))*: OCF(4) OCF(4) OD(3) OD(5) MW(3), i.e. d read, then n read in a 5-T cycle (3-T read + 2 internal T), then the write. *Decision (proposed)*: MK3880 §12 has no row for it (its p.85 table and text layer searched 2026-11-23), and neither TM, PM, MK78515 nor the 1987 TM breaks it down, so this is ours, by the only order the bytes allow. The 2 internal T follow T3 of M4, per the lengthened-cycle rule below |
+| LD (IX+d),n; LD (IY+d),n | 4 | 5 | 19 | **not in MK3880's table.** *Decision (§3 A4)*: OCF(4) OCF(4) OD(3) OD(5) MW(3), i.e. d read, then n read in a 5-T cycle (3-T read + 2 internal T), then the write. MK3880 §12 has no row for it (its p.85 table and text layer searched 2026-11-23), and neither TM, PM, MK78515 nor the 1987 TM breaks it down, so this is ours, by the only order the bytes allow. The 2 internal T follow T3 of M4, per the lengthened-cycle rule below |
 | LD A,(BC); LD A,(DE) | 1 | 2 | 7 | OCF(4) MR(3) |
 | LD (BC),A; LD (DE),A | 1 | 2 | 7 | OCF(4) MW(3) |
 | LD A,(nn) | 3 | 4 | 13 | OCF(4) ODL(3) ODH(3) MR(3) |
@@ -304,7 +325,7 @@ Notes:
 
 Notes:
 - **EX (SP),IX/IY.** MK3880 p.86's row shows SRH(3), which sums to 22 T. PM gives 23 (4,4,3,4,3,5), the same pattern as EX (SP),HL's SRH(4) on the row above, so **SRH(4)**. PM governs the lengths.
-- **CPI/CPD/CPIR/CPDR.** MK3880 p.86 lists them in one row with LDI/LDD as "MR(3) MW(5)". A compare writes nothing: PM's operation for CPI is "A − (HL), HL ← HL+1, BC ← BC−1". So their 5-T fourth cycle is taken as **IO(5)**, with no write strobe. *Decision (proposed)*: our reading of the shared row; no other source breaks CPI down (MK78515 p.2-58 gives only 4,4,3,5).
+- **CPI/CPD/CPIR/CPDR.** MK3880 p.86 lists them in one row with LDI/LDD as "MR(3) MW(5)". A compare writes nothing: PM's operation for CPI is "A − (HL), HL ← HL+1, BC ← BC−1". So their 5-T fourth cycle is taken as **IO(5)**, with no write strobe. *Decision (§3 A4)*: our reading of the shared row; no other source breaks CPI down (MK78515 p.2-58 gives only 4,4,3,5).
 - Addresses on each access: EX (SP),HL reads (SP) and (SP+1) and writes them back high first. That's per MK3880's arrows (SP+1 after SRL, SP−1 after SWH).
 
 **8-bit arithmetic and logic group.** Lengths from PM pp.99–130 (text layer, including its per-page tables). Cycle types from MK3880 p.86 (page image). `alu` is any of ADD A, ADC A, SUB, SBC A, AND, OR, XOR, CP; their timings are identical.
@@ -362,7 +383,7 @@ IO cycles have no bus activity. So in ADD HL,ss the 7 T after the fetch are bus-
 | BIT b,(IX+d); BIT b,(IY+d) | 4 | 5 | 20 (4,4,3,5,4) | OCF(4) OCF(4) OD(3) **OD(5)** MR(4) |
 | SET/RES b,(IX+d); same for IY | 4 | 6 | 23 (4,4,3,5,4,3) | OCF(4) OCF(4) OD(3) **OD(5)** MR(4) MW(3) |
 
-**Note: the DD CB d op / FD CB d op forms.** These are 4 bytes. MK3880 shows OCF(4)/OCF(4) for DD and CB, OD(3) for d, then **IO(5)**, then the data cycles. That accounts for only 3 bytes on the bus, but the 4th byte (the operation) is in memory and has to be read. The only cycle that can contain it is the 5-T M3. *Decision (proposed)*: M3 is **OD(5)**, a 3-T operand read of the operation byte at PC (`m1_n` = 1 and no refresh, because Zilog's M1 description lists only CB, DD, ED, FD as M1-fetched prefixes), followed by 2 internal T. MK3880's "IO(5)" label is taken as a simplification. No other source read (TM, PM, MK78515, the 1987 TM) breaks it down, so this stays our Decision; it's listed in §3 for sign-off.
+**Note: the DD CB d op / FD CB d op forms.** These are 4 bytes. MK3880 shows OCF(4)/OCF(4) for DD and CB, OD(3) for d, then **IO(5)**, then the data cycles. That accounts for only 3 bytes on the bus, but the 4th byte (the operation) is in memory and has to be read. The only cycle that can contain it is the 5-T M3. *Decision (§3 A2)*: M3 is **OD(5)**, a 3-T operand read of the operation byte at PC (`m1_n` = 1 and no refresh, because Zilog's M1 description lists only CB, DD, ED, FD as M1-fetched prefixes), followed by 2 internal T. MK3880's "IO(5)" label is taken as a simplification. No other source read (TM, PM, MK78515, the 1987 TM) breaks it down, so this is our Decision.
 
 **Jump group.** Lengths from PM pp.219–236 (text layer). Cycle types from MK3880 p.88 (page image).
 
@@ -411,7 +432,7 @@ RST p's restart addresses (p = 00H, 08H, …, 38H) and the encodings follow from
 
   *Decision*: follow Zilog's own text, which replaces my earlier "before the decrement for both". The 1994 manual is later than the chip, but it's Zilog's, and it's the only source that states the order. It's cited per instruction.
 
-**Lengthened cycles** (an OCF of 5 or 6 T, an IO of 4 or 5 T, a read or write of 4 or 5 T): ***Decision* (proposed)**.
+**Lengthened cycles** (an OCF of 5 or 6 T, an IO of 4 or 5 T, a read or write of 4 or 5 T): ***Decision* (§3 A3)**.
 - **What the manuals give:** a fetch cycle "is four, five or six T cycles long" and other machine cycles "may have anywhere from three to five T cycles" (TM p.11). "Clock state T3 and T4 of a fetch cycle are used to refresh dynamic memories" (TM p.12), so **refresh ends with T4**, and a T5 or T6 has `rfsh_n` = 1 and no refresh MREQ. The figures of TM §4 and MK3880 §4 show only the basic lengths.
 - **What we specify:**
   1. The extra T states **follow the cycle's basic T states**: T5, T6 after T4 of an OCF, and T4, T5 after T3 of a read or write. They are not inserted before them, and they are not like the Tw of a WAIT, which sits between T2 and T3.
@@ -420,7 +441,7 @@ RST p's restart addresses (p = 00H, 08H, …, 38H) and the encodings follow from
   4. An **IO** cycle (any length) has the same pin values throughout, and `a` isn't compared.
 - This is the one place where a C2 pin rule rests on our choice rather than a page. Beru's model and the RTL both follow it.
 
-**Open decision 7: what each M cycle does on the bus.** C2 compares pins in every half T state (§4.0), so for each M cycle we need its *type*: opcode fetch (§4.1), memory read or write (§4.2), I/O (§4.3), or internal (no bus cycle). We also need, for M cycles longer than the basic 3 T, *where* the extra T states fall. The PM gives only the lengths, and the same lengths mean different things:
+**Decision 7 (§3): what each M cycle does on the bus.** *Ruling: (a), MK3880 §12.* The record of why: C2 compares pins in every half T state (§4.0), so for each M cycle we need its *type*: opcode fetch (§4.1), memory read or write (§4.2), I/O (§4.3), or internal (no bus cycle). We also need, for M cycles longer than the basic 3 T, *where* the extra T states fall. The PM gives only the lengths, and the same lengths mean different things:
 - `LD r,(IX+d)` (4,4,3,5,3): M3 reads d, then **M4 (5 T) can only be internal** (the add; no byte is left to transfer), then M5 reads (IX+d).
 - `LD (IX+d),n` (4,4,3,5,3): M3 reads d, then **M4 (5 T) must read n** plus 2 internal T, then M5 writes.
 
@@ -434,7 +455,7 @@ Neither TM (1977), PM (1978), Mostek MK78515 (1978) nor Zilog's 1987 Technical M
 - `PUSH qq`: "Machine cycle 1 is extended by one cycle and the Stack Pointer is decremented in the extra T-State", then two writes, high byte first.
 - `LDI`: OCF, OCF, MR, MW (5 T); `LDIR` adds a 5-T M cycle that decrements PC by 2 and refetches.
 
-**Recommendation now: (a), with the cycle types taken from MK3880 §12 and cited per instruction.** That's Mostek again, Zilog's licensed second source, as in decision 6. §6.1 will gain a cycle-type column from its tables, read from the page images. Where an internal T state falls inside a longer M cycle and MK3880 doesn't say, it's (b) for that detail.
+**Ruling: (a), with the cycle types taken from MK3880 §12 and cited per instruction.** That's Mostek again, Zilog's licensed second source, as in decision 6. §6.1's cycle-type columns come from its tables, read from the page images. Where an internal T state falls inside a longer M cycle and MK3880 doesn't say, it's (b) for that detail.
 
 ### 6.1a Address arithmetic (Beru's item 12)
 - **(IX+d), (IY+d):** d is a **signed** 8-bit two's-complement displacement (−128…+127), and the address is (IX + d) mod 2¹⁶. PM p.30: "IX summed with a two's complement displacement integer". The 16-bit wrap is our statement.
@@ -474,7 +495,9 @@ Table 6.0-1, transcribed. `↕` means set by the result, `•` unchanged, `0`/`1
 | LD A,I; LD A,R | • | ↕ | IFF (IFF2, §8.1) | ↕ | 0 | 0 |
 | BIT b,s | • | ↕ (bit b → Z) | **X** | **X** | 0 | 1 |
 
-**Repeating block instructions, per iteration** (*Decision*, Beru's point 2, chip-z80#2). Table 6.0-1's rows for LDIR/LDDR (P/V = 0) and INIR/INDR/OTIR/OTDR (Z = 1) are the flags **when the instruction finishes**. Each iteration is one instruction for interrupts (§8.4 item 5), so the flags between iterations are visible to an interrupt handler (PUSH AF) and must be defined. Rule: **every iteration of a repeating instruction sets the flags exactly as its single-step form does**:
+The table is Zilog's as printed. **Decision 6 (below) defines four of its X entries**: S and Z for LDI/LDD/LDIR/LDDR (unchanged), H for CPI/CPD/CPIR/CPDR (borrow from bit 4) and H for CCF (the old C). Every other **X** is not compared.
+
+**Repeating block instructions, per iteration** (*Decision*, §3 A5; Beru's point 2, chip-z80#2). Table 6.0-1's rows for LDIR/LDDR (P/V = 0) and INIR/INDR/OTIR/OTDR (Z = 1) are the flags **when the instruction finishes**. Each iteration is one instruction for interrupts (§8.4 item 5), so the flags between iterations are visible to an interrupt handler (PUSH AF) and must be defined. Rule: **every iteration of a repeating instruction sets the flags exactly as its single-step form does**:
 - LDIR/LDDR iteration = LDI/LDD: P/V = 1 if BC ≠ 0 after the decrement, else 0; H = N = 0; S, Z as LDI (decision 6).
 - CPIR/CPDR iteration = CPI/CPD: Z = 1 if A = (HL), P/V = 1 if BC ≠ 0 after the decrement, S and H from A − (HL), N = 1.
 - INIR/INDR/OTIR/OTDR iteration = INI/IND/OUTI/OUTD: Z = 1 if B = 0 after the decrement, else 0; N = 1.
@@ -502,19 +525,60 @@ The instruction repeats exactly while that iteration's flags say "not done" (BC 
 
 S, Z and P/V follow the result, and N is unchanged (Table 6.0-1). **H after DAA: both manuals say only "See instruction", and the instruction text doesn't define it.**
 
-**Open decision 8: DAA outside the table, and H** (Beru's review item 9). The 13 rows cover only the combinations a BCD add or subtract can produce. They don't say what DAA does for the other A, C and H combinations (e.g. N = 0, C = 0, A = 9A, H = 1), or what H becomes. zexdoc's `daa` test (`<daa,cpl,scf,ccf>`, mask D7) cycles A and F through all values and **checks H**. So the RTL has to match the real NMOS Z80 on every input to pass. Options, as for the 6502's decimal flags (turichips#32):
+**Decision 8 (§3): DAA outside the table, and H** (Beru's review item 9). *Ruling: (a), Sean Young v0.91 §4.7, below.* The record of why: The 13 rows cover only the combinations a BCD add or subtract can produce. They don't say what DAA does for the other A, C and H combinations (e.g. N = 0, C = 0, A = 9A, H = 1), or what H becomes. zexdoc's `daa` test (`<daa,cpl,scf,ccf>`, mask D7) cycles A and F through all values and **checks H**. So the RTL has to match the real NMOS Z80 on every input to pass. Options, as for the 6502's decimal flags (turichips#32):
 - (a) adopt the NMOS behaviour from a **named secondary source**, read before use and quoted in the spec (e.g. Sean Young, *The Undocumented Z80 Documented*, its DAA section), with zexdoc as the test of it;
 - (b) specify only the 13 rows, leave the rest and H unspecified, and accept that zexdoc's `daa` line may fail (zexdoc reports per test, so the other tests still mean something). That weakens the acceptance test.
 
-**Recommendation: (a)**. It's what Sai chose for the 6502, and zexdoc is the hardware-derived check. Needs Sai's call.
+**Ruling: (a)**. It's what Sai chose for the 6502, and zexdoc is the hardware-derived check.
 
-**Open decision 6: the "X" flags that the acceptance test checks.** zexdoc's flag masks follow "Documented flags … as per **Mostek** Z80 Technical Manual" (its source comment, line 49). They agree with Table 6.0-1 for the 16-bit adds (mask C7, H excluded) and BIT (mask 53, S and P/V excluded). But with mask D7 it **does check**, where Zilog 1977 says X:
+**The source, read 2026-11-25.** Sean Young, *The Undocumented Z80 Documented*, version 0.91, 18 September 2005 (GNU FDL 1.1; z80.info `zip/z80-documented.pdf`, sha256 `6413048f…3d7a9d`; read locally, not committed). §4.7, pp.17–18: "Stefano Donati from Ramsoft has found the tables which describe the DAA operation. The input is the A register and the CF, NF, HF flags … Depending on the NF flag, the 'diff' from this table must be added (NF is reset) or subtracted (NF is set) to A." Its three tables, transcribed (`*` = any):
+
+| C | A[7:4] | H | A[3:0] | diff |
+|---|---|---|---|---|
+| 0 | 0–9 | 0 | 0–9 | 00 |
+| 0 | 0–9 | 1 | 0–9 | 06 |
+| 0 | 0–8 | * | A–F | 06 |
+| 0 | A–F | 0 | 0–9 | 60 |
+| 1 | * | 0 | 0–9 | 60 |
+| 1 | * | 1 | 0–9 | 66 |
+| 1 | * | * | A–F | 66 |
+| 0 | 9–F | * | A–F | 66 |
+| 0 | A–F | 1 | 0–9 | 66 |
+
+| C | A[7:4] | A[3:0] | C after |
+|---|---|---|---|
+| 0 | 0–9 | 0–9 | 0 |
+| 0 | 0–8 | A–F | 0 |
+| 0 | 9–F | A–F | 1 |
+| 0 | A–F | 0–9 | 1 |
+| 1 | * | * | 1 |
+
+| N | H | A[3:0] | H after |
+|---|---|---|---|
+| 0 | * | 0–9 | 0 |
+| 0 | * | A–F | 1 |
+| 1 | 0 | * | 0 |
+| 1 | 1 | 6–F | 0 |
+| 1 | 1 | 0–5 | 1 |
+
+"SF, YF, XF are copies of bit 7,5,3 of the result respectively; ZF is set according to the result and NF is always unchanged."
+
+**What we specify (decision 8 (a)), for every A, C, H, N.** With A the value before DAA:
+- diff = (06H if H = 1 or A[3:0] > 9, else 00H) | (60H if C = 1 or A > 99H, else 00H);
+- A ← (A + diff) mod 256 if N = 0, (A − diff) mod 256 if N = 1;
+- C ← 1 if C = 1 or A > 99H, else 0;
+- H ← (A[3:0] > 9) if N = 0, (H = 1 and A[3:0] < 6) if N = 1;
+- S, Z, P/V (parity) from the result, N unchanged (Table 6.0-1), **F[5:3] = 0 (§6.3 rule 1, not Young's copies)**.
+
+These three formulas equal Young's tables on all 2048 (A, C, H, N) inputs, each of which matches exactly one row of each table, and they equal PM's 13 rows (diff and C) wherever those apply (checked by script, 2026-11-25). `rtl/datapath/z80_alu.v` and `ref/refz80.py` (`--daa nmos`) implement them.
+
+**Decision 6 (§3): the "X" flags that the acceptance test checks.** *Ruling: (a), Mostek MK78515.* The record of why: zexdoc's flag masks follow "Documented flags … as per **Mostek** Z80 Technical Manual" (its source comment, line 49). They agree with Table 6.0-1 for the 16-bit adds (mask C7, H excluded) and BIT (mask 53, S and P/V excluded). But with mask D7 it **does check**, where Zilog 1977 says X:
 - **S and Z after LDI/LDD/LDIR/LDDR** (tests `ldi1`, `ldi2`, `ldd1`, `ldd2`);
 - **H after CPI/CPD** (`cpi1`, `cpd1`);
 - **H after CCF** (in the `daa` test).
 
 Block I/O isn't exercised by zexdoc. This is the same situation as the 6502's decimal flags (turichips#32). The options:
-- (a) specify those flags from **Mostek's Z80 manuals** (the second-source manufacturer; e.g. *MK78515 Mostek Z80 Programming Manual* V2.0, Oct 1978, on bitsavers), which zexdoc's author names as its reference [to read];
+- (a) specify those flags from **Mostek's Z80 manuals** (the second-source manufacturer; e.g. *MK78515 Mostek Z80 Programming Manual* V2.0, Oct 1978, on bitsavers), which zexdoc's author names as its reference;
 - (b) leave them unspecified and drop zexdoc, since its masks can't be changed without new reference CRCs from real hardware;
 - (c) leave them unspecified, keep zexdoc, and accept that the RTL must happen to match it.
 
@@ -528,9 +592,9 @@ Block I/O isn't exercised by zexdoc. This is the same situation as the 6502's de
 
 All four block compares read (CPD p.2-58: 16 T states, 4,4,3,5). Mostek and Zilog agree on every flag Zilog does define, as far as checked.
 
-**Recommendation: (a).** Where Zilog's 1977 table says X and Mostek's 1978 manual gives a value, that value is normative, cited to Mostek. Zilog's own X flags that Mostek also leaves open, and the block-I/O S, H and P/V, stay not compared. Mostek was Zilog's licensed second source, so this is a manufacturer's document, not an emulator. It needs Sai's call with the rest of the spec.
+**Ruling: (a).** Where Zilog's 1977 table says X and Mostek's 1978 manual gives a value, that value is normative, cited to Mostek: **S and Z unchanged by LDI/LDD/LDIR/LDDR; H after CPI/CPD/CPIR/CPDR = borrow from bit 4 of A − (HL); H after CCF = C before it.** Zilog's own X flags that Mostek also leaves open (H after the 16-bit adds, S and P/V after BIT) and the block-I/O S, H and P/V stay not compared. Mostek was Zilog's licensed second source, so this is a manufacturer's document, not an emulator.
 
-### 6.3 F bits 5 and 3, R, and HALT (*Decisions* proposed; answers Beru's items 1–3 on turichips#37; §1 now agrees, chip-z80#6)
+### 6.3 F bits 5 and 3, R, and HALT (*Decisions*, §3 A6; Beru's items 1–3 on turichips#37)
 None of the manuals read (TM, PM, MK78515, MK3880) defines these, but each one is visible on the pins.
 
 **F[5] and F[3]** (TM p.39: "X means flag is indeterminate"). They can't just be "not compared": PUSH AF writes F to memory, and from there the bits reach any register. So our chip defines them:
@@ -556,12 +620,12 @@ zexdoc masks these bits, so it's indifferent. zexall would fail, and isn't our a
 3. The interrupt that ends the halt (§4.7) pushes **HALT + 1**.
 4. Reset ends a halt as any reset does (§5).
 
-## 7. Behaviours to test (draft)
+## 7. Behaviours to test
 `z80_system`: one `z80`, 64 KiB RAM from `$readmemh`, a CP/M stub at 0000H/0005H for zexdoc (§9, with a correct top of memory at 0006H/0007H, the 8080 lesson), a console port, IRQ/NMI/WAIT/BUSRQ stimulus inputs, and `bus_conflict`.
 
 | ID | Behaviour |
 |----|-----------|
-| C1 | Every one of the 698 documented opcodes (§6.0): registers, memory and flags per §6.2 and F[5:3] per §6.3; only the flags §6.2 leaves X (and the decision-6 flags until Sai rules) are masked |
+| C1 | Every one of the 698 documented opcodes (§6.0): registers, memory and flags per §6.2 and F[5:3] per §6.3; only the flags §6.2 leaves X are masked (the decision-6 flags are defined, §6.2) |
 | C1b | Every one of the 152 U1–U3 forms of §6.0a (decision 9 (b)), with the same checks as C1. C1b is the only check of FD 24, 25, 2C, 2D (zexdoc doesn't run them) and the real check of U1's half **reads** (zexdoc's group 50 can't tell IXH/IXL from H/L, §6.0a): the read forms DD/FD 44, 45, 4C, 4D, 54, 55, 5C, 5D, 64, 65, 6C, 6D, 7C, 7D (14 per prefix) must be run with IX and IY different from HL |
 | C2 | Pin timing per half T state (§4) for every cycle type of §6.1, including waits (WAIT), lengthened cycles and the refresh address {I, R} |
 | C3 | WAIT in M1, memory and I/O cycles, and in interrupt acknowledge after the automatic Tw\* |
@@ -573,7 +637,7 @@ zexdoc masks these bits, so it's indifferent. zexall would fail, and isn't our a
 
 Acceptance: zexdoc (§9), with the CP/M stub: **all 67 groups** (decision 9 (b), §6.0a), no group skipped.
 
-## 8. Interrupts (TM §8.0, pp.55–57, text layer; normative once checked)
+## 8. Interrupts (TM §8.0, pp.55–57, text layer)
 
 ### 8.1 IFF1 and IFF2 (TM p.55, Figure 8.0-1)
 IFF1 "actually disables interrupts from being accepted"; IFF2 is "temporary storage location for IFF1".
@@ -591,16 +655,16 @@ IFF1 "actually disables interrupts from being accepted"; IFF2 is "temporary stor
 
 ### 8.2 Responses
 - **NMI** (TM p.56): accepted "at all times" (but not during a bus request, §4.4). "The CPU ignores the next instruction that it fetches and instead does a restart to location 0066H." Per MK3880 §12 (p.83): **11 T states**, "the first M1 being a dummy OP Code Fetch of 5 T-States long. The Program Counter is not advanced, the OP Code on the data bus is ignored and an internal Restart is done to address 66H. The following two Machine Cycles are a write of the Program Counter to the Stack" (so 5 + 3 + 3).
-- **INT, mode 0** (8080 mode, the mode after reset): the device puts an instruction on the bus in the §4.5 acknowledge cycle, and the CPU executes it. MK3880 p.89: with RST inserted, **INTA(6) SWH(3) SWL(3) = 12 T**; with CALL inserted, INTA(6) ODL(3) ODH(4) SWH(3) SWL(3). **Conflict:** TM p.56 says "2 more than the normal number" (RST is 11, giving 13), but MK3880 gives 12. *Decision (proposed, Beru's item 13)*: take MK3880's **INTA(6) SWH(3) SWL(3) = 12 T** for RST in mode 0, because it's the only per-cycle source and tests only insert RST. TM's "2 more" is noted as a disagreement. "The number of clock cycles … is 2 more than the normal number for the instruction" (the two Tw\*). *Proposed*: tests use only **RST p** (one byte) in mode 0, as the 8080 spec did. Multi-byte instructions in mode 0 are not specified.
+- **INT, mode 0** (8080 mode, the mode after reset): the device puts an instruction on the bus in the §4.5 acknowledge cycle, and the CPU executes it. MK3880 p.89: with RST inserted, **INTA(6) SWH(3) SWL(3) = 12 T**; with CALL inserted, INTA(6) ODL(3) ODH(4) SWH(3) SWL(3). **Conflict:** TM p.56 says "2 more than the normal number" (RST is 11, giving 13), but MK3880 gives 12. *Decision (§3 A1; Beru's item 13)*: take MK3880's **INTA(6) SWH(3) SWL(3) = 12 T** for RST in mode 0, because it's the only per-cycle source and tests only insert RST. TM's "2 more" is noted as a disagreement. "The number of clock cycles … is 2 more than the normal number for the instruction" (the two Tw\*). *Decision*: tests use only **RST p** (one byte) in mode 0, as the 8080 spec did. Multi-byte instructions in mode 0 are not specified.
 - **INT, mode 1**: a restart to **0038H**, with the data bus ignored, "2 more than normal" cycles. MK3880 p.89: **INTA(7) SWH(3) SWL(3) = 13 T** (RST's 11 + 2).
-- **INT, mode 2**: pointer = {I, vector}. The CPU pushes PC and loads PC from the two bytes at the pointer, low byte first. "Only 7 bits are required from the interrupting device as the least significant bit must be a zero." *Proposed*: tests always supply bit 0 = 0, and bit 0 = 1 is not specified. TM gives **19 clock periods** (7 to fetch the vector, 6 to push PC, 6 to read the table). MK3880 §12 (p.84): "During the INTA cycle (M1) a Vector is sent in … M2 and M3 are used to Stack the Program Counter … During M4 and M5 the Service Routines address is read from this table". MK3880 p.89: **INTA(7) SWH(3) SWL(3) MRL(3) MRH(3)** = 19 T. INTA is 7 T in modes 1 and 2 (6 in mode 0), one more than Figure 4.0-5's 6. *Proposed*: the extra T follows T4 with the strobes inactive (the SP − 1 step, as in RST's OCF(5)), per the lengthened-cycle rule.
+- **INT, mode 2**: pointer = {I, vector}. The CPU pushes PC and loads PC from the two bytes at the pointer, low byte first. "Only 7 bits are required from the interrupting device as the least significant bit must be a zero." *Decision*: tests always supply bit 0 = 0, and bit 0 = 1 is not specified. TM gives **19 clock periods** (7 to fetch the vector, 6 to push PC, 6 to read the table). MK3880 §12 (p.84): "During the INTA cycle (M1) a Vector is sent in … M2 and M3 are used to Stack the Program Counter … During M4 and M5 the Service Routines address is read from this table". MK3880 p.89: **INTA(7) SWH(3) SWL(3) MRL(3) MRH(3)** = 19 T. INTA is 7 T in modes 1 and 2 (6 in mode 0), one more than Figure 4.0-5's 6. *Decision*: the extra T follows T4 with the strobes inactive (the SP − 1 step, as in RST's OCF(5)), per the lengthened-cycle rule.
 
-### 8.3 Still open
-- Where the NMI falling edge is latched, and how long `nmi_n` must stay low in the model (TM gives tw(NMI) ≥ 80 ns, p.70). *Proposed*, as for the 6502: an edge detector runs on every model edge, and tests hold `nmi_n` low ≥ 2 T states and change it only at a T1H edge.
+### 8.3 NMI latch, priority, INT level
+- Where the NMI falling edge is latched, and how long `nmi_n` must stay low in the model (TM gives tw(NMI) ≥ 80 ns, p.70). *Decision* (§3), as for the 6502: an edge detector runs on every model edge, and tests hold `nmi_n` low ≥ 2 T states and change it only at a T1H edge.
 - Priority NMI > INT at the same sampling edge: **settled**. TM p.17 says it generally, not only for HALT exit: NMI "is sampled at the same time as the interrupt line, but this line has priority over the normal interrupt"; TM §3 (NMI pin): "higher priority than INT".
 - `int_n` is level-sensitive; the device holds it until acknowledged (TM §3: "honored at the end of the current instruction").
 
-### 8.4 Sampling points, instruction boundaries and stimulus (*Decisions* proposed; Beru's items 4–7)
+### 8.4 Sampling points, instruction boundaries and stimulus (*Decisions*, §3; Beru's items 4–7)
 **General rule for inputs.** A pin that changes at model edge E is seen by samples taken at edges **after** E, never at E itself.
 
 **Item 4, sampling points.**
@@ -635,7 +699,7 @@ IFF1 "actually disables interrupts from being accepted"; IFF2 is "temporary stor
 - `int_n` **may change at any T1H**, like the other two. INT is level-sampled only at the §8.4 points, so a request withdrawn before acknowledge is fully specified: it simply isn't seen (Beru's re-review). That lets C8 raise and drop INT freely while IFF1 = 0.
 - INT mode 2 vectors always have bit 0 = 0 (§8.2, Beru's item 14).
 
-## 9. Acceptance test candidates (licences to check before use)
+## 9. Acceptance tests
 1. **zexdoc** (Frank D. Cringle's Z80 instruction exerciser, documented flags only), the Z80 counterpart of 8080EXM.
    - **Licence checked** (2026-11-18, source header): "Copyright (C) 1994 Frank D. Cringle", **GNU GPL version 2 or (at your option) any later version**. It's fetched at test time, pinned by commit and sha256, and never committed (rule 9), as for the 8080 exercisers.
    - **Where from:** github.com/agn453/ZEXALL at commit 8f71d41 has `zexdoc.com` (8,704 bytes, sha256 `34923a7e…`) and its source `zexdoc.z80`, with a GPL v2 `LICENSE`. That repo's source is modified to assemble with ZSM4, so the original as shipped with yaze is in github.com/begoon/z80exer (`yaze/zexdoc.z80`, with `prelim.z80`). Which binary we pin (the prebuilt `.com`, or our own assembly of the original source) is for Homer to propose, with both hashes recorded.
@@ -655,8 +719,8 @@ Every [check] gets a line here with the page it was confirmed on.
 - [x] I/O cycles, bus request/acknowledge, interrupt acknowledge (TM §4.0, Figures 4.0-3, 4.0-3A, 4.0-4, 4.0-5, 4.0-5B, page images pp.15–17; text p.14, 16): §4.3–4.5.
 - [x] NMI response and HALT exit (TM §4.0, Figures 4.0-6, 4.0-7, page image p.18), with edges from TM p.70 (tD(HT), tDH(BA)): §4.6, §4.7. **TM §4.0 is now fully read.**
 - [x] Interrupt enable flip-flops, NMI response, INT modes 0/1/2 (TM §8.0, pp.55–57, text layer): §8.
-- [x] 8-bit load group timing (PM pp.26–51, text layer): §6.1. Per-M-cycle bus types aren't in TM, PM, Mostek MK78515 or the 1987 TM, but **are in Mostek MK3880 Technical Manual §12 (Dec 1977)**: decision 7 → (a). NMI 11 T (5,3,3) and the mode 2 cycles from MK3880 p.83–84 (text layer). 8-bit load cycle types from MK3880 p.85 (page image); LD (IX+d),n is missing from that table. 16-bit load group: PM pp.52–75 and MK3880 p.85; MK3880's POP order contradicts PM p.72, and PM governs. Exchange/block group: PM pp.76–98 and MK3880 p.86; MK3880's EX (SP),IX length and its CPI row are corrected from PM. CPIR/CPDR termination (PM p.91). 8-bit arithmetic group: PM pp.99–130 and MK3880 p.86. General-purpose/CPU control and 16-bit arithmetic: PM pp.131–162, MK3880 pp.86–87. Rotate/shift and bit groups: PM pp.163–218, MK3880 pp.87–88; the DD CB op-byte read is a proposed Decision. Jump and call/return groups: PM pp.219–251, MK3880 p.88; RETI leaves IFF unchanged (PM p.247). I/O group and A8–A15 (PM pp.252–274), interrupt sequences (MK3880 p.89). **All 11 PM groups transcribed**; the mode 0 length conflicts (TM +2 vs MK3880).
-- [x] Flags, Table 6.0-1 (TM §6.0 pp.39–41, page image p.41): §6.2; the conflict with zexdoc's masks is open decision 6. Mostek MK78515 (Oct 1978) flag rows for CCF, LDI/LDD/LDIR/LDDR, CPI/CPIR/CPDR read: §6.2.
+- [x] 8-bit load group timing (PM pp.26–51, text layer): §6.1. Per-M-cycle bus types aren't in TM, PM, Mostek MK78515 or the 1987 TM, but **are in Mostek MK3880 Technical Manual §12 (Dec 1977)**: decision 7 → (a). NMI 11 T (5,3,3) and the mode 2 cycles from MK3880 p.83–84 (text layer). 8-bit load cycle types from MK3880 p.85 (page image); LD (IX+d),n is missing from that table. 16-bit load group: PM pp.52–75 and MK3880 p.85; MK3880's POP order contradicts PM p.72, and PM governs. Exchange/block group: PM pp.76–98 and MK3880 p.86; MK3880's EX (SP),IX length and its CPI row are corrected from PM. CPIR/CPDR termination (PM p.91). 8-bit arithmetic group: PM pp.99–130 and MK3880 p.86. General-purpose/CPU control and 16-bit arithmetic: PM pp.131–162, MK3880 pp.86–87. Rotate/shift and bit groups: PM pp.163–218, MK3880 pp.87–88; the DD CB op-byte read is a Decision (§3 A2). Jump and call/return groups: PM pp.219–251, MK3880 p.88; RETI leaves IFF unchanged (PM p.247). I/O group and A8–A15 (PM pp.252–274), interrupt sequences (MK3880 p.89). **All 11 PM groups transcribed**; the mode 0 length conflicts (TM +2 vs MK3880).
+- [x] Flags, Table 6.0-1 (TM §6.0 pp.39–41, page image p.41): §6.2; the conflict with zexdoc's masks is decision 6 (§3). Mostek MK78515 (Oct 1978) flag rows for CCF, LDI/LDD/LDIR/LDDR, CPI/CPIR/CPDR read: §6.2.
 - [x] Reset (TM §3.0 p.9, §8.0 p.55, §11 p.70, text layer): what's reset and the 3-clock minimum. No post-reset timing in the TM, so §5 items 1–4 are Decisions.
 - [x] Documented opcode set: PM Appendix C, 694 statements; omits LD R,A and LD A,R (and ED 63/6B), page image PDF p.304; ED 63/6B documented by PM pp.57, 62 (text layer, dd = HL listed): 698 forms, §6.0.
 - [x] zexdoc licence: GPL v2 or later, © 1994 Frank D. Cringle (source header, agn453/ZEXALL@8f71d41, read 2026-11-18): §9.
@@ -664,3 +728,4 @@ Every [check] gets a line here with the page it was confirmed on.
 - [x] NMI over INT in general, not only at HALT exit (§8.3): TM p.17 text ("this line has priority over the normal interrupt") and TM §3 NMI pin, text layer, 2026-11-23.
 - [x] LD (IX+d),n, CPI's 4th cycle, the DD CB op-byte read: searched MK3880 §12 (text layer and p.85–88 rows), PM, MK78515 and the 1987 TM on 2026-11-23; no per-cycle breakdown in any of them, so all three are *Decisions* in §6.1 and listed in §3.
 - [x] A8–A15 during I/O (§4.3): settled per instruction in §6.1 (PM pp.252–274; block I/O from the 1994 Zilog manual).
+- [x] DAA outside the 13 rows and H after DAA (decision 8): Sean Young, *The Undocumented Z80 Documented* v0.91, §4.7 pp.17–18, text layer, read 2026-11-25; tables transcribed in §6.2 and checked by script against the §6.2 formulas (2048 inputs, 0 differences) and PM's 13 rows (0 differences).
