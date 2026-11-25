@@ -1,0 +1,32 @@
+# old bench vs fast driver, Verilator 5.020 2024-01-01 rev (Debian 5.020-1), rtl commit 0eec87f, 2026-11-24T23:56:40Z
+prelim: IDENTICAL output (27 chars) and half-clocks; old [done,timeout,conflict,hc]=(1, 0, 0, 17484) new=(1, 0, 0, 17484)
+  old 0.1s = 171,505 half-clocks/s; new 0.1s = 173,846 half-clocks/s; speedup 1.0x
+zexdoc-13: IDENTICAL output (78 chars) and half-clocks; old [done,timeout,conflict,hc]=(1, 0, 0, 119784198) new=(1, 0, 0, 119784198)
+  old 434.3s = 275,800 half-clocks/s; new 424.5s = 282,167 half-clocks/s; speedup 1.0x
+# RESULT PASS
+
+zexdoc-8 (capped at +maxclk=30000000): IDENTICAL output (58 chars) and half-clocks; old [done,timeout,conflict,hc]=(0, 1, 0, 30000000) new=(0, 1, 0, 30000000)
+  old 75.2s = 398,692 half-clocks/s; new 71.4s = 419,922 half-clocks/s; speedup 1.1x
+
+# SPEED (same box, 2 cores shared with a place-and-route; user time ~ wall)
+# old bench: ~275k-400k half-clocks/s (load dependent); fast driver: ~280k-420k half-clocks/s. Gain 1.0-1.1x, NOT the 3x asked for.
+# Instructions/s: using the issue's ratio 23k instr/s per 372k half-clocks (0.062 instr/half-clock): ~17k-26k instr/s for both.
+# Projected full run at ~400k half-clocks/s: 3.5e9 ref instr / 0.062 = 5.7e10 half-clocks / 4e5 = ~40 h (unchanged by the driver).
+#
+# PROFILE (gprof, -O2 build of the fast driver, group 13, 1.5M posedges; perf is not permitted here: perf_event_paranoid=4)
+# Time is in the generated core logic, not the bench or scheduler:
+#   Flat profile:
+#   
+#   Each sample counts as 0.01 seconds.
+#     %   cumulative   self              self     total           
+#    time   seconds   seconds    calls  ns/call  ns/call  name    
+#    53.04      1.31     1.31  3000003   436.67   436.67  Vz80_system___024root___ico_sequent__TOP__0(Vz80_system___024root*)
+#    35.22      2.18     0.87  1500000   580.00   580.00  Vz80_system___024root___nba_sequent__TOP__0(Vz80_system___024root*)
+#     2.43      2.24     0.06  6000002    10.00    10.00  Vz80_system___024root___eval_phase__act(Vz80_system___024root*)
+#     2.02      2.29     0.05  6000004     8.33   228.33  Vz80_system___024root___eval_phase__ico(Vz80_system___024root*)
+#     1.62      2.33     0.04  1500000    26.67    26.67  Vz80_system___024root___nba_sequent__TOP__1(Vz80_system___024root*)
+# ___ico_sequent (combinational pass after inputs change) 53% and ___nba_sequent (flop updates + comb) 35%: ~88% of time, ~2.2 us per posedge.
+# Scheduler/eval overhead (eval_phase__act/ico, VlDeleter, msg queue) is ~7%. Skipping the clk=0 eval (design has only posedge logic) saved ~30% over a plain two-eval C++ loop
+# (9.8 s -> 6.7 s for 3M posedges), which only brings it level with the --timing bench: Verilator's timing scheduler was never the cost.
+# Conclusion: the speed is the RTL's evaluation cost per cycle (large flattened combinational cone). Getting hours-not-days needs RTL/Verilator-structure
+# changes (e.g. smaller decode logic, --threads is useless on 2 cores shared with other jobs) or more cores, not a different bench.

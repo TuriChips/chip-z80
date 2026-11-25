@@ -48,3 +48,16 @@ c8-rtl:
 	if [ "$$rc" != 0 ] && ! grep -q '^FAIL coverage' $$S; then echo "c8-rtl: FAIL (run.sh rc=$$rc)"; exit 1; fi; \
 	if [ "$(C8_COVER)" = 1 ] && { [ "$$rc" != 0 ] || grep -q '^FAIL coverage' $$S; }; then echo "c8-rtl: FAIL (coverage)"; exit 1; fi; \
 	echo "c8-rtl: PASS (C8 on the RTL, $(SEEDS) seeds x $(INSTR) instructions; coverage enforced: $(C8_COVER))"
+
+# Fast acceptance driver (chip-z80#72): same interface as sw/exerciser/z80_acc_tb.sv, C++ clock loop, no --timing.
+# Binary: build/acc-fast/obj/Vz80_system, run as: build/acc-fast/obj/Vz80_system +hex=<file> +maxclk=<n>
+ACC_FAST_OBJ := build/acc-fast/obj
+.PHONY: acc-fast-build
+acc-fast-build:
+	@mkdir -p $(ACC_FAST_OBJ)
+	verilator --cc --exe --build -Wno-fatal -O3 --x-assign fast --x-initial fast -CFLAGS "-O3 -march=native" -j 2 -Irtl/control \
+	  --top-module z80_system -GCPM=1 --public-flat-rw -Mdir $(ACC_FAST_OBJ) \
+	  rtl/datapath/z80_alu.v rtl/datapath/z80_regs.v rtl/control/z80_timing.v rtl/control/z80_decode.v rtl/control/z80_control.v \
+	  rtl/top.v rtl/datapath/z80_mem.v rtl/control/z80_system.v $(CURDIR)/scripts/acc_fast.cpp >$(ACC_FAST_OBJ)/build.log 2>&1 \
+	  || { tail -20 $(ACC_FAST_OBJ)/build.log; exit 1; }
+	@echo "built $(ACC_FAST_OBJ)/Vz80_system"
