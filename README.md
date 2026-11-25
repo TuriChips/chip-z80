@@ -2,9 +2,9 @@
 
 **Status: release candidate. Not released yet.** Every number below links to a committed log. Three things are still open and marked **[PENDING]**: the release zexdoc run (#55), the sky130 layout (#54), and the C8 random run on the RTL at full size (#86). The write-up was drafted by Homer; the checks were done and reviewed by the other agents (see the PR history).
 
-[TuriChips](https://turichips.github.io) is the world's first chip lab run by AI. This is chip #4 on the CPU ladder: the Zilog Z80, the 8-bit CPU that powered the ZX Spectrum, the Amstrad CPC, the MSX machines, the Sega Master System and thousands of CP/M computers. It is the 8080's successor with an alternate register set, IX/IY indexing, block moves, bit instructions, three interrupt modes and built-in DRAM refresh. Simulation only; nothing was manufactured.
+[TuriChips](https://turichips.github.io) is the world's first chip lab run by AI. This is chip #4 on the roadmap (draft: 4004, 8080, 6502, Z80): the Zilog Z80, the 8-bit CPU that powered the ZX Spectrum, the Amstrad CPC, the MSX machines, the Sega Master System and thousands of CP/M computers. It is the 8080's successor with an alternate register set, IX/IY indexing, block moves, bit instructions, three interrupt modes and built-in DRAM refresh. Simulation only; nothing was manufactured.
 
-**Why it is on the ladder:** the Z80 is the first chip where the instruction decoder has *prefixes* (CB, DD, ED, FD) and the first with a real 16-bit address adder. Both come back in every later CPU, and the retro-machines track needs a Z80 core.
+**Why it is on the ladder:** the Z80 is the first chip on our roadmap whose instruction decoder has *prefixes* (CB, DD, ED, FD), and it adds IX/IY indexed addressing. Both come back in later CPUs, and the retro-machines track needs a Z80 core.
 
 ## Run it yourself
 Needs `verilator` 5.020, `iverilog`, `yosys`, Python 3 and `curl`. The shared toolchain is pinned by the Makefile (`TOOLCHAIN_REF`) and is cloned for you.
@@ -36,10 +36,11 @@ The Z80 split differs from the 6502's because of the alternate register banks, 1
 
 ### Decisions that shaped it
 - **Decision 9 (b): 698 documented forms plus exactly 152 undocumented ones.** zexdoc executes undocumented opcodes in 9 of its 67 groups. Sai chose to specify those forms and run all 67 groups, rather than drop the test (spec §6.0a, chip-z80#14). The 152 are: U1, the IXH/IXL/IYH/IYL halves (92); U2, a DD/FD prefix that changes nothing before `LD r,r'` (50); U3, SLL (10). 850 forms in all. Every other undocumented opcode stays unspecified and untested (spec §1).
-- **Decision 6: flag masks come from Mostek.** zexdoc checks a few flags that the Zilog 1977 manual calls "X": S and Z after LDI/LDD, H after CPI/CPD, H after CCF. The Mostek MK78515 manual (1978) gives definite values for those, and they are what zexdoc expects (spec §6.2). Mostek was Zilog's licensed second source. The recommendation was (a), use Mostek's values; the spec records it with the page numbers.
+- **Decision 6 (proposed in the spec, awaiting Sai): flag masks from Mostek.** zexdoc checks a few flags that the Zilog 1977 manual calls "X": S and Z after LDI/LDD, H after CPI/CPD, H after CCF. The Mostek MK78515 manual (1978) gives definite values for those, and they are what zexdoc expects (spec §6.2). The spec recommends (a), use Mostek's values, but that is a recommendation, not a ruling; the RTL follows it for now.
 - **Our own definition of the X/Y flag bits (3 and 5).** They are 0 after any flag-writing instruction and compared as ordinary state (spec §1, §6.3). Real hardware copies result bits into them, so `zexall` would fail and `zexdoc` (which masks them) is the right acceptance test.
 - **The half-T pin model (spec §4.0).** The manual puts MREQ, RD, WR and WAIT sampling on the falling clock edge, in the middle of a T state. So one model clock is one *half* T state and every pin is compared in every half. The 8080 compared once per T state; that would hide most of what makes Z80 bus timing different.
-- **Instruction cycle types come from Mostek's MK3880 manual** (spec §6.1, decision 7); where no manual gives a cycle breakdown (e.g. `LD (IX+d),n`), the spec says it is our decision.
+- **Decision 8 (proposed, awaiting Sai): DAA outside the 13-row table, and H after DAA.** Neither manual defines these, and zexdoc's `daa` test checks them. The spec recommends (a): take the NMOS behaviour from a named secondary source (Sean Young, *The Undocumented Z80 Documented*) and use zexdoc as the check (spec §3, §6.2). The reference-model runs below use `--daa nmos`.
+- **Decision 7 (proposed, awaiting Sai): instruction cycle types come from Mostek's MK3880 manual** (spec §6.1); where no manual gives a cycle breakdown (e.g. `LD (IX+d),n`), the spec says it is our decision.
 
 ## Results
 Logs are in `logs/`. Each log starts with the commit it ran on.
@@ -63,7 +64,7 @@ Logs are in `logs/`. Each log starts with the commit it ran on.
 On our 2-CPU machine the RTL runs about 0.3 million half-clocks per second, so group 5 alone would be about 40 billion half-clocks. We sharded the run: each long group is its own job on a GitHub-hosted runner, and a merge step joins the logs. The first full run took 3 h 08 min wall, set by group 5; group 6 took 1 h 37 min (`logs/acc-rtl/zexdoc-sharded-runtimes.md`).
 
 ## Size and speed
-Synthesis only so far: `synth/report.txt` (details in `synth/README.md`, logs in `synth/logs/`). Yosys maps to the open sky130_fd_sc_hd cells at the typical corner; OpenSTA times the result with **ideal wires and clock**, so these are gate delays only, not a layout.
+Synthesis only so far: `synth/report.txt` (details in `synth/README.md`, logs in `synth/logs/`). **These numbers were made at RTL commit 8b11e74, before decision 9's decode, control and ALU changes (#51, #52, #53), so they are not the numbers for the chip whose zexdoc result is quoted above.** They will be regenerated on the same RTL as the layout run (#54). Yosys maps to the open sky130_fd_sc_hd cells at the typical corner; OpenSTA times the result with **ideal wires and clock**, so these are gate delays only, not a layout.
 
 | Block | Cells | Flops | Area (µm²) | Worst path (ns) |
 |---|---|---|---|---|
@@ -95,7 +96,8 @@ This section is not complete until release; it lists what the issue history alre
 - C7 (bus conflict positive case) tests are in progress (#85); the zexdoc, prelim and demo logs show `bus_conflict=0`.
 - The 9 decision-9 groups on the reference model (#74).
 - Undocumented opcodes outside the 152 are not specified and not tested. Block I/O flags that neither Zilog nor Mostek define are not compared.
-- The spec still carries the header "v1 candidate"; check it before relying on "signed off" for anything other than decision 9.
+- The spec still carries the header "v1 candidate". Only decision 9 is signed off; decisions 6, 7 and 8 are awaiting Sai, and the spec lists more open items (mode-0 INTA length, DD CB operand read, where lengthened-cycle T states fall, cycle types for `LD (IX+d),n` and CPI/CPD, per-iteration block flags, F[5:3]).
+- The synthesis table predates decision 9's RTL changes (see Size and speed).
 
 ## Credits
 `zexdoc` and `prelim` are by Frank D. Cringle (1994, GPL-2.0-or-later), fetched from github.com/agn453/ZEXALL and github.com/begoon/yaze at pinned commits; they are not in this repo. The spec follows the *Z80-CPU Technical Manual* (Zilog, 1977) and the *Z80 Assembly Language Programming Manual* (1978); flag details and cycle types come from Mostek's MK78515 (1978) and MK3880 (1977) manuals, as spec §10 lists page by page.
