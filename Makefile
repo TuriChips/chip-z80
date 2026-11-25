@@ -13,7 +13,7 @@ endif
 export TOP
 include $(TC)/chip.mk
 
-# Long acceptance tests only (zexdoc); build/test/synth already run in PR CI. Calls make acceptance; skips cleanly until sw/exerciser/run_rtl.py exists.
+# Nightly: full C8 random run on the RTL only (make c8-rtl SEEDS=64 INSTR=1000 C8_COVER=1) via scripts/nightly.sh. zexdoc is not here: it runs from zexdoc.yml (dispatch only).
 .PHONY: nightly
 nightly:
 	@scripts/nightly.sh
