@@ -59,7 +59,7 @@ Until then `DUT=rtl RTL_TRACE_CMD=...` can wrap any testbench that dumps the for
 - **Trial run**: each new instruction runs on a copy of the CPU first. Kept only if the model doesn't raise, it
   writes only to >= 4000H, SP stays in 4010H..FFF0H, I in 3CH..3FH, and PC lands in code (100H..37FFH, or a RST stub).
   Bytes the run fetched or read are frozen, so the final image replays the same run. When control reaches frozen code
-  in a state where it raises, the run ends (`stop=dead-end`, about 40% of seeds); that is counted, not hidden.
+  in a state where it raises, the run ends (`stop=dead-end`, 39 of 64 seeds (61%) in the full 64x1000 run, 44,744 of 64,000 instructions executed); that is counted, not hidden. `INSTR` is a per-seed target (dead-end seeds stop short, others overshoot by a few), and run.sh prints the executed total.
 - **Layout**: `0000 JP 0100`, RST stubs at 08..38 (`body; EI; RETI`, also mode-0 and mode-1 vectors), NMI handler at
   0066 (`body; RETN`), preamble at 0100 (SP, I, R, IM, every register and flags written before use, §5 decision 1),
   random code from there, IM 2 handler stubs at 3800, vector tables at 3C00..3FFF, data and stack from 4000.
