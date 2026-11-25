@@ -1,0 +1,56 @@
+# Sharded zexdoc on the RTL (spec §9 item 1, chip-z80 #55/#78). One job per long group, short groups batched;
+# a final job merges every shard log into logs/acc-rtl/zexdoc.log (scripts/zexdoc_shard.py merge).
+# Dispatch: gh workflow run zexdoc.yml -f ref=<commit> [-f groups=13,15,26]   (groups blank = all 67)
+# Hosted jobs are capped at 6 h: a group that cannot finish shows up as MISSING in the merged log (never dropped).
+name: zexdoc
+on:
+  workflow_dispatch:
+    inputs:
+      ref: { description: "commit (or branch) under test", required: true }
+      groups: { description: "comma list of groups for a smoke run; blank = all 67", required: false, default: "" }
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs: { matrix: "${{ steps.p.outputs.matrix }}" }
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.ref }}" }
+      - id: p
+        run: echo "matrix=$(python3 scripts/zexdoc_shard.py plan --groups '${{ inputs.groups }}')" >> "$GITHUB_OUTPUT"
+  shard:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355   # GitHub-hosted cap is 6 h
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.ref }}" }
+      - uses: actions/checkout@v4
+        with:
+          repository: TuriChips/toolchain
+          ref: v0.10.2
+          path: .toolchain
+          token: ${{ secrets.TOOLCHAIN_TOKEN || github.token }}
+      - run: sudo apt-get update && sudo apt-get install -y verilator yosys make iverilog python3
+      - run: verilator --version
+      - run: python3 sw/exerciser/run_rtl.py zexdoc "logs/acc-rtl/groups/${{ matrix.id }}.log" --groups ${{ matrix.groups }} --jobs "$(nproc)"
+      - if: always()   # a failing group still uploads its log (flushed per group, so a timeout keeps the finished ones)
+        uses: actions/upload-artifact@v4
+        with: { name: "zexdoc-shard-${{ matrix.id }}", path: logs/acc-rtl/groups/, if-no-files-found: warn }
+  merge:
+    needs: [plan, shard]
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.ref }}" }
+      - uses: actions/download-artifact@v4
+        with: { pattern: "zexdoc-shard-*", path: shards, merge-multiple: true }
+        continue-on-error: true   # all shards missing -> merge reports every group MISSING
+      - run: mkdir -p shards
+      - run: python3 scripts/zexdoc_shard.py merge shards logs/acc-rtl/zexdoc.log --expect '${{ inputs.groups }}' --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: zexdoc-merged, path: logs/acc-rtl/zexdoc.log }
