@@ -1,4 +1,4 @@
-# demo.com on sw/cpm_ref.py --x6 mostek --daa nmos, rtl commit 5cb2d82
+# demo.com on sw/cpm_ref.py --x6 mostek --daa nmos, rtl commit 0eec87f
 TuriChips Z80 demo
 LDIR copied this string.
 IX sum of 10,20..80 = 68
