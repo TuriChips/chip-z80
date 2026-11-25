@@ -1,0 +1,17 @@
+# zexdoc on the RTL: z80_system CPM=1 under Verilator 5.020 2024-01-01 rev (Debian 5.020-1), bench sw/exerciser/z80_acc_tb.sv, runner sw/exerciser/run_rtl.py
+# rtl commit 290bb6f, run 2026-11-24T18:22:34Z
+# zexdoc.com sha256 34923a7ed82285d3038b2d54bd64899e12173eebb61f9d07b4fc72e78af2ae8f (pinned by sw/exerciser/fetch.sh)
+# per-group runs (9 of 67 groups in this log; all 67 count, decision 9 (b)). Groups 6, 28-31, 48, 50, 59, 60 execute undocumented forms and need
+# U1-U3 (chip-z80 #51 ref, #52 Ada SLL, #53 Zura decode); until those merge they are expected to fail, they are NOT skipped.
+# half-clock limit per group 400000000000; line: group | name | result | done,timeout,bus_conflict,half-clocks | wall s | program output
+# groups 58,57,61,62,56: local run (rtl commit 290bb6f, wall s measured on the shared box). Groups 4,10,11,12: GitHub Actions sharded run 45534465163 (rtl commit 59dc956, shards g04, batch1, g12; same runner, wall s on a CI runner). Half-clock counts of 58,57,61,62,56 are identical in both runs.
+4 | aluop a,nn.................... | OK | 1,0,0,1149384958 | 507 | Z80 instruction exerciser  aluop a,nn....................  OK  Tests complete
+10 | cpd<r>........................ | OK | 1,0,0,504370972 | 254 | Z80 instruction exerciser  cpd<r>........................  OK  Tests complete
+11 | cpi<r>........................ | OK | 1,0,0,505102738 | 255 | Z80 instruction exerciser  cpi<r>........................  OK  Tests complete
+12 | <daa,cpl,scf,ccf>............. | OK | 1,0,0,2217922824 | 984 | Z80 instruction exerciser  <daa,cpl,scf,ccf>.............  OK  Tests complete
+56 | neg........................... | OK | 1,0,0,525435574 | 1681 | Z80 instruction exerciser  neg...........................  OK  Tests complete
+57 | <rrd,rld>..................... | OK | 1,0,0,283066562 | 976 | Z80 instruction exerciser  <rrd,rld>.....................  OK  Tests complete
+58 | <rlca,rrca,rla,rra>........... | OK | 1,0,0,241626710 | 816 | Z80 instruction exerciser  <rlca,rrca,rla,rra>...........  OK  Tests complete
+61 | <set,res> n,<bcdehl(hl)a>..... | OK | 1,0,0,367196162 | 1297 | Z80 instruction exerciser  <set,res> n,<bcdehl(hl)a>.....  OK  Tests complete
+62 | <set,res> n,(<ix,iy>+1)....... | OK | 1,0,0,17140130 | 43 | Z80 instruction exerciser  <set,res> n,(<ix,iy>+1).......  OK  Tests complete
+# SUMMARY 9/9 OK; not OK: none; of those in decision 9: []
