@@ -1,0 +1,10 @@
+make[1]: Entering directory '/home/runner/work/chip-z80/chip-z80'
+PASS ref-selftest
+PASS pins-selftest
+PASS bus-xcheck
+PASS decode-xcheck
+C8 (DUT=rtl): 64/64 seeds pass, 1000 instructions per seed, 0 fail
+PASS coverage
+PASS random
+c8-rtl: PASS (C8 on the RTL, 64 seeds x 1000 instructions; coverage enforced: 1)
+make[1]: Leaving directory '/home/runner/work/chip-z80/chip-z80'
