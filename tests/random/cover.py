@@ -28,7 +28,7 @@ def main():
     ap.add_argument("files", nargs="+")
     ap.add_argument("--min-hits", type=int, default=1)
     a = ap.parse_args()
-    forms, stim, instr, halves, stops, profiles = {}, {}, 0, 0, {}, {}
+    forms, stim, instr, halves, stops, profiles, u1 = {}, {}, 0, 0, {}, {}, {}
     for p in a.files:
         d = json.load(open(p))
         instr += d["instr"]
@@ -37,6 +37,8 @@ def main():
         profiles[d["profile"]] = profiles.get(d["profile"], 0) + 1
         for k, v in d["forms"].items():
             forms[k] = forms.get(k, 0) + v
+        for k, v in d.get("u1_reads", {}).items():
+            u1[k] = u1.get(k, 0) + v
         for k, v in d["stim"].items():
             stim[k] = stim.get(k, 0) + v
     print("seeds %d, instructions %d, half T states %d" % (len(a.files), instr, halves))
@@ -68,6 +70,12 @@ def main():
     print("\nform  count   (all allowed forms)")
     for k in allowed:
         print("%-12s %d" % (k, forms.get(k, 0)))
+    u1_all = ["%s/%02X" % (p, o) for p in ("DD", "FD") for o in gen.U1_READS]
+    u1_low = [k for k in u1_all if u1.get(k, 0) < a.min_hits]
+    print("\nC1b U1 half reads run with IXH/IXL (IYH/IYL) != H/L (spec §7 C1b), %d forms, %d hit, min %d executions:" % (
+        len(u1_all), len(u1_all) - len(u1_low), min(u1.get(k, 0) for k in u1_all)))
+    for k in u1_all:
+        print("  %-8s %d" % (k, u1.get(k, 0)))
     if low:
         print("\nFAIL: %d form(s) below %d hits: %s" % (len(low), a.min_hits, " ".join(low)))
     if miss_k:
@@ -75,9 +83,11 @@ def main():
     bad = [k for k in stops if k.startswith("model-raised")]
     if bad:
         print("FAIL: %d run(s) ended with the model raising Undocumented/Unspecified: a generator bug, the trial run should have rejected it" % stops[bad[0]])
-    if low or miss_k or bad:
+    if u1_low:
+        print("FAIL: %d of %d U1 half-read form(s) never run with IX/IY != HL: %s" % (len(u1_low), len(u1_all), " ".join(u1_low)))
+    if low or miss_k or bad or u1_low:
         return 1
-    print("\nPASS coverage: every allowed form executed >= %d times, every stimulus kind hit" % a.min_hits)
+    print("\nPASS coverage: every allowed form executed >= %d times, every stimulus kind hit, all %d U1 half reads run with IX/IY != HL" % (a.min_hits, len(u1_all)))
     return 0
 
 

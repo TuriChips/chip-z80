@@ -60,6 +60,10 @@ def forms_allowed():
 FORMS, ALL_FORMS = forms_allowed()
 
 
+# DD/FD 44 45 4C 4D 54 55 5C 5D 64 65 6C 6D 7C 7D: LD r,IXH/IXL and LD IXH/IXL,IXH/IXL (spec §6.0a U1, §7 C1b)
+U1_READS = [o for o in range(0x40, 0x80) if (o & 7) in (4, 5) and (o >> 3) & 7 != 6]
+
+
 def form_key(ev):
     """Form of an executed instruction from its recorded events (same keys as census())."""
     ocf = [e for e in ev if e[0] == "OCF"]
@@ -162,6 +166,8 @@ class Gen:
         self.frozen = set()               # addresses fetched or read: never rewritten
         self.starts = []
         self.hits = {}                    # executed form -> count
+        self.u1 = {}                      # C1b U1 half-read form -> count run with the selected IXH/IXL (IYH/IYL) != H/L (#86)
+        self.pre = None                   # (ix, iy, h, l) before the instruction about to run
         self.n = 0
         self.rej = 0
         self.fallback = 0
@@ -280,6 +286,7 @@ class Gen:
         return True, n
 
     def ensure(self, cpu):
+        self.pre = (cpu.ix, cpu.iy, cpu.reg[4], cpu.reg[5])
         pc = cpu.pc
         if pc < self.entry_end and pc >= 0x100 or pc < 0x100 or pc >= CODE_END:
             return True                      # fixed handler code, safe by construction
@@ -334,6 +341,14 @@ class Gen:
             f = form_key(ev)
             self.hits[f] = self.hits.get(f, 0) + 1
             self.n += 1
+            if f[0] in ("DD", "FD") and len(f) == 2 and f[1] in U1_READS and self.pre is not None:
+                ix, iy, h, l = self.pre            # spec §7 C1b: the read must be run with IX/IY different from HL
+                v = ix if f[0] == "DD" else iy
+                hi = (f[1] & 7) == 4
+                if ((v >> 8) != h) if hi else ((v & 255) != l):
+                    k = "/".join(str(x) if not isinstance(x, int) else "%02X" % x for x in f)
+                    self.u1[k] = self.u1.get(k, 0) + 1
+        self.pre = None
 
     def write_hex(self, path):
         with open(path, "w") as f:
@@ -365,7 +380,7 @@ def main():
     case = sim.write_vectors(a.out + ".vec", os.path.basename(a.out), bytes(g.mem[:DATA]) + g.init_data)
     open(a.out + ".case", "w").write(case + "\n")
     cov = dict(seed=a.seed, profile=g.prof["name"], instr=g.n, halves=sim.h, stop=sim.stop_reason,
-               rejected=g.rej, fallback_nops=g.fallback, stim=sim.cov,
+               rejected=g.rej, u1_reads=g.u1, fallback_nops=g.fallback, stim=sim.cov,
                forms={"/".join(str(x) if not isinstance(x, int) else "%02X" % x for x in k): v for k, v in g.hits.items()})
     with open(a.out + ".cov.json", "w") as f:
         json.dump(cov, f, indent=1, sort_keys=True)
