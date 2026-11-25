@@ -125,3 +125,17 @@ IFF1, IFF2, IM, halted and P/V after each step and what the INT/NMI samples saw 
 4. **§4.3 `d_oe` column** is headed "(out)": taken as 0 for IN, 1 from T1L for OUT.
 5. **EI delay (§8.1 vs §8.4 item 5)** is Beru's point 1; settled in spec v1 (end of EI blocked, end of the next instruction allowed): C4-01/02 test exactly that.
 6. **Uninitialised A.** §5 doesn't reset A, so a test that shows A on the pins must load it first (C4-24 did not at first and the RTL's power-up A showed through: test bug, fixed).
+
+## C7: no X/Z on driven pins, no bus conflict, with the positive case (spec §7 C7; chip-z80#85)
+The §4 harness (`tb/z80_bus`) uses its own stand-in system, so `bus_conflict` of the real `rtl/control/z80_system.v` is tested by a separate bench, `tb/z80_c7/` (`tb/z80_c7/run.sh`, program `tests/z80_c7/prog.hex`). No RTL change: the stimulus is a `force` of `mreq_n`/`rd_n` on the system, from the bench.
+
+| Behaviour | Test | Evidence | Status |
+|---|---|---|---|
+| Positive case: `bus_conflict` goes 1 when the system drives the data bus in a half where `d_oe` = 1 (read strobe forced in a write half) | `tb/z80_c7` phase P | `logs/z80-bus-c7-rtl.log` (PASS) | run, PASS on RTL |
+| Sticky until reset: stays 1 for 40 clocks after the stimulus is gone, cleared only by `reset_n` = 0 | phase P | same | run, PASS |
+| The test detects a dead detector: with the line `if (d_oe && sys_drive) bus_conflict <= 1` removed (private copy), C7 FAILs | `run.sh mutant` | `logs/z80-bus-c7-mutant.log` (FAIL, as intended) | run |
+| Negative, per §6.1 cycle type M1, MR, MW, PR, PW, INTA: `bus_conflict` = 0 in every half of a 400-half program (EI, LD, LD (nn),A, LD A,(nn), OUT, IN, INT -> INTA, RST 38H); the bench counts the halves of each type seen (log line "cycle halves seen") | phase N | `logs/z80-bus-c7-rtl.log` | run, PASS |
+| Negative, all 74 §4 cases and the C8 / zexdoc runs: end-of-run `bus_conflict=0` | C2..C6 cases; `logs/acc-rtl/zexdoc-baseline-59dc956.log`, `logs/random-c8-rtl.log` | those logs | the 74 cases use the stand-in system, so they do not drive the real detector; the zexdoc and C8 runs report it |
+| No X/Z on driven pins (`a`, `d_out`, `d_oe`, strobes, `bus_oe`, `bus_conflict`) | phase N checks every half after reset; `tb/z80_bus` fails on X/Z on any compared pin in every half of the 74 cases | `logs/z80-bus-c7-rtl.log`, `logs/z80-bus-c4-rtl.log` | run, PASS |
+
+C7 is covered. Limit: the positive stimulus forces the system's strobe view; the CPU never overlaps `d_oe` and a read strobe by itself, so the negative cases show only that it doesn't.

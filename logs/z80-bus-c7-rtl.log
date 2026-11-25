@@ -1,0 +1,10 @@
+# C7 (spec §7), 2026-11-25T06:42:18Z, Verilator 5.020 2024-01-01 rev (Debian 5.020-1), repo HEAD 963359b + this branch (tb/z80_c7)
+# tb/z80_c7/run.sh   (RTL: rtl/control/z80_system.v unchanged)
+negative phase: 400 halves, bus_conflict=0; cycle halves seen M1=108 MR=40 MW=8 PR=5 PW=5 INTA=3; X/Z halves=0
+positive phase: d_oe=1 at clock 45, bus_conflict=0 before the stimulus
+bus_conflict=1 one clock after the forced read strobe in a write half
+sticky: bus_conflict=1 40 clocks after the stimulus ended
+cleared by reset_n=0
+PASS C7 (negative + positive)
+- tb/z80_c7/tb.sv:69: Verilog $finish
+rc=0
