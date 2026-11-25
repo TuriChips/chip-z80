@@ -10,7 +10,7 @@
 # DUT=ref (default, until RTL exists): the DUT trace is the reference model replaying the image and stimulus alone.
 # DUT=rtl RTL_TRACE_CMD='scripts/rtl_trace.sh': the one-line switch. The command gets HEX STIM OUT.pins and must
 #   write the .pins format (tests/random/compare.py documents it).
-# Knobs: SEEDS (64) INSTR (1000 instructions per seed) JOBS (4) FIRST (first seed, 1).
+# Knobs: SEEDS (64) INSTR (1000: per-seed target; dead-end seeds stop early, others may overshoot slightly) JOBS (4) FIRST (first seed, 1).
 set -u
 cd "$(git rev-parse --show-toplevel)"
 run="${RUN_DIR:-logs/$(date -u +%Y%m%dT%H%M%SZ)}"; mkdir -p "$run"
@@ -38,7 +38,9 @@ out="build/c8"; rm -rf "$out"; mkdir -p "$out"
 seq "$FIRST" $((FIRST + SEEDS - 1)) | xargs -P "$JOBS" -I{} tests/random/seed.sh {} "$out" "$INSTR" >"$run/random-c8-seeds.unsorted" 2>&1
 sort -k3,3n -t' ' "$run/random-c8-seeds.unsorted" >"$run/random-c8.log"; rm -f "$run/random-c8-seeds.unsorted"
 nf=$(grep -c '^FAIL' "$run/random-c8.log"); np=$(grep -c '^PASS' "$run/random-c8.log")
-echo "C8 (DUT=$DUT): $np/$SEEDS seeds pass, $INSTR instructions per seed, $nf fail"
+ninstr=$(sed -n 's/^[A-Z]* seed [0-9]*: profile [a-z0-9_-]*: \([0-9]*\) instructions.*/\1/p' "$run/random-c8.log" | awk '{s+=$1} END{print s+0}')
+ndead=$(grep -c 'stop=dead-end' "$run/random-c8.log")
+echo "C8 (DUT=$DUT): $np/$SEEDS seeds pass, $INSTR instructions per seed is a target, not a count: $ninstr executed in total (nominal $((SEEDS * INSTR))), $ndead seeds ended early (stop=dead-end), $nf fail"
 [ "$nf" -eq 0 ] && [ "$np" -eq "$SEEDS" ] && echo "PASS c8" >>"$run/random-c8.log" || { echo "FAIL c8 ($run/random-c8.log)"; ok=1; }
 step coverage "$run/random-c8-coverage.log" py tests/random/cover.py "$out"/s*.cov.json
 [ "$ok" -eq 0 ] && echo "PASS random" || echo "FAIL random"
