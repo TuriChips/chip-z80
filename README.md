@@ -109,7 +109,7 @@ Open-source flow: Yosys maps to sky130_fd_sc_hd, OpenROAD places, builds the clo
 - **Synthesis rows on the current RTL** (#109): pending, see *Size and speed*.
 - **zexdoc groups 5 and 6 on the reference model** timed out (see Results). The RTL passes all 67 groups.
 - **Undocumented opcodes outside the 152 are not specified and not tested.** Block I/O flags that neither Zilog nor Mostek define are not compared.
-- **Spec section 9 items 3 and 4:** a cross-check against SingleStepTests' `z80` per-instruction vectors, and the examples from the Zilog manuals (Technical Manual §10, Programming Manual). Neither has a log in this repo. The page citations in `ref/test_refz80.py` and `tests/z80_bus/cases.py` are directed tests, not the manuals' examples.
+- **Spec section 9 items 3 and 4:** a cross-check against SingleStepTests' `z80` per-instruction vectors, and the examples from the Zilog manuals (Technical Manual §10, Programming Manual). Neither has a log in this repo. The page citations in `ref/test_refz80.py` and `tests/z80_bus/cases.py` are directed tests, not the manuals' examples. Not run; whether to add them is a scope choice for Sai (#111).
 - **zexall is not run:** it compares the X/Y flag bits, which we define differently from real hardware (spec §1, §6.3).
 - Spec v1 is signed off (PR #100): decisions 6, 7 and 8 and items A1 to A6 are rulings in spec §3.
 - Simulation only; nothing was manufactured. The release sign-off is Sai's.

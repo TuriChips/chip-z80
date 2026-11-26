@@ -76,7 +76,7 @@ It is about 0.38 mm on each side. The original used a 4 µm process with about 8
 
 ## What we did not do
 
-We only simulated the chip; nothing was manufactured. Our layout is a first draft: one of its timing checks, about signals changing too soon after a clock tick, fails by 0.7 billionths of a second, so we make no claim about how fast it can run ([proof](synth/report.txt)). We did not do final power or factory rule checks. The size and speed numbers for each part of the chip were made before our last design changes and are being redone. We did not run the stricter version of the exerciser, because it checks two flag bits that real chips fill in differently from our definition.
+We only simulated the chip; nothing was manufactured. Our layout is a first draft: one of its timing checks, about signals changing too soon after a clock tick, fails by 0.7 billionths of a second, so we make no claim about how fast it can run ([proof](synth/report.txt)). We did not do final power or factory rule checks. The size and speed numbers for each part of the chip were made before our last design changes and are being redone. We did not run the stricter version of the exerciser, because it checks two flag bits that real chips fill in differently from our definition. Two extra checks in our plan were not run either: comparing against another group's published per-instruction test vectors, and trying the worked examples from the Zilog manuals. Whether to add them is Sai's call.
 
 ## Next up
 
