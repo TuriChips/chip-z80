@@ -1,6 +1,6 @@
 # Zilog Z80 (1976), rebuilt by AI agents
 
-**Status: release candidate. Not released yet.** Every number below links to a committed log. Three things are still open and marked **[PENDING]**: the release zexdoc run (#55), the sky130 layout (#54), and the C8 random run on the RTL at full size (#86). The write-up was drafted by Homer; the checks were done and reviewed by the other agents (see the PR history).
+**Status: ready for release sign-off.** Not released yet: the sign-off is Sai's. Every number below links to a committed log, and every item that was pending has its result below. Two things are still open and are said plainly: the synthesis rows in *Size and speed* predate decision 9 (Leo's #109), and the layout does not meet hold timing. The write-up was drafted by Homer; the checks were done and reviewed by the other agents (see the PR history).
 
 [TuriChips](https://turichips.github.io) is the world's first chip lab run by AI. This is chip #4 on the roadmap (draft: 4004, 8080, 6502, Z80): the Zilog Z80, the 8-bit CPU that powered the ZX Spectrum, the Amstrad CPC, the MSX machines, the Sega Master System and thousands of CP/M computers. It is the 8080's successor with an alternate register set, IX/IY indexing, block moves, bit instructions, three interrupt modes and built-in DRAM refresh. Simulation only; nothing was manufactured.
 
@@ -48,15 +48,17 @@ Logs are in `logs/`. Each log starts with the commit it ran on.
 | Check | Result | Log |
 |-------|--------|-----|
 | **Acceptance test 1: zexdoc** (Cringle's Z80 instruction exerciser), all 67 groups on the RTL, run sharded on GitHub Actions at commit 59dc956 | 67/67 OK, 0 timeouts, 0 bus conflicts, including the 9 decision-9 groups | `logs/acc-rtl/zexdoc-baseline-59dc956.log` |
-| zexdoc, release run at commit 963359b | **[PENDING]** run 45556888466 started; no RTL changed since the baseline, so 67/67 is expected, but it is not counted until its log is committed | `logs/acc-rtl/zexdoc-*.log` (to come, #55) |
+| **zexdoc, release run** at RTL commit 963359b, sharded on GitHub Actions (run 45556888466, #55) | 67/67 OK (`# SUMMARY 67/67 OK; not OK: none`), 0 timeouts, 0 bus conflicts in every group, 9 decision-9 groups included | `logs/acc-rtl/zexdoc.log` |
 | `prelim` (Cringle's quick pre-check) on the RTL | "Preliminary tests complete", no timeout, no bus conflict | `logs/acc-rtl/prelim.log` |
-| prelim and zexdoc on our Python reference model (`sw/cpm_ref.py`, Mostek flag policy, decision-9 groups not yet; #74) | prelim completes; per-group results are in the summary | `logs/acc-ref/prelim-mostek-nmos.log`, `logs/acc-ref/zexdoc-mostek-nmos-summary.log` |
+| prelim and zexdoc on our Python reference model (`sw/cpm_ref.py`, Mostek flag policy, `--daa nmos`), all 67 groups (#74) | prelim completes. zexdoc: 65 of 67 groups OK, 2 TIMEOUT (groups 5 and 6, 1,500 s limit); **8 of the 9 decision-9 groups are OK (28-31, 48, 50, 59, 60) and group 6 (`aluop a,<ixh,ixl,iyh,iyl>`) is a TIMEOUT** at 182,091,776 instructions in the 1,500 s limit, while another heavy job shared the 2 CPUs (group 5, a documented group, is the other timeout: 884M instructions). A timeout is not a pass and is not counted as one. The RTL passes group 6 (see the release run above). | `logs/acc-ref/prelim-mostek-nmos.log`, `logs/acc-ref/zexdoc-mostek-nmos-summary.log` |
 | **Demo:** `demo.com`, our own CP/M program (LDIR, IX indexing, DJNZ) on the RTL, console output compared with the reference model | `RESULT PASS`, byte-identical | `logs/demo-rtl.log`, `logs/demo-ref.log` |
+| **C7, bus conflict:** a negative phase (400 halves, `bus_conflict=0`) and a positive phase for each of the memory-read, I/O-read and interrupt-acknowledge sources (the conflict flag rises one clock after a forced strobe, stays set, and is cleared by reset). A mutant DUT fails the same test (41 errors), so the test can fail | `PASS C7` on the RTL | `logs/z80-bus-c7-rtl.log`, `logs/z80-bus-c7-mutant.log` |
 | **Bus-level tests C2 to C6:** every pin compared in every half T state for basic cycles, WAIT, interrupts (IFF1/2, EI delay, NMI, modes 0/1/2, HALT exit), bus request, reset | 74 cases pass on the RTL | `logs/z80-bus-c4-rtl.log` |
 | The same 74 expected traces agree with the reference model | 0 disagreements | `logs/z80-bus-crosscheck.log` |
 | The test harness itself: a replay DUT passes, a deliberately flipped pin fails | pass | `logs/z80-bus-harness-selftest.log` |
-| **C8 random programs vs the reference model, DUT = RTL**, 8 seeds x 300 instructions | 8/8 seeds, 0 differences. The coverage check fails at this size (every form must be hit; it needs the 64-seed run), so the target reports `FAIL random` | `logs/random-c8-rtl.log` |
-| C8 at full size (64 seeds x 1,000 instructions) | **[PENDING]** on the RTL. On the reference model alone (model against itself, tests the generator and the checker): 64 seeds pass, and every allowed form is executed at least once | `logs/random-c8-refvsref.log`, `logs/random-c8-coverage.log` |
+| **C8 random programs vs the reference model, DUT = RTL**, 8 seeds x 300 instructions | 8/8 seeds, 0 differences. The coverage check fails at this size (every form must be hit), so the target reports `FAIL random`; the full run below passes it | `logs/random-c8-rtl.log` |
+| **C8 at full size on the RTL** (64 seeds x 1,000 instructions, flag policy Mostek, all 850 forms allowed, #86/#101) | 64/64 seeds pass, 0 pin differences. Coverage: `PASS coverage: every allowed form executed >= 1 times, every stimulus kind hit, all 28 U1 half reads run with IX/IY != HL`. The 9 decision-6 forms ran (e.g. `ED B0` 7,378 times, `3F` 26 times), so CPI/CPD's fourth cycle and LDI/LDD's write are pin-checked | `logs/c8-rtl-64x1000-mostek/random-c8.log`, `logs/c8-rtl-64x1000-mostek/random-c8-coverage.log` |
+| C8 on the reference model alone (model against itself; tests the generator and the checker) | 64 seeds pass, every allowed form hit | `logs/random-c8-refvsref.log`, `logs/random-c8-coverage.log` |
 | Reference model self-tests | 27 tests pass | `logs/ref-selftest.log` |
 | Decoder table against the spec: 850 forms (698 documented + 152 decision 9), generated file matches the script's output | cycle plan vs spec §6.1: 0 mismatches over 850 forms; T states vs the reference model: 0 mismatches over the 698 documented forms (the model does not have the 152 yet) | `logs/z80_decode-check.log` |
 
@@ -64,19 +66,27 @@ Logs are in `logs/`. Each log starts with the commit it ran on.
 On our 2-CPU machine the RTL runs about 0.3 million half-clocks per second, so group 5 alone would be about 40 billion half-clocks. We sharded the run: each long group is its own job on a GitHub-hosted runner, and a merge step joins the logs. The first full run took 3 h 08 min wall, set by group 5; group 6 took 1 h 37 min (`logs/acc-rtl/zexdoc-sharded-runtimes.md`).
 
 ## Size and speed
-Synthesis only so far: `synth/report.txt` (details in `synth/README.md`, logs in `synth/logs/`). **These numbers were made at RTL commit 8b11e74, before decision 9's decode, control and ALU changes (#51, #52, #53), so they are not the numbers for the chip whose zexdoc result is quoted above.** They will be regenerated on the same RTL as the layout run (#54). Yosys maps to the open sky130_fd_sc_hd cells at the typical corner; OpenSTA times the result with **ideal wires and clock**, so these are gate delays only, not a layout.
+Two sets of numbers, from two different RTL commits. Read the caveat before quoting either.
 
-| Block | Cells | Flops | Area (µm²) | Worst path (ns) |
-|---|---|---|---|---|
-| `z80_alu` | 693 | 35 | 4,858 | 4.44 |
-| `z80_regs` | 2,336 | 193 | 16,555 | 11.96 |
-| `z80_timing` | 166 | 19 | 1,247 | 3.80 |
-| `z80_control` (with decode) | 1,946 | 42 | 11,107 | 8.70 |
-| **Full chip `z80`** | **5,375** | **289** | **34,486** | **14.68** |
+### Layout (sky130, OpenROAD): `synth/report.txt`, section "sky130 layout"
+Open-source flow: Yosys maps to sky130_fd_sc_hd, OpenROAD places, builds the clock tree and routes, KLayout draws the picture. Typical corner (tt, 1.8 V, 25 C), parasitics estimated after routing, propagated clock. Logs in `synth/logs/layout.*`.
 
-The full chip has no latches and passes Yosys `check -assert`. The longest path is 14.68 ns, which is 14.68 ns of gate delay at an ideal clock with no clock tree and no wires; it is not a real top speed and no frequency is claimed.
+| Quantity | Result |
+|---|---|
+| Die | 381.405 x 381.405 µm = **0.1455 mm²**, 38% core utilisation |
+| Cells | 5,375 mapped cells, 289 flops, plus 1,794 tap cells and repair/clock-tree buffers |
+| Clock tree | 1 clock, 289 sinks, skew 0.19 ns |
+| Routing | 316,715 µm of wire, 53,636 vias, metal 1 to 5 |
+| Router DRC | **0 violations** (`synth/logs/layout.route_drc.rpt` empty). This is the detailed router's check only; no signoff DRC |
+| Setup | worst slack +87.782 ns at a 100 ns clock, so the longest register path is about 12.2 ns |
+| **Hold** | **-0.691 ns, not repaired.** The flow does no hold repair, so **this layout does not meet hold timing as built, and we make no speed claim** (the 12.2 ns is a setup number only) |
 
-**[PENDING, #54] sky130 place-and-route:** die size, routed wire length, router DRC count and a layout image will go here, with the picture `synth/sky130/layout.png`. Until then there are no layout numbers and none are claimed.
+![Our Z80 layout](synth/layout/layout.png)
+
+**What was needed to route it.** The first runs (25% utilisation, placement density 0.6) never converged in the detail router: 5.7k to 35k violations after 1.5 h, because the Z80 is congested (the 4.8k µm² ALU alone routed clean in 9 min). Placement density 0.45 with plain `repair_design` routes with 0 violations. Densities 0.3 and 0.4 crashed global routing with `repair_design -max_wire_length 300`. Caveats from the report: input/output delays are 0 (the spec has no electrical timing), tt corner only, no antenna check, no LVS, no signoff DRC.
+
+### Synthesis per block: **[PENDING, #109]**
+`synth/report.txt` has a per-block table (full chip: 5,375 cells, 289 flops, 34,486 µm²). It was made at RTL commit 8b11e74, **before decision 9's decode, control and ALU changes** (#51, #52, #53), so it is not the chip whose zexdoc result is quoted above. The layout run's cell count matches that older table exactly, which is why Leo's issue #109 regenerates the rows on the current RTL and pins the RTL commit of the layout. **The block table is left out of this README until #109 lands; no per-block number is claimed here.**
 
 ## What we learned
 - **The 8080 and 6502 lessons paid off.** `docs/blocks.md` lists them up front (every mux select has a code table, separate write enables for A and F, a same-cycle 16-bit load path, a computed byte that is written to memory goes through TMP, never straight from the ALU result). The list is there so the same mistakes were not repeated; we have not counted how many were avoided.
@@ -85,19 +95,23 @@ The full chip has no latches and passes Yosys `check -assert`. The longest path 
 - **Undocumented forms matter for acceptance.** zexdoc forced decision 9: a chip that follows only the manual cannot pass the standard Z80 exerciser.
 
 ## What went wrong along the way
-This section is not complete until release; it lists what the issue history already shows.
-- The spec had gaps found only when the expected bus traces were written: the BUSRQ release rule, reset boundary halves (#11), and two pin cases the random test could not decide, `halt_n` at HALT's own end and `d_oe` in the extra T state after a write (#18, #31).
-- The 8-seed C8 run on the RTL reports `FAIL random` because coverage needs the full run. The target is designed that way (`C8_COVER`); a visitor running it at its default size will see the line.
-- A C8 coverage hole was found by Beru late: the 28 half-register reads with IX/IY different from HL are not checked by counting alone (#86, open).
+- **The spec had gaps found only when the expected bus traces were written:** the BUSRQ release rule and the reset boundary halves (#11), and two pin cases the random test could not decide, `halt_n` at HALT's own end and `d_oe` in the extra T state after a write (#18). Beru lifted both once they were ruled (#31).
+- **zexdoc forced decision 9.** Our first spec said undocumented opcodes are not tested; zexdoc runs them in 9 of its 67 groups (#14). Sai ruled to specify 152 more forms, and the reference model, the decoder and the ALU each needed work (#51, #52, #53).
+- **Our reference model timed out on groups 5 and 6.** On the reference model, group 6 (`aluop a,<ixh,ixl,iyh,iyl>`) did not finish within its limit (182M instructions in 1,500 s on a loaded machine; #74). The RTL passes both; the model has no completed result for them.
+- **A C8 coverage hole found late.** Beru found that the 28 half-register reads with IX/IY different from HL were not checked by counting alone (#86). The coverage check now requires them, and passes in the full run.
+- **Nine forms were out of the random test** until the flag rulings (decision 6) were signed off; #101 put them back and the full run covers them.
+- **The bus cross-check disagreed with the C4 vectors** until Beru fixed the checker (#70, #108); the tests, not the RTL, were wrong there.
+- **The layout does not close hold timing, and it was hard to route:** see *Size and speed*. The first runs did not converge at all.
+- **The 8-seed C8 run reports `FAIL random`** because coverage needs the full run. The target is designed that way (`C8_COVER`).
 
 ## Not done
-- Layout (#54) and anything beyond it: timing closure, power, clock tree, signoff DRC and LVS.
-- The release zexdoc run and the full-size C8 RTL run (see **[PENDING]** above).
-- C7 (bus conflict positive case) tests are in progress (#85); the zexdoc, prelim and demo logs show `bus_conflict=0`.
-- The 9 decision-9 groups on the reference model (#74).
-- Undocumented opcodes outside the 152 are not specified and not tested. Block I/O flags that neither Zilog nor Mostek define are not compared.
-- Spec v1 is signed off (PR #100): decisions 6, 7 and 8 and the also-open items A1–A6 are rulings in spec §3. The decode-layout log `logs/random-decode-xcheck.log` and the decision-6 forms in C8 are due a refresh (#101).
-- The synthesis table predates decision 9's RTL changes (see Size and speed).
+- **Hold timing is not met** in the layout (-0.691 ns, no repair), and nothing beyond it: no timing closure, power, signoff DRC or LVS, no speed claim.
+- **Synthesis rows on the current RTL** (#109): pending, see *Size and speed*.
+- **zexdoc groups 5 and 6 on the reference model** timed out (see Results). The RTL passes all 67 groups.
+- **Undocumented opcodes outside the 152 are not specified and not tested.** Block I/O flags that neither Zilog nor Mostek define are not compared.
+- **zexall is not run:** it compares the X/Y flag bits, which we define differently from real hardware (spec §1, §6.3).
+- Spec v1 is signed off (PR #100): decisions 6, 7 and 8 and items A1 to A6 are rulings in spec §3.
+- Simulation only; nothing was manufactured. The release sign-off is Sai's.
 
 ## Credits
 `zexdoc` and `prelim` are by Frank D. Cringle (1994, GPL-2.0-or-later), fetched from github.com/agn453/ZEXALL and github.com/begoon/yaze at pinned commits; they are not in this repo. The spec follows the *Z80-CPU Technical Manual* (Zilog, 1977) and the *Z80 Assembly Language Programming Manual* (1978); flag details and cycle types come from Mostek's MK78515 (1978) and MK3880 (1977) manuals, as spec §10 lists page by page.
