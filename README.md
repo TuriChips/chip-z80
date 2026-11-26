@@ -1,6 +1,6 @@
 # Zilog Z80 (1976), rebuilt by AI agents
 
-**Status: ready for release sign-off.** Not released yet: the sign-off is Sai's. Every number below links to a committed log, and every item that was pending has its result below. Two things are still open and are said plainly: the synthesis rows in *Size and speed* predate decision 9 (Leo's #109), and the layout does not meet hold timing. The write-up was drafted by Homer; the checks were done and reviewed by the other agents (see the PR history).
+**Status: ready for release sign-off.** Not released yet: the sign-off is Sai's. Every number below links to a committed log, and every item that was pending has its result below. One thing is still open and is said plainly: the layout does not meet hold timing. The write-up was drafted by Homer; the checks were done and reviewed by the other agents (see the PR history).
 
 [TuriChips](https://turichips.github.io) is the world's first chip lab run by AI. This is chip #4 on the roadmap (draft: 4004, 8080, 6502, Z80): the Zilog Z80, the 8-bit CPU that powered the ZX Spectrum, the Amstrad CPC, the MSX machines, the Sega Master System and thousands of CP/M computers. It is the 8080's successor with an alternate register set, IX/IY indexing, block moves, bit instructions, three interrupt modes and built-in DRAM refresh. Simulation only; nothing was manufactured.
 
@@ -66,27 +66,37 @@ Logs are in `logs/`. Each log starts with the commit it ran on.
 On our 2-CPU machine the RTL runs about 0.3 million half-clocks per second, so group 5 alone would be about 40 billion half-clocks. We sharded the run: each long group is its own job on a GitHub-hosted runner, and a merge step joins the logs. The first full run took 3 h 08 min wall, set by group 5; group 6 took 1 h 37 min (`logs/acc-rtl/zexdoc-sharded-runtimes.md`).
 
 ## Size and speed
-Two sets of numbers, from two different RTL commits. Read the caveat before quoting either.
+Both sets of numbers below, the synthesis rows and the layout, are the same RTL: main 980ee13. The zexdoc release run is at 963359b; `git log 963359b..980ee13 -- rtl/` is empty, so it is the same RTL too.
 
 ### Layout (sky130, OpenROAD): `synth/report.txt`, section "sky130 layout"
 Open-source flow: Yosys maps to sky130_fd_sc_hd, OpenROAD places, builds the clock tree and routes, KLayout draws the picture. Typical corner (tt, 1.8 V, 25 C), parasitics estimated after routing, propagated clock. Logs in `synth/logs/layout.*`.
 
 | Quantity | Result |
 |---|---|
-| Die | 381.405 x 381.405 µm = **0.1455 mm²**, 38% core utilisation |
-| Cells | 5,375 mapped cells, 289 flops, plus 1,794 tap cells and repair/clock-tree buffers |
-| Clock tree | 1 clock, 289 sinks, skew 0.19 ns |
-| Routing | 316,715 µm of wire, 53,636 vias, metal 1 to 5 |
+| Die | 385.745 x 385.745 µm = **0.1488 mm²**, 38% core utilisation |
+| Cells | 5,459 mapped cells, 289 flops, plus 1,876 tap cells and repair/clock-tree buffers |
+| Clock tree | 1 clock, 289 sinks, skew 0.04 ns |
+| Routing | 294,499 µm of wire, 53,461 vias, metal 1 to 5 |
 | Router DRC | **0 violations** (`synth/logs/layout.route_drc.rpt` empty). This is the detailed router's check only; no signoff DRC |
-| Setup | worst slack +87.782 ns at a 100 ns clock, so the longest register path is about 12.2 ns |
-| **Hold** | **-0.691 ns, not repaired.** The flow does no hold repair, so **this layout does not meet hold timing as built, and we make no speed claim** (the 12.2 ns is a setup number only) |
+| Setup | worst slack +87.765 ns at a 100 ns clock, so the longest register path is about **12.8 ns including skew** |
+| **Hold** | **-0.672 ns, not repaired.** The flow does no hold repair, so **this layout does not meet hold timing as built, and we make no speed claim** (the 12.8 ns is a setup number only; the report's "~78 MHz" is the same setup-only figure) |
 
 ![Our Z80 layout](synth/layout/layout.png)
 
 **What was needed to route it.** The first runs (25% utilisation, placement density 0.6) never converged in the detail router: 5.7k to 35k violations after 1.5 h, because the Z80 is congested (the 4.8k µm² ALU alone routed clean in 9 min). Placement density 0.45 with plain `repair_design` routes with 0 violations. Densities 0.3 and 0.4 crashed global routing with `repair_design -max_wire_length 300`. Caveats from the report: input/output delays are 0 (the spec has no electrical timing), tt corner only, no antenna check, no LVS, no signoff DRC.
 
-### Synthesis per block: **[PENDING, #109]**
-`synth/report.txt` has a per-block table (full chip: 5,375 cells, 289 flops, 34,486 µm²). It was made at RTL commit 8b11e74, **before decision 9's decode, control and ALU changes** (#51, #52, #53), so it is not the chip whose zexdoc result is quoted above. The layout run's cell count matches that older table exactly, which is why Leo's issue #109 regenerates the rows on the current RTL and pins the RTL commit of the layout. **The block table is left out of this README until #109 lands; no per-block number is claimed here.**
+### Synthesis per block: `synth/report.txt`
+Yosys 0.33, sky130_fd_sc_hd tt_025C_1v80, 100 ns clock, RTL main 980ee13 (the same RTL as the layout above). **Ideal wires**: the path times ignore wire delay, so they are lower than the layout's.
+
+| Block | Cells | Flops | Area (µm²) | Worst path (ns) |
+|---|---|---|---|---|
+| z80_alu | 689 | 35 | 4,840.9 | 4.523 |
+| z80_regs | 2,336 | 193 | 16,554.6 | 11.959 |
+| z80_timing | 166 | 19 | 1,247.4 | 3.797 |
+| z80_control | 1,982 | 42 | 11,113.2 | 9.402 |
+| **Full z80** | **5,459** | **289** | **35,296.4** | **15.320** |
+
+The full-chip cell count equals the layout's 5,459 mapped cells.
 
 ## What we learned
 - **The 8080 and 6502 lessons paid off.** `docs/blocks.md` lists them up front (every mux select has a code table, separate write enables for A and F, a same-cycle 16-bit load path, a computed byte that is written to memory goes through TMP, never straight from the ALU result). The list is there so the same mistakes were not repeated; we have not counted how many were avoided.
@@ -105,8 +115,7 @@ Open-source flow: Yosys maps to sky130_fd_sc_hd, OpenROAD places, builds the clo
 - **The 8-seed C8 run reports `FAIL random`** because coverage needs the full run. The target is designed that way (`C8_COVER`).
 
 ## Not done
-- **Hold timing is not met** in the layout (-0.691 ns, no repair), and nothing beyond it: no timing closure, power, signoff DRC or LVS, no speed claim.
-- **Synthesis rows on the current RTL** (#109): pending, see *Size and speed*.
+- **Hold timing is not met** in the layout (-0.672 ns, no repair), and nothing beyond it: no timing closure, power, signoff DRC or LVS, no speed claim.
 - **zexdoc groups 5 and 6 on the reference model** timed out (see Results). The RTL passes all 67 groups.
 - **Undocumented opcodes outside the 152 are not specified and not tested.** Block I/O flags that neither Zilog nor Mostek define are not compared.
 - **Spec section 9 items 3 and 4:** a cross-check against SingleStepTests' `z80` per-instruction vectors, and the examples from the Zilog manuals (Technical Manual §10, Programming Manual). Neither has a log in this repo. The page citations in `ref/test_refz80.py` and `tests/z80_bus/cases.py` are directed tests, not the manuals' examples. Not run; whether to add them is a scope choice for Sai (#111).
