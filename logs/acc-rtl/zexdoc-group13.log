@@ -1,8 +1,0 @@
-# zexdoc on the RTL: z80_system CPM=1 under Verilator 5.020 2024-01-01 rev (Debian 5.020-1), bench sw/exerciser/z80_acc_tb.sv, runner sw/exerciser/run_rtl.py
-# rtl commit 0eec87f, run 2026-11-25T00:38:51Z
-# zexdoc.com sha256 34923a7ed82285d3038b2d54bd64899e12173eebb61f9d07b4fc72e78af2ae8f (pinned by sw/exerciser/fetch.sh)
-# per-group runs (1 of 67 groups in this log; all 67 count, decision 9 (b)). Groups 6, 28-31, 48, 50, 59, 60 execute undocumented forms and need
-# U1-U3 (chip-z80 #51 ref, #52 Ada SLL, #53 Zura decode); until those merge they are expected to fail, they are NOT skipped.
-# half-clock limit per group 600000000; line: group | name | result | done,timeout,bus_conflict,half-clocks | wall s | program output
-13 | <inc,dec> a................... | OK | 1,0,0,119784198 | 294 | Z80 instruction exerciser  <inc,dec> a...................  OK  Tests complete
-# SUMMARY 1/1 OK; not OK: none; of those in decision 9: []

@@ -100,9 +100,11 @@ measured: `logs/acc-rtl/prelim.log` 17,484 half-clocks for 898 instructions). Th
 That is why the full run is a nightly/manual job (issue #58 asks Tesla for `make acceptance`), not PR CI.
 
 **Logs.**
-- `logs/acc-rtl/prelim.log`: complete run.
-- `logs/acc-rtl/zexdoc-partial.log`: the short groups only, run to show the runner works end to end. **Not the release evidence.**
-- `logs/acc-rtl/zexdoc.log` (all 67 groups; the final all-OK run is the release evidence): not committed yet, see issue #55.
+- `logs/acc-rtl/prelim.log`: PASS (17,484 half-clocks, `bus_conflict` 0).
+- `logs/acc-rtl/zexdoc.log`: **the release evidence.** All 67 groups, **67/67 OK**, every group `done=1, timeout=0, bus_conflict=0`,
+  RTL commit 963359b, merged from the sharded GitHub Actions run https://github.com/TuriChips/chip-z80/actions/runs/45556888466.
+  Committed unmodified. Its header still says the decision-9 groups "are expected to fail": that text is written by the runner
+  and is out of date, they pass (U1-U3 landed in #52, #53 before the run).
+- `logs/acc-rtl/zexdoc-baseline-59dc956.log`: the earlier run of the same RTL (Tesla, #84); identical results and half-clock counts.
 
-Groups 6, 28-31, 48, 50, 59, 60 need decision 9's U1-U3 forms (chip-z80 #51, #52, #53) and are expected to fail until
-those land. They are run and logged, never skipped.
+Groups 6, 28-31, 48, 50, 59, 60 need decision 9's U1-U3 forms (chip-z80 #51, #52, #53). They are run and logged, never skipped.
