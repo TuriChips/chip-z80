@@ -1,0 +1,132 @@
+heavy: another heavy job is running; waiting for it to finish...
+# cpm_ref: zexdoc.com 8704 bytes, policy x6=mostek daa=nmos lenient-push, limit 1500.0s
+# group | result | instructions | seconds | detail
+ 0 <adc,sbc> hl,<bc,de,hl,sp>.... | TIMEOUT | 0 | 1500 | time limit 1500.0s after 160415744 instructions
+ 1 add hl,<bc,de,hl,sp>.......... | TIMEOUT | 0 | 1500 | time limit 1500.0s after 135888896 instructions
+ 2 add ix,<bc,de,ix,sp>.......... | TIMEOUT | 0 | 1500 | time limit 1500.0s after 133267456 instructions
+ 3 add iy,<bc,de,iy,sp>.......... | OK | 139232068 | 1183 | add iy,<bc,de,iy,sp>..........  OK 
+Tests complete
+ 4 aluop a,nn.................... | OK | 70532173 | 597 | aluop a,nn....................  OK 
+Tests complete
+ 5 aluop a,<b,c,d,e,h,l,(hl),a>.. | TIMEOUT | 0 | 1500 | time limit 1500.0s after 197378048 instructions
+ 6 aluop a,<ixh,ixl,iyh,iyl>..... | TIMEOUT | 0 | 1500 | time limit 1500.0s after 182091776 instructions
+ 7 aluop a,(<ix,iy>+1)........... | TIMEOUT | 0 | 1500 | time limit 1500.0s after 180617216 instructions
+ 8 bit n,(<ix,iy>+1)............. | OK | 4955375 | 38 | bit n,(<ix,iy>+1).............  OK 
+Tests complete
+ 9 bit n,<b,c,d,e,h,l,(hl),a>.... | OK | 158658903 | 1303 | bit n,<b,c,d,e,h,l,(hl),a>....  OK 
+Tests complete
+10 cpd<r>........................ | OK | 31068009 | 248 | cpd<r>........................  OK 
+Tests complete
+11 cpi<r>........................ | OK | 31085432 | 259 | cpi<r>........................  OK 
+Tests complete
+12 <daa,cpl,scf,ccf>............. | OK | 136056625 | 955 | <daa,cpl,scf,ccf>.............  OK 
+Tests complete
+13 <inc,dec> a................... | OK | 7352142 | 62 | <inc,dec> a...................  OK 
+Tests complete
+14 <inc,dec> b................... | OK | 7352142 | 55 | <inc,dec> b...................  OK 
+Tests complete
+15 <inc,dec> bc.................. | OK | 3793623 | 14 | <inc,dec> bc..................  OK 
+Tests complete
+16 <inc,dec> c................... | OK | 7352142 | 27 | <inc,dec> c...................  OK 
+Tests complete
+17 <inc,dec> d................... | OK | 7352142 | 14 | <inc,dec> d...................  OK 
+Tests complete
+18 <inc,dec> de.................. | OK | 3793623 | 5 | <inc,dec> de..................  OK 
+Tests complete
+19 <inc,dec> e................... | OK | 7352142 | 10 | <inc,dec> e...................  OK 
+Tests complete
+20 <inc,dec> h................... | OK | 7352142 | 11 | <inc,dec> h...................  OK 
+Tests complete
+21 <inc,dec> hl.................. | OK | 3793623 | 5 | <inc,dec> hl..................  OK 
+Tests complete
+22 <inc,dec> ix.................. | OK | 3795415 | 5 | <inc,dec> ix..................  OK 
+Tests complete
+23 <inc,dec> iy.................. | OK | 3795415 | 5 | <inc,dec> iy..................  OK 
+Tests complete
+24 <inc,dec> l................... | OK | 7352142 | 10 | <inc,dec> l...................  OK 
+Tests complete
+25 <inc,dec> (hl)................ | OK | 7352142 | 25 | <inc,dec> (hl)................  OK 
+Tests complete
+26 <inc,dec> sp.................. | OK | 3793623 | 14 | <inc,dec> sp..................  OK 
+Tests complete
+27 <inc,dec> (<ix,iy>+1)......... | OK | 15411538 | 34 | <inc,dec> (<ix,iy>+1).........  OK 
+Tests complete
+28 <inc,dec> ixh................. | OK | 7355726 | 10 | <inc,dec> ixh.................  OK 
+Tests complete
+29 <inc,dec> ixl................. | OK | 7355726 | 10 | <inc,dec> ixl.................  OK 
+Tests complete
+30 <inc,dec> iyh................. | OK | 7355726 | 10 | <inc,dec> iyh.................  OK 
+Tests complete
+31 <inc,dec> iyl................. | OK | 7355726 | 10 | <inc,dec> iyl.................  OK 
+Tests complete
+32 ld <bc,de>,(nnnn)............. | OK | 73072 | 0 | ld <bc,de>,(nnnn).............  OK 
+Tests complete
+33 ld hl,(nnnn).................. | OK | 36244 | 0 | ld hl,(nnnn)..................  OK 
+Tests complete
+34 ld sp,(nnnn).................. | OK | 36227 | 0 | ld sp,(nnnn)..................  OK 
+Tests complete
+35 ld <ix,iy>,(nnnn)............. | OK | 73140 | 0 | ld <ix,iy>,(nnnn).............  OK 
+Tests complete
+36 ld (nnnn),<bc,de>............. | OK | 167690 | 0 | ld (nnnn),<bc,de>.............  OK 
+Tests complete
+37 ld (nnnn),hl.................. | OK | 36244 | 0 | ld (nnnn),hl..................  OK 
+Tests complete
+38 ld (nnnn),sp.................. | OK | 36227 | 0 | ld (nnnn),sp..................  OK 
+Tests complete
+39 ld (nnnn),<ix,iy>............. | OK | 167822 | 0 | ld (nnnn),<ix,iy>.............  OK 
+Tests complete
+40 ld <bc,de,hl,sp>,nnnn......... | OK | 144796 | 0 | ld <bc,de,hl,sp>,nnnn.........  OK 
+Tests complete
+41 ld <ix,iy>,nnnn............... | OK | 73140 | 0 | ld <ix,iy>,nnnn...............  OK 
+Tests complete
+42 ld a,<(bc),(de)>.............. | OK | 106315 | 0 | ld a,<(bc),(de)>..............  OK 
+Tests complete
+43 ld <b,c,d,e,h,l,(hl),a>,nn.... | OK | 139115 | 0 | ld <b,c,d,e,h,l,(hl),a>,nn....  OK 
+Tests complete
+44 ld (<ix,iy>+1),nn............. | OK | 73140 | 0 | ld (<ix,iy>+1),nn.............  OK 
+Tests complete
+45 ld <b,c,d,e>,(<ix,iy>+1)...... | OK | 1302906 | 2 | ld <b,c,d,e>,(<ix,iy>+1)......  OK 
+Tests complete
+46 ld <h,l>,(<ix,iy>+1).......... | OK | 647974 | 1 | ld <h,l>,(<ix,iy>+1)..........  OK 
+Tests complete
+47 ld a,(<ix,iy>+1).............. | OK | 311756 | 0 | ld a,(<ix,iy>+1)..............  OK 
+Tests complete
+48 ld <ixh,ixl,iyh,iyl>,nn....... | OK | 73101 | 0 | ld <ixh,ixl,iyh,iyl>,nn.......  OK 
+Tests complete
+49 ld <bcdehla>,<bcdehla>........ | OK | 11166225 | 15 | ld <bcdehla>,<bcdehla>........  OK 
+Tests complete
+50 ld <bcdexya>,<bcdexya>........ | OK | 23031923 | 31 | ld <bcdexya>,<bcdexya>........  OK 
+Tests complete
+51 ld a,(nnnn) / ld (nnnn),a..... | OK | 106223 | 0 | ld a,(nnnn) / ld (nnnn),a.....  OK 
+Tests complete
+52 ldd<r> (1).................... | OK | 106269 | 0 | ldd<r> (1)....................  OK 
+Tests complete
+53 ldd<r> (2).................... | OK | 106292 | 0 | ldd<r> (2)....................  OK 
+Tests complete
+54 ldi<r> (1).................... | OK | 106269 | 0 | ldi<r> (1)....................  OK 
+Tests complete
+55 ldi<r> (2).................... | OK | 106292 | 0 | ldi<r> (2)....................  OK 
+Tests complete
+56 neg........................... | OK | 32049775 | 81 | neg...........................  OK 
+Tests complete
+57 <rrd,rld>..................... | OK | 17373679 | 24 | <rrd,rld>.....................  OK 
+Tests complete
+58 <rlca,rrca,rla,rra>........... | OK | 14823844 | 20 | <rlca,rrca,rla,rra>...........  OK 
+Tests complete
+59 shf/rot (<ix,iy>+1)........... | OK | 1013378 | 3 | shf/rot (<ix,iy>+1)...........  OK 
+Tests complete
+60 shf/rot <b,c,d,e,h,l,(hl),a>.. | OK | 22598371 | 138 | shf/rot <b,c,d,e,h,l,(hl),a>..  OK 
+Tests complete
+61 <set,res> n,<bcdehl(hl)a>..... | OK | 22552295 | 62 | <set,res> n,<bcdehl(hl)a>.....  OK 
+Tests complete
+62 <set,res> n,(<ix,iy>+1)....... | OK | 1054024 | 1 | <set,res> n,(<ix,iy>+1).......  OK 
+Tests complete
+63 ld (<ix,iy>+1),<b,c,d,e>...... | OK | 2975108 | 4 | ld (<ix,iy>+1),<b,c,d,e>......  OK 
+Tests complete
+64 ld (<ix,iy>+1),<h,l>.......... | OK | 647974 | 1 | ld (<ix,iy>+1),<h,l>..........  OK 
+Tests complete
+65 ld (<ix,iy>+1),a.............. | OK | 150831 | 0 | ld (<ix,iy>+1),a..............  OK 
+Tests complete
+66 ld (<bc,de>),a................ | OK | 233249 | 0 | ld (<bc,de>),a................  OK 
+Tests complete
+exit 1

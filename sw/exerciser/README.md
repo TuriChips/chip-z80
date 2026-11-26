@@ -58,12 +58,11 @@ on eight groups, which were rerun with a 1500 s limit).
 
 | Result | Groups | Count |
 |---|---|---|
-| OK (CRC matches) | all others, including `ldd<r>` (1)(2), `ldi<r>` (1)(2), `cpd<r>`, `cpi<r>`, `<daa,cpl,scf,ccf>`, `add hl/ix/iy`, `adc/sbc hl` | 57 |
+| OK (CRC matches) | all others and the eight decision-9 groups 28-31, 48, 50, 59, 60 (`zexdoc-lenient-mostek-nmos.decision9.log`), including `ldd<r>` (1)(2), `ldi<r>` (1)(2), `cpd<r>`, `cpi<r>`, `<daa,cpl,scf,ccf>`, `add hl/ix/iy`, `adc/sbc hl` | 65 |
 | ERROR (CRC mismatch) | none | 0 |
-| UNDOCUMENTED raise (model refuses the opcode) | 6 `aluop a,<ixh..iyl>`, 28-31 `inc/dec ixh/ixl/iyh/iyl`, 48 `ld <ixh..iyl>,nn`, 50 `ld <bcdexya>,<bcdexya>`, 59 `shf/rot (ix/iy+1)` (DD CB d 36 = SLL), 60 `shf/rot r` (CB 30 = SLL) | 9 |
-| not finished (no error in 884M instructions) | 5 `aluop a,<b,c,d,e,h,l,(hl),a>` | 1 |
+| not finished (no error): 5 in 884M instructions, 6 in 182M (slowed by a shared CPU) | 5 `aluop a,<b,c,d,e,h,l,(hl),a>`, 6 `aluop a,<ixh,ixl,iyh,iyl>` | 2 |
 
-So **no zexdoc ERROR under mostek/nmos**. That is as far as 8-bit-ALU group 5 and the nine undocumented groups allow.
+So **no zexdoc ERROR under mostek/nmos**. That is as far as 8-bit-ALU groups 5 and 6 allow: both ran past the 1500 s limit without an error. The eight other decision-9 groups run and pass on the ref (chip-z80#74).
 
 **Which groups depend on decisions 6 and 8** (measured, not only read off the spec):
 - Decision 8 (DAA): only group 12 `<daa,cpl,scf,ccf>`. With `daa='raise'` it stops at `A=8E C=1 H=0 N=0`

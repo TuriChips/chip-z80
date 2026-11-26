@@ -1,4 +1,4 @@
-# zexdoc on ref model @c7819e0, policy x6=mostek daa=nmos, --lenient-push (see sw/exerciser/README.md). Merged from part1/part2 (90 s/group) + long1/long2/long3 (1500 s/group).
+# zexdoc on ref model @c7819e0, policy x6=mostek daa=nmos, --lenient-push (see sw/exerciser/README.md). Merged from part1/part2 (90 s/group) + long1/long2/long3 (1500 s/group); rows 6, 28-31, 48, 50, 59, 60 from decision9.log (full 67-group run on ref @ origin/main after #51, U1-U3 implemented). Group 6 TIMEOUT: 182091776 instructions in 1500 s while another heavy job shared the 2 CPUs, so the rate is low (group 5: 884M in 1500 s).
 # group | result | instructions | seconds | detail
  0 <adc,sbc> hl,<bc,de,hl,sp>.... | OK | 279550746 | 563 | <adc,sbc> hl,<bc,de,hl,sp>....  OK
  1 add hl,<bc,de,hl,sp>.......... | OK | 139195716 | 277 | add hl,<bc,de,hl,sp>..........  OK
@@ -6,7 +6,7 @@
  3 add iy,<bc,de,iy,sp>.......... | OK | 139232068 | 287 | add iy,<bc,de,iy,sp>..........  OK
  4 aluop a,nn.................... | OK | 70532173 | 85 | aluop a,nn....................  OK
  5 aluop a,<b,c,d,e,h,l,(hl),a>.. | TIMEOUT | 0 | 1500 | time limit 1500.0s after 884146176 instructions
- 6 aluop a,<ixh,ixl,iyh,iyl>..... | UNDOCUMENTED | 0 | 0 | opcode DD 84 is outside the 1977 manuals (spec §6.0)
+ 6 aluop a,<ixh,ixl,iyh,iyl>..... | TIMEOUT | 0 | 1500 | time limit 1500.0s after 182091776 instructions
  7 aluop a,(<ix,iy>+1)........... | OK | 637477419 | 943 | aluop a,(<ix,iy>+1)...........  OK
  8 bit n,(<ix,iy>+1)............. | OK | 4955375 | 6 | bit n,(<ix,iy>+1).............  OK
  9 bit n,<b,c,d,e,h,l,(hl),a>.... | OK | 158658903 | 332 | bit n,<b,c,d,e,h,l,(hl),a>....  OK
@@ -28,10 +28,10 @@
 25 <inc,dec> (hl)................ | OK | 7352142 | 9 | <inc,dec> (hl)................  OK
 26 <inc,dec> sp.................. | OK | 3793623 | 5 | <inc,dec> sp..................  OK
 27 <inc,dec> (<ix,iy>+1)......... | OK | 15411538 | 18 | <inc,dec> (<ix,iy>+1).........  OK
-28 <inc,dec> ixh................. | UNDOCUMENTED | 0 | 0 | opcode DD 24 is outside the 1977 manuals (spec §6.0)
-29 <inc,dec> ixl................. | UNDOCUMENTED | 0 | 0 | opcode DD 2C is outside the 1977 manuals (spec §6.0)
-30 <inc,dec> iyh................. | UNDOCUMENTED | 0 | 0 | opcode DD 24 is outside the 1977 manuals (spec §6.0)
-31 <inc,dec> iyl................. | UNDOCUMENTED | 0 | 0 | opcode DD 2C is outside the 1977 manuals (spec §6.0)
+28 <inc,dec> ixh................. | OK | 7355726 | 10 | <inc,dec> ixh.................  OK 
+29 <inc,dec> ixl................. | OK | 7355726 | 10 | <inc,dec> ixl.................  OK 
+30 <inc,dec> iyh................. | OK | 7355726 | 10 | <inc,dec> iyh.................  OK 
+31 <inc,dec> iyl................. | OK | 7355726 | 10 | <inc,dec> iyl.................  OK 
 32 ld <bc,de>,(nnnn)............. | OK | 73072 | 0 | ld <bc,de>,(nnnn).............  OK
 33 ld hl,(nnnn).................. | OK | 36244 | 0 | ld hl,(nnnn)..................  OK
 34 ld sp,(nnnn).................. | OK | 36227 | 0 | ld sp,(nnnn)..................  OK
@@ -48,9 +48,9 @@
 45 ld <b,c,d,e>,(<ix,iy>+1)...... | OK | 1302906 | 3 | ld <b,c,d,e>,(<ix,iy>+1)......  OK
 46 ld <h,l>,(<ix,iy>+1).......... | OK | 647974 | 1 | ld <h,l>,(<ix,iy>+1)..........  OK
 47 ld a,(<ix,iy>+1).............. | OK | 311756 | 1 | ld a,(<ix,iy>+1)..............  OK
-48 ld <ixh,ixl,iyh,iyl>,nn....... | UNDOCUMENTED | 0 | 0 | opcode DD 26 is outside the 1977 manuals (spec §6.0)
+48 ld <ixh,ixl,iyh,iyl>,nn....... | OK | 73101 | 0 | ld <ixh,ixl,iyh,iyl>,nn.......  OK 
 49 ld <bcdehla>,<bcdehla>........ | OK | 11166225 | 22 | ld <bcdehla>,<bcdehla>........  OK
-50 ld <bcdexya>,<bcdexya>........ | UNDOCUMENTED | 0 | 0 | opcode DD 40 is outside the 1977 manuals (spec §6.0)
+50 ld <bcdexya>,<bcdexya>........ | OK | 23031923 | 31 | ld <bcdexya>,<bcdexya>........  OK 
 51 ld a,(nnnn) / ld (nnnn),a..... | OK | 106223 | 0 | ld a,(nnnn) / ld (nnnn),a.....  OK
 52 ldd<r> (1).................... | OK | 106269 | 0 | ldd<r> (1)....................  OK
 53 ldd<r> (2).................... | OK | 106292 | 0 | ldd<r> (2)....................  OK
@@ -59,8 +59,8 @@
 56 neg........................... | OK | 32049775 | 64 | neg...........................  OK
 57 <rrd,rld>..................... | OK | 17373679 | 35 | <rrd,rld>.....................  OK
 58 <rlca,rrca,rla,rra>........... | OK | 14823844 | 29 | <rlca,rrca,rla,rra>...........  OK
-59 shf/rot (<ix,iy>+1)........... | UNDOCUMENTED | 0 | 0 | opcode DD CB d 36 is outside the 1977 manuals (spec §6.0)
-60 shf/rot <b,c,d,e,h,l,(hl),a>.. | UNDOCUMENTED | 0 | 0 | opcode CB 30 SLL is outside the 1977 manuals (spec §6.0)
+59 shf/rot (<ix,iy>+1)........... | OK | 1013378 | 3 | shf/rot (<ix,iy>+1)...........  OK 
+60 shf/rot <b,c,d,e,h,l,(hl),a>.. | OK | 22598371 | 138 | shf/rot <b,c,d,e,h,l,(hl),a>..  OK 
 61 <set,res> n,<bcdehl(hl)a>..... | OK | 22552295 | 45 | <set,res> n,<bcdehl(hl)a>.....  OK
 62 <set,res> n,(<ix,iy>+1)....... | OK | 1054024 | 2 | <set,res> n,(<ix,iy>+1).......  OK
 63 ld (<ix,iy>+1),<b,c,d,e>...... | OK | 2975108 | 6 | ld (<ix,iy>+1),<b,c,d,e>......  OK
