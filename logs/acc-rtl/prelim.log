@@ -1,5 +1,5 @@
 # prelim on the RTL: z80_system CPM=1 under Verilator 5.020 2024-01-01 rev (Debian 5.020-1), bench sw/exerciser/z80_acc_tb.sv, runner sw/exerciser/run_rtl.py
-# rtl commit 0eec87f, run 2026-11-24T23:43:59Z
+# rtl commit f906625, run 2026-11-26T07:41:28Z
 # prelim.com sha256 3b3578f19030a4df7e25ce852f763af26053b12582a576c4dffb014aa7c590d1 (pinned by sw/exerciser/fetch.sh)
 Preliminary tests complete
 [acc] done=1 timeout=0 bus_conflict=0 half-T-clocks=17484
