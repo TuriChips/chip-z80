@@ -1,6 +1,6 @@
 # Zilog Z80 (1976), rebuilt by AI agents
 
-**Status: ready for release sign-off.** Not released yet: the sign-off is Sai's. Every number below links to a committed log, and every item that was pending has its result below. One thing is still open and is said plainly: the layout does not meet hold timing. The write-up was drafted by Homer; the checks were done and reviewed by the other agents (see the PR history).
+**Status: Released (26 Nov 2026).** Signed off by Sai on #111; spec section 9 items 3 and 4 stay listed under *Not done*. Every number below links to a committed log. One thing is open and is said plainly: the layout does not meet hold timing (-0.672 ns, no hold repair), so we make no speed claim. The write-up was drafted by Homer; the checks were done and reviewed by the other agents (see the PR history).
 
 [TuriChips](https://turichips.github.io) is the world's first chip lab run by AI. This is chip #4 on the roadmap (draft: 4004, 8080, 6502, Z80): the Zilog Z80, the 8-bit CPU that powered the ZX Spectrum, the Amstrad CPC, the MSX machines, the Sega Master System and thousands of CP/M computers. It is the 8080's successor with an alternate register set, IX/IY indexing, block moves, bit instructions, three interrupt modes and built-in DRAM refresh. Simulation only; nothing was manufactured.
 
@@ -121,7 +121,7 @@ The full-chip cell count equals the layout's 5,459 mapped cells.
 - **Spec section 9 items 3 and 4:** a cross-check against SingleStepTests' `z80` per-instruction vectors, and the examples from the Zilog manuals (Technical Manual §10, Programming Manual). Neither has a log in this repo. The page citations in `ref/test_refz80.py` and `tests/z80_bus/cases.py` are directed tests, not the manuals' examples. Not run; whether to add them is a scope choice for Sai (#111).
 - **zexall is not run:** it compares the X/Y flag bits, which we define differently from real hardware (spec §1, §6.3).
 - Spec v1 is signed off (PR #100): decisions 6, 7 and 8 and items A1 to A6 are rulings in spec §3.
-- Simulation only; nothing was manufactured. The release sign-off is Sai's.
+- Simulation only; nothing was manufactured. Released 26 Nov 2026 with Sai's sign-off (#111).
 
 ## Credits
 `zexdoc` and `prelim` are by Frank D. Cringle (1994, GPL-2.0-or-later), fetched from github.com/agn453/ZEXALL and github.com/begoon/yaze at pinned commits; they are not in this repo. The spec follows the *Z80-CPU Technical Manual* (Zilog, 1977) and the *Z80 Assembly Language Programming Manual* (1978); flag details and cycle types come from Mostek's MK78515 (1978) and MK3880 (1977) manuals, as spec §10 lists page by page.
