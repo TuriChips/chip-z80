@@ -31,15 +31,10 @@ CODE_END = 0x3800
 STUBS = 0x3800
 DATA = 0x4000
 
-# Forms the model raises Unspecified on in EVERY state under the default policy (§3 decisions 6 and 8).
-# One place: when Sai settles decisions 6/8, delete the rows here (and set the model's Policy), nothing else.
-EXCLUDED = {
-    ("ED", 0xA0): "decision 6: S/Z after LDI", ("ED", 0xA8): "decision 6: S/Z after LDD",
-    ("ED", 0xB0): "decision 6: S/Z after LDIR", ("ED", 0xB8): "decision 6: S/Z after LDDR",
-    ("ED", 0xA1): "decision 6: H after CPI", ("ED", 0xA9): "decision 6: H after CPD",
-    ("ED", 0xB1): "decision 6: H after CPIR", ("ED", 0xB9): "decision 6: H after CPDR",
-    ("main", 0x3F): "decision 6: H after CCF",
-}
+# Spec §3 ruling 6 (a) (signed off): the 9 forms of decision 6 are back in C8 and the model runs x6='mostek'.
+# Nothing is excluded any more; the dict stays so cover.py and a future decision can list forms again.
+EXCLUDED = {}
+POLICY_KW = {"x6": "mostek"}     # one place for the C8 model policy; gen.py and refrun.py both use it
 # Not excluded, but only determined in some states: DAA outside the 13-row table (decision 8) and every
 # consumer of a don't-care flag raise Unspecified at run time, and the generator's trial-run rejects those states.
 
@@ -364,7 +359,7 @@ def main():
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     g = Gen(a.seed, a.instr)
     # run until `instr` instructions have executed
-    cpu = RecZ80(Policy())
+    cpu = RecZ80(Policy(**POLICY_KW))
     cpu.mem = g.mem
     g_stim = Stim(random.Random(a.seed * 104729 + 7), g.prof)
     sim = PinSim(cpu, g_stim, g)

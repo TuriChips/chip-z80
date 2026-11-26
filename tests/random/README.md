@@ -51,9 +51,9 @@ states, `d_out` while `d_oe` = 0). Per seed `gen.py` writes `sN.pins` (expected)
 Until then `DUT=rtl RTL_TRACE_CMD=...` can wrap any testbench that dumps the format above.
 
 ## Generator rules (so every case is determined)
-- **Forms**: all 850 specified forms (§6.0, §6.0a) from `ref/refz80.census()`, minus `gen.EXCLUDED`, the one list that
-  holds the forms the model raises `Unspecified` on in every state: LDI/LDD/LDIR/LDDR, CPI/CPD/CPIR/CPDR (decision 6),
-  CCF (decision 6): 9 forms. When Sai settles decisions 6 and 8, delete rows there and switch the model's `Policy`.
+- **Forms**: all 850 specified forms (§6.0, §6.0a) from `ref/refz80.census()`, minus `gen.EXCLUDED` (now empty:
+  spec §3 ruling 6 (a) put LDI/LDD(R), CPI/CPD(R) and CCF back, and C8 runs the model with `Policy(x6="mostek")`,
+  see `gen.POLICY_KW`). DAA stays at the default policy, so DAA outside the 13-row table is rejected by the trial run.
   Every other `Unspecified` is state-dependent (DAA outside the 13-row table, consuming a don't-care flag) and is
   rejected by the trial run.
 - **Trial run**: each new instruction runs on a copy of the CPU first. Kept only if the model doesn't raise, it
