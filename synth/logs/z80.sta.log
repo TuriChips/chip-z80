@@ -12,8 +12,8 @@ The NOWIREEXTENSIONATPIN statement will be ignored. See file /home/turichips/too
 [INFO ODB-0225]     Created 437 library cells
 [INFO ODB-0226] Finished LEF file:  /home/turichips/tools/mm/root/envs/pdk/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef
 == worst path (any start to any end: reg-to-reg, input-to-reg, reg-to-output, input-to-output)
-Startpoint: _10353_ (rising edge-triggered flip-flop clocked by clk)
-Endpoint: _10333_ (rising edge-triggered flip-flop clocked by clk)
+Startpoint: _10537_ (rising edge-triggered flip-flop clocked by clk)
+Endpoint: _10479_ (rising edge-triggered flip-flop clocked by clk)
 Path Group: clk
 Path Type: max
 
@@ -21,42 +21,42 @@ Path Type: max
 -----------------------------------------------------------
    0.000    0.000   clock clk (rise edge)
    0.000    0.000   clock network delay (ideal)
-   0.000    0.000 ^ _10353_/CLK (sky130_fd_sc_hd__dfxtp_1)
-   3.821    3.821 ^ _10353_/Q (sky130_fd_sc_hd__dfxtp_1)
-   3.362    7.183 v _05140_/Y (sky130_fd_sc_hd__clkinv_1)
-   0.462    7.645 ^ _06125_/Y (sky130_fd_sc_hd__nand2_1)
-   0.226    7.870 ^ _06127_/X (sky130_fd_sc_hd__and2_0)
-   0.061    7.932 v _06128_/Y (sky130_fd_sc_hd__nor3_1)
-   0.183    8.114 v _06129_/X (sky130_fd_sc_hd__a21o_1)
-   0.334    8.449 ^ _06141_/Y (sky130_fd_sc_hd__a2111oi_0)
-   0.162    8.611 v _06145_/Y (sky130_fd_sc_hd__nand4_1)
-   1.786   10.397 ^ _06176_/Y (sky130_fd_sc_hd__a221oi_1)
-   0.435   10.832 v _06673_/Y (sky130_fd_sc_hd__nand3_1)
-   0.326   11.158 ^ _06972_/Y (sky130_fd_sc_hd__a41oi_1)
-   0.209   11.367 v _06974_/Y (sky130_fd_sc_hd__o21ai_0)
-   0.282   11.649 ^ _06975_/Y (sky130_fd_sc_hd__xnor2_1)
-   0.113   11.762 v _06976_/Y (sky130_fd_sc_hd__xnor2_1)
-   0.311   12.072 ^ _06977_/Y (sky130_fd_sc_hd__xnor2_1)
-   0.062   12.134 v _06978_/Y (sky130_fd_sc_hd__nor2_1)
-   1.623   13.757 ^ _07015_/Y (sky130_fd_sc_hd__a2111oi_0)
-   0.274   14.031 v _07579_/Y (sky130_fd_sc_hd__nor2_1)
-   0.244   14.275 ^ _09207_/Y (sky130_fd_sc_hd__o21ai_0)
-   0.105   14.380 v _09213_/Y (sky130_fd_sc_hd__o21ai_0)
-   0.300   14.680 v _09214_/X (sky130_fd_sc_hd__mux2_1)
-   0.003   14.684 v _10333_/D (sky130_fd_sc_hd__dfxtp_1)
-           14.684   data arrival time
+   0.000    0.000 ^ _10537_/CLK (sky130_fd_sc_hd__dfxtp_1)
+   4.666    4.666 ^ _10537_/Q (sky130_fd_sc_hd__dfxtp_1)
+   3.907    8.573 v _05202_/Y (sky130_fd_sc_hd__clkinv_1)
+   0.928    9.502 ^ _06697_/Y (sky130_fd_sc_hd__a21boi_0)
+   0.165    9.667 v _06698_/Y (sky130_fd_sc_hd__o22ai_1)
+   0.206    9.873 ^ _06709_/Y (sky130_fd_sc_hd__nor3_1)
+   0.130   10.003 v _06713_/Y (sky130_fd_sc_hd__nand4_1)
+   1.530   11.532 ^ _06717_/Y (sky130_fd_sc_hd__a221oi_1)
+   0.456   11.988 ^ _06788_/X (sky130_fd_sc_hd__xor2_1)
+   0.279   12.268 ^ _06928_/Y (sky130_fd_sc_hd__a21boi_0)
+   0.129   12.397 v _06930_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.361   12.758 v _07003_/X (sky130_fd_sc_hd__maj3_1)
+   0.267   13.025 ^ _07068_/Y (sky130_fd_sc_hd__o21ai_0)
+   0.225   13.250 ^ _07124_/X (sky130_fd_sc_hd__maj3_1)
+   0.117   13.367 ^ _07127_/Y (sky130_fd_sc_hd__xnor2_1)
+   0.158   13.525 v _07128_/Y (sky130_fd_sc_hd__o21ai_0)
+   0.402   13.927 ^ _07129_/Y (sky130_fd_sc_hd__a2111oi_0)
+   0.406   14.334 ^ _07130_/X (sky130_fd_sc_hd__and2_0)
+   0.165   14.499 v _07639_/Y (sky130_fd_sc_hd__nor2_1)
+   0.363   14.861 ^ _09300_/Y (sky130_fd_sc_hd__a21oi_1)
+   0.129   14.991 v _09307_/Y (sky130_fd_sc_hd__mux2i_1)
+   0.326   15.316 v _09308_/X (sky130_fd_sc_hd__mux2_1)
+   0.003   15.320 v _10479_/D (sky130_fd_sc_hd__dfxtp_1)
+           15.320   data arrival time
 
  100.000  100.000   clock clk (rise edge)
    0.000  100.000   clock network delay (ideal)
    0.000  100.000   clock reconvergence pessimism
-          100.000 ^ _10333_/CLK (sky130_fd_sc_hd__dfxtp_1)
+          100.000 ^ _10479_/CLK (sky130_fd_sc_hd__dfxtp_1)
   -0.124   99.876   library setup time
            99.876   data required time
 -----------------------------------------------------------
            99.876   data required time
-          -14.684   data arrival time
+          -15.320   data arrival time
 -----------------------------------------------------------
-           85.192   slack (MET)
+           84.556   slack (MET)
 
 
 == worst register-to-register path
@@ -65,5 +65,5 @@ max_delay/setup group clk
                                      Required   Actual
 Endpoint                                Delay    Delay    Slack
 ---------------------------------------------------------------
-_10333_/D (sky130_fd_sc_hd__dfxtp_1)   99.876   14.684   85.192 (MET)
+_10479_/D (sky130_fd_sc_hd__dfxtp_1)   99.876   15.320   84.556 (MET)
 

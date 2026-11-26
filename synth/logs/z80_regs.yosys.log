@@ -22,13 +22,13 @@
  Yosys 0.33 (git sha1 2584903a060)
 
 
--- Running command `read_liberty -lib /tmp/tmp.6RenBc1Y1g/f.lib; read_verilog -I rtl/control rtl/datapath/z80_regs.v;
+-- Running command `read_liberty -lib /tmp/tmp.IZ0kJUiawU/f.lib; read_verilog -I rtl/control rtl/datapath/z80_regs.v;
    hierarchy -check -top z80_regs; proc; flatten; opt; wreduce; alumacc; opt; memory -nomap -nordff; memory_map; opt -full; techmap; opt -fast;
    dfflegalize -cell $_DFF_P_ 01 -cell $_DLATCH_P_ x;
-   dfflibmap -liberty /tmp/tmp.6RenBc1Y1g/f.lib; abc -D 100000 -liberty /tmp/tmp.6RenBc1Y1g/f.lib; opt_clean -purge; check -assert;
-   tee -o synth/logs/z80_regs.stat.txt stat -liberty /tmp/tmp.6RenBc1Y1g/f.lib; write_verilog -noattr -noexpr /tmp/tmp.6RenBc1Y1g/z80_regs.v' --
+   dfflibmap -liberty /tmp/tmp.IZ0kJUiawU/f.lib; abc -D 100000 -liberty /tmp/tmp.IZ0kJUiawU/f.lib; opt_clean -purge; check -assert;
+   tee -o synth/logs/z80_regs.stat.txt stat -liberty /tmp/tmp.IZ0kJUiawU/f.lib; write_verilog -noattr -noexpr /tmp/tmp.IZ0kJUiawU/z80_regs.v' --
 
-1. Executing Liberty frontend: /tmp/tmp.6RenBc1Y1g/f.lib
+1. Executing Liberty frontend: /tmp/tmp.IZ0kJUiawU/f.lib
 Imported 364 cell types from liberty file.
 
 2. Executing Verilog-2005 frontend: rtl/datapath/z80_regs.v
@@ -1562,8 +1562,8 @@ Running ABC command: "<yosys-exe-dir>/yosys-abc" -s -f <abc-temp-dir>/abc.script
 ABC: ABC command line: "source <abc-temp-dir>/abc.script".
 ABC: 
 ABC: + read_blif <abc-temp-dir>/input.blif 
-ABC: + read_lib -w /tmp/tmp.6RenBc1Y1g/f.lib 
-ABC: Parsing finished successfully.  Parsing time =     0.07 sec
+ABC: + read_lib -w /tmp/tmp.IZ0kJUiawU/f.lib 
+ABC: Parsing finished successfully.  Parsing time =     0.09 sec
 ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__decap_12" without logic function.
 ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__decap_3" without logic function.
 ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__decap_4" without logic function.
@@ -1638,8 +1638,8 @@ ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sedfxbp_2
 ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sedfxtp_1".
 ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sedfxtp_2".
 ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__sedfxtp_4".
-ABC: Library "sky130_fd_sc_hd__tt_025C_1v80" from "/tmp/tmp.6RenBc1Y1g/f.lib" has 290 cells (74 skipped: 62 seq; 0 tri-state; 12 no func; 0 dont_use).  Time =     0.11 sec
-ABC: Memory =   18.57 MB. Time =     0.11 sec
+ABC: Library "sky130_fd_sc_hd__tt_025C_1v80" from "/tmp/tmp.IZ0kJUiawU/f.lib" has 290 cells (74 skipped: 62 seq; 0 tri-state; 12 no func; 0 dont_use).  Time =     0.14 sec
+ABC: Memory =   18.57 MB. Time =     0.14 sec
 ABC: Warning: Detected 9 multi-output gates (for example, "sky130_fd_sc_hd__fa_1").
 ABC: + strash 
 ABC: + &get -n 
@@ -1806,6 +1806,6 @@ Found and reported 0 problems.
 Dumping module `\z80_regs'.
 
 Warnings: 32 unique messages, 240 total
-End of script. Logfile hash: 3efacd9272, CPU: user 1.35s system 0.03s, MEM: 44.08 MB peak
+End of script. Logfile hash: a8cb539f73, CPU: user 1.50s system 0.03s, MEM: 44.40 MB peak
 Yosys 0.33 (git sha1 2584903a060)
-Time spent: 36% 1x abc (0 sec), 11% 20x opt_expr (0 sec), ...
+Time spent: 37% 1x abc (0 sec), 12% 20x opt_expr (0 sec), ...
