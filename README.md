@@ -36,11 +36,11 @@ The Z80 split differs from the 6502's because of the alternate register banks, 1
 
 ### Decisions that shaped it
 - **Decision 9 (b): 698 documented forms plus exactly 152 undocumented ones.** zexdoc executes undocumented opcodes in 9 of its 67 groups. Sai chose to specify those forms and run all 67 groups, rather than drop the test (spec §6.0a, chip-z80#14). The 152 are: U1, the IXH/IXL/IYH/IYL halves (92); U2, a DD/FD prefix that changes nothing before `LD r,r'` (50); U3, SLL (10). 850 forms in all. Every other undocumented opcode stays unspecified and untested (spec §1).
-- **Decision 6 (proposed in the spec, awaiting Sai): flag masks from Mostek.** zexdoc checks a few flags that the Zilog 1977 manual calls "X": S and Z after LDI/LDD, H after CPI/CPD, H after CCF. The Mostek MK78515 manual (1978) gives definite values for those, and they are what zexdoc expects (spec §6.2). The spec recommends (a), use Mostek's values, but that is a recommendation, not a ruling; the RTL follows it for now.
+- **Decision 6 (ruled (a) by Sai, spec §3, PR #100): flag masks from Mostek.** zexdoc checks a few flags that the Zilog 1977 manual calls "X": S and Z after LDI/LDD, H after CPI/CPD, H after CCF. The Mostek MK78515 manual (1978) gives definite values for those, and they are what zexdoc expects (spec §6.2). The ruling is to use Mostek's values; the RTL follows it.
 - **Our own definition of the X/Y flag bits (3 and 5).** They are 0 after any flag-writing instruction and compared as ordinary state (spec §1, §6.3). Real hardware copies result bits into them, so `zexall` would fail and `zexdoc` (which masks them) is the right acceptance test.
 - **The half-T pin model (spec §4.0).** The manual puts MREQ, RD, WR and WAIT sampling on the falling clock edge, in the middle of a T state. So one model clock is one *half* T state and every pin is compared in every half. The 8080 compared once per T state; that would hide most of what makes Z80 bus timing different.
-- **Decision 8 (proposed, awaiting Sai): DAA outside the 13-row table, and H after DAA.** Neither manual defines these, and zexdoc's `daa` test checks them. The spec recommends (a): take the NMOS behaviour from a named secondary source (Sean Young, *The Undocumented Z80 Documented*) and use zexdoc as the check (spec §3, §6.2). The reference-model runs below use `--daa nmos`.
-- **Decision 7 (proposed, awaiting Sai): instruction cycle types come from Mostek's MK3880 manual** (spec §6.1); where no manual gives a cycle breakdown (e.g. `LD (IX+d),n`), the spec says it is our decision.
+- **Decision 8 (ruled (a) by Sai, spec §3, PR #100): DAA outside the 13-row table, and H after DAA.** Neither Zilog manual defines these, and zexdoc's `daa` test checks them. The ruling takes the NMOS behaviour from Sean Young, *The Undocumented Z80 Documented* v0.91, §4.7 (read and quoted in spec §6.2), with zexdoc as the check. The reference-model runs below use `--daa nmos`.
+- **Decision 7 (ruled (a) by Sai, spec §3, PR #100): instruction cycle types come from Mostek's MK3880 manual §12** (spec §6.1); where it gives no cycle breakdown (e.g. `LD (IX+d),n`, CPI/CPD), the spec fixes it as our own decision (A4).
 
 ## Results
 Logs are in `logs/`. Each log starts with the commit it ran on.
@@ -96,7 +96,7 @@ This section is not complete until release; it lists what the issue history alre
 - C7 (bus conflict positive case) tests are in progress (#85); the zexdoc, prelim and demo logs show `bus_conflict=0`.
 - The 9 decision-9 groups on the reference model (#74).
 - Undocumented opcodes outside the 152 are not specified and not tested. Block I/O flags that neither Zilog nor Mostek define are not compared.
-- The spec still carries the header "v1 candidate". Only decision 9 is signed off; decisions 6, 7 and 8 are awaiting Sai, and the spec lists more open items (mode-0 INTA length, DD CB operand read, where lengthened-cycle T states fall, cycle types for `LD (IX+d),n` and CPI/CPD, per-iteration block flags, F[5:3]).
+- Spec v1 is signed off (PR #100): decisions 6, 7 and 8 and the also-open items A1–A6 are rulings in spec §3. The decode-layout log `logs/random-decode-xcheck.log` and the decision-6 forms in C8 are due a refresh (#101).
 - The synthesis table predates decision 9's RTL changes (see Size and speed).
 
 ## Credits
