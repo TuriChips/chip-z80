@@ -121,7 +121,7 @@ The full-chip cell count equals the layout's 5,459 mapped cells.
 - **Spec section 9 items 3 and 4:** a cross-check against SingleStepTests' `z80` per-instruction vectors, and the examples from the Zilog manuals (Technical Manual §10, Programming Manual). Neither has a log in this repo. The page citations in `ref/test_refz80.py` and `tests/z80_bus/cases.py` are directed tests, not the manuals' examples. Not run; whether to add them is a scope choice for Sai (#111).
 - **zexall is not run:** it compares the X/Y flag bits, which we define differently from real hardware (spec §1, §6.3).
 - Spec v1 is signed off (PR #100): decisions 6, 7 and 8 and items A1 to A6 are rulings in spec §3.
-- Simulation only; nothing was manufactured. The release sign-off is Sai's.
+- Simulation only; nothing was manufactured. Released 26 Nov 2026 with Sai's sign-off (#111).
 
 ## Credits
 `zexdoc` and `prelim` are by Frank D. Cringle (1994, GPL-2.0-or-later), fetched from github.com/agn453/ZEXALL and github.com/begoon/yaze at pinned commits; they are not in this repo. The spec follows the *Z80-CPU Technical Manual* (Zilog, 1977) and the *Z80 Assembly Language Programming Manual* (1978); flag details and cycle types come from Mostek's MK78515 (1978) and MK3880 (1977) manuals, as spec §10 lists page by page.
