@@ -112,12 +112,20 @@ class Stim:
     def __init__(self, rng, prof):
         self.rng, self.prof = rng, prof
         self.acked = False
+        self.halt_ahead = False      # set by PinSim: the next instruction is a HALT, whose own T1H is the next one
 
     def wait(self):
         return 0 if self.rng.random() < self.prof["wait"] else 1
 
     def t1h(self, i, n, b):
         r, p = self.rng, self.prof
+        if self.halt_ahead:
+            # bias to an interrupt visible at HALT's own T4H (§4.7, chip-z80#31): INT low and/or an NMI edge now
+            self.halt_ahead = False
+            if p["int"] > 0 and r.random() < 0.6: i = 0
+            if p["nmi"] > 0 and n == 1 and r.random() < 0.4: n = 0
+            if b == 1 and p["busrq"] > 0 and r.random() < 0.2: b = 0
+            return i, n, b
         if i == 1:
             if r.random() < p["int"]: i = 0
         elif r.random() < (0.9 if self.acked else p["int_rel"]):
@@ -167,6 +175,8 @@ class Gen:
         self.rej = 0
         self.fallback = 0
         self.force = None
+        self.pending = None
+        self.brng = random.Random(seed * 7919 + 3)   # EI;HALT bias decisions, kept off the main stream
         self.from_walk, self.walk_try = False, 0
         off = (seed * 211) % len(FORMS)
         self.walk, self.wi = FORMS[off:] + FORMS[:off], 0
@@ -235,6 +245,10 @@ class Gen:
     def pick_form(self):
         """Uniform random, but half of the picks walk a seed-specific rotation of all forms, so a few dozen seeds
         reach even the forms that need a rare state."""
+        self.from_walk = False
+        if (self.prof["int"] > 0 or self.prof["nmi"] > 0) and self.brng.random() < 0.015:
+            self.pending = ("main", 0x76)          # EI; HALT: HALT's own end is the first point INT is allowed (§4.7)
+            return ("main", 0xFB) if self.brng.random() < 0.7 else ("main", 0x76)
         self.from_walk = self.rng.random() < 0.5
         if self.from_walk:
             return self.walk[self.wi % len(self.walk)]
@@ -293,8 +307,9 @@ class Gen:
                 if any(a in self.frozen for a in range(pc, pc + 4)):
                     return False             # state-dependent dead end on executed bytes
                 self.code -= set(range(pc, pc + 4))
+            self.pending = None
             f = self.force or self.pick_form()
-            self.force = None
+            self.force, self.pending = self.pending, None
             raw = self.make(f, pc)
             ok, n = self.trial(cpu, pc, raw + [0] * (4 - len(raw)))
             if not ok and f in JP_REG and self.rng.random() < 0.8:
@@ -322,8 +337,8 @@ class Gen:
             self.starts.append(pc)
             return True
         self.fallback += 1
-        if any(a in self.frozen for a in range(pc, pc + 1)):
-            return False
+        if pc in self.frozen or pc + 1 >= CODE_END:
+            return False                     # a NOP at the last code byte would run on into the handler stubs
         self.put(pc, [0x00])
         self.code.add(pc)
         return True

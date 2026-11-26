@@ -19,8 +19,8 @@ during an INTA (held from that INTA's T1H); the stock tb drives FFH, so C8 needs
 Vector files for the tb (write_vectors): prog.hex stim.hex exp.hex mask.hex inp.hex vec.hex, same packing as tb.sv.
 Port reads return io_value(addr): low byte ^ A5H, like the tb.
 
-Decisions this module takes where the draft spec is silent are listed in README.md (tests/random) and filed
-as Igris issues; each is marked `# SPEC-GAP n` here.
+The spec's earlier gaps (halt_n at HALT's own end, d_oe in lengthened writes) are answered in §4.7 and §4.2; the model
+follows them and no `SPEC-GAP` marker is left (chip-z80#31).
 """
 import os
 import sys
@@ -382,7 +382,10 @@ class PinSim:
             hp = {}
             if halt == "fall":
                 # §4.7: an interrupt accepted at the sample of HALT's own M1 means halt_n never falls
-                hp = {} if (self.vis_nmi or (self.vis_int and self.cpu.iff1)) else dict(halt_n=0)
+                acc = self.vis_nmi or (self.vis_int and self.cpu.iff1)
+                if acc:
+                    self.count("halt_end_accept")
+                hp = {} if acc else dict(halt_n=0)
             elif halt == "accept":
                 hp = dict(halt_n=1) if (self.vis_nmi or (self.vis_int and self.cpu.iff1)) else {}
             return dict(rf, mreq_n=1, **hp)
@@ -466,6 +469,8 @@ class PinSim:
                 if not self.gen.ensure(cpu):
                     self.stop_reason = "dead-end"
                     break
+            if self.gen is not None and not response and not cpu.halted and cpu.mem[cpu.pc] == 0x76:
+                self.stim.halt_ahead = True          # generator bias: see Stim.t1h
             vec = self.stim.vec(cpu.im) if int_taking else None
             if vec is not None:
                 cpu.int_data = lambda v=vec: v
