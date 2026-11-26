@@ -1,12 +1,12 @@
-Z80 synthesis, sky130_fd_sc_hd tt_025C_1v80, yosys 0.33, clock 100 ns, ideal wires. Toolchain v0.9 (Makefile pin); RTL = main 8b11e74.
+Z80 synthesis, sky130_fd_sc_hd tt_025C_1v80, yosys 0.33, clock 100 ns, ideal wires. Toolchain v0.10.2 (Makefile pin); RTL = main 980ee13.
 block          cells  flops  latch    area_um2  worst path: data arrival ns (slack)
-z80_alu          693     35      0 4858.409600  4.444 (slack 95.432 at 100 ns)
+z80_alu          689     35      0 4840.892800  4.523 (slack 95.396 at 100 ns)
 z80_regs        2336    193      0 16554.627200  11.959 (slack 87.924 at 100 ns)
 z80_timing       166     19      0 1247.446400  3.797 (slack 96.075 at 100 ns)
-z80_control     1946     42      0 11106.902400  8.697 (slack 91.231 at 100 ns)
+z80_control     1982     42      0 11113.158400  9.402 (slack 90.527 at 100 ns)
 
 == full chip (rtl/files.f, top z80, check -assert held)
-z80             5375    289      0 34485.574400  14.684 (slack 85.192 at 100 ns)
+z80             5459    289      0 35296.352000  15.320 (slack 84.556 at 100 ns)
 
 == warnings
 z80: Warning: Replacing memory \hl with list of registers. See rtl/datapath/z80_regs.v:216, rtl/datapath/z80_regs.v:206
@@ -33,15 +33,15 @@ z80_timing: ABC: Warning: Detected 9 multi-output gates (for example, "sky130_fd
 z80_timing: Warnings: 26 unique messages, 234 total
 
 == sky130 layout of the full chip (synth/layout.sh: Yosys map, OpenROAD floorplan/place/CTS/route, KLayout render)
-Run: local, 26 Nov 2026, toolchain v0.9 eda-env, UTIL=25 PLACE_DENSITY=0.45 PERIOD_NS=100, tt_025C_1v80, post-route parasitics (estimate_parasitics -global_routing), propagated clock. Log: logs/layout.openroad.log (+ layout.stat.txt, layout.yosys.log.gz). Render: layout/layout.png.
-die                       381.405 x 381.405 um = 0.1455 mm^2 (core ~370 x 370 um, 5 um margin)
-cells                     5375 mapped cells, 289 flops (layout.stat.txt, 34485.6 um^2) + 1794 tap cells + repair_design/CTS buffers
-placed design area        52453 um^2, 38% core utilisation (OpenROAD report_design_area, includes taps/buffers/CTS)
-clock tree                1 clock, 289 sinks, skew 0.19 ns (latency 0.68 to 0.86 ns)
-routing                   wire 316715 um, 53636 vias, met1-met5
+Run: local, 26 Nov 2026, toolchain v0.10.2 eda-env, RTL = main 980ee13 (includes decision 9: #52, #53, #66; same RTL as the rows above), UTIL=25 PLACE_DENSITY=0.45 PERIOD_NS=100, tt_025C_1v80, post-route parasitics (estimate_parasitics -global_routing), propagated clock. Log: logs/layout.openroad.log (+ layout.stat.txt, layout.yosys.log.gz). Render: layout/layout.png.
+die                       385.745 x 385.745 um = 0.1488 mm^2 (core ~375 x 375 um, 5 um margin)
+cells                     5459 mapped cells, 289 flops (layout.stat.txt, 35296.4 um^2, equals the full-chip row above) + 1876 tap cells + repair_design/CTS buffers
+placed design area        53633 um^2, 38% core utilisation (OpenROAD report_design_area, includes taps/buffers/CTS)
+clock tree                1 clock, 289 sinks, skew 0.04 ns (latency 0.65 to 0.69 ns, worst pair in report_clock_skew)
+routing                   wire 294499 um, 53461 vias, met1-met5
 DRC (detailed router)     0 violations (logs/layout.route_drc.rpt is empty; DRT-0199 = 0). No separate KLayout/Magic signoff DRC was run.
 unconnected nets          0 (nets with fewer than 2 connections: 0)
-worst setup slack         +87.782 ns at 100 ns (reg-to-reg, _10215_ -> _10270_), so path ~12.2 ns incl. skew. Achieved clock if limited by setup alone: ~12.2 ns (~82 MHz) at tt/1.8 V/25 C
-worst hold slack          -0.691 ns (NOT fixed: no hold repair in the flow, repair_timing not run). The layout does not meet hold as built; it is a CTS-skew/short-path issue to fix before any speed claim
+worst setup slack         +87.765 ns at 100 ns (reg-to-reg, endpoint _10417_/D), so path ~12.8 ns incl. skew. Achieved clock if limited by setup alone: ~12.8 ns (~78 MHz) at tt/1.8 V/25 C
+worst hold slack          -0.672 ns (the pre-decision-9 layout had -0.691 ns) (NOT fixed: no hold repair in the flow, repair_timing not run). The layout does not meet hold as built; it is a CTS-skew/short-path issue to fix before any speed claim
 caveats                   input/output delays are 0 (spec has no electrical timing), tt corner only, no antenna/LVS/signoff DRC, no hold repair.
 tuning that was needed    first runs at UTIL=25, density 0.6 never converged in the detail router (5.7k-35k violations after 1.5 h: z80 is congested, the 4.8k um^2 z80_alu alone routed clean in 9 min). Density 0.45 plus plain repair_design (no -max_wire_length) routes with 0 violations. Densities 0.3 and 0.4 crashed global_route ("net initial #node != #rpin") with repair_design -max_wire_length 300.
