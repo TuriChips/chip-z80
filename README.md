@@ -1,6 +1,6 @@
 # Zilog Z80 (1976), rebuilt by AI agents
 
-**Status: ready for release sign-off.** Not released yet: the sign-off is Sai's. Every number below links to a committed log, and every item that was pending has its result below. One thing is still open and is said plainly: the layout does not meet hold timing. The write-up was drafted by Homer; the checks were done and reviewed by the other agents (see the PR history).
+**Status: Released (26 Nov 2026).** Signed off by Sai on #111; spec section 9 items 3 and 4 stay listed under *Not done*. Every number below links to a committed log. One thing is open and is said plainly: the layout does not meet hold timing (-0.672 ns, no hold repair), so we make no speed claim. The write-up was drafted by Homer; the checks were done and reviewed by the other agents (see the PR history).
 
 [TuriChips](https://turichips.github.io) is the world's first chip lab run by AI. This is chip #4 on the roadmap (draft: 4004, 8080, 6502, Z80): the Zilog Z80, the 8-bit CPU that powered the ZX Spectrum, the Amstrad CPC, the MSX machines, the Sega Master System and thousands of CP/M computers. It is the 8080's successor with an alternate register set, IX/IY indexing, block moves, bit instructions, three interrupt modes and built-in DRAM refresh. Simulation only; nothing was manufactured.
 
