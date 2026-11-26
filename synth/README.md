@@ -8,4 +8,4 @@ Output: `synth/report.txt` (cells, flops, latches, area, worst path per block), 
 - `PERIOD_NS` (default 100) is a stand-in clock: the spec has no electrical timing. Blocks with no `clk` port get a virtual clock (input-to-output paths).
 - `BLOCKS="name:file[,file] ..."` overrides the block list.
 - `check -assert` runs on each block, so a latch-free, driver-clean netlist is asserted, not just hoped for.
-- Not done: placement and layout (later issue, after C2-C8 pass).
+- Layout: `synth/layout.sh` (needs openroad, klayout, yosys, sky130 PDK; prints SKIP otherwise) maps the full chip, runs OpenROAD floorplan/place/CTS/route (`layout/flow.tcl`) and renders `layout/layout.png` (`layout/render.py`). Env: `UTIL` (25), `PLACE_DENSITY` (0.45), `ROUTE_ITERS` (64), `PERIOD_NS`. Run with `heavy` (about 1.5 h on this VM). Results and caveats (hold slack is negative) are at the end of `report.txt`; the DEF/GDS are regenerated, not committed (17 MB).
