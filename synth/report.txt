@@ -31,3 +31,17 @@ z80_regs: ABC: Warning: Detected 9 multi-output gates (for example, "sky130_fd_s
 z80_regs: Warnings: 32 unique messages, 240 total
 z80_timing: ABC: Warning: Detected 9 multi-output gates (for example, "sky130_fd_sc_hd__fa_1").
 z80_timing: Warnings: 26 unique messages, 234 total
+
+== sky130 layout of the full chip (synth/layout.sh: Yosys map, OpenROAD floorplan/place/CTS/route, KLayout render)
+Run: local, 26 Nov 2026, toolchain v0.9 eda-env, UTIL=25 PLACE_DENSITY=0.45 PERIOD_NS=100, tt_025C_1v80, post-route parasitics (estimate_parasitics -global_routing), propagated clock. Log: logs/layout.openroad.log (+ layout.stat.txt, layout.yosys.log.gz). Render: layout/layout.png.
+die                       381.405 x 381.405 um = 0.1455 mm^2 (core ~370 x 370 um, 5 um margin)
+cells                     5375 mapped cells, 289 flops (layout.stat.txt, 34485.6 um^2) + 1794 tap cells + repair_design/CTS buffers
+placed design area        52453 um^2, 38% core utilisation (OpenROAD report_design_area, includes taps/buffers/CTS)
+clock tree                1 clock, 289 sinks, skew 0.19 ns (latency 0.68 to 0.86 ns)
+routing                   wire 316715 um, 53636 vias, met1-met5
+DRC (detailed router)     0 violations (logs/layout.route_drc.rpt is empty; DRT-0199 = 0). No separate KLayout/Magic signoff DRC was run.
+unconnected nets          0 (nets with fewer than 2 connections: 0)
+worst setup slack         +87.782 ns at 100 ns (reg-to-reg, _10215_ -> _10270_), so path ~12.2 ns incl. skew. Achieved clock if limited by setup alone: ~12.2 ns (~82 MHz) at tt/1.8 V/25 C
+worst hold slack          -0.691 ns (NOT fixed: no hold repair in the flow, repair_timing not run). The layout does not meet hold as built; it is a CTS-skew/short-path issue to fix before any speed claim
+caveats                   input/output delays are 0 (spec has no electrical timing), tt corner only, no antenna/LVS/signoff DRC, no hold repair.
+tuning that was needed    first runs at UTIL=25, density 0.6 never converged in the detail router (5.7k-35k violations after 1.5 h: z80 is congested, the 4.8k um^2 z80_alu alone routed clean in 9 min). Density 0.45 plus plain repair_design (no -max_wire_length) routes with 0 violations. Densities 0.3 and 0.4 crashed global_route ("net initial #node != #rpin") with repair_design -max_wire_length 300.
