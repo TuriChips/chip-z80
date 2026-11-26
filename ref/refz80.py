@@ -11,9 +11,9 @@ Block repeats (LDIR ...) are one step per iteration (§8.4 item 5).
 Not modelled (out of scope for this issue): per-M-cycle bus types and pin timing (open decision 7),
 WAIT, BUSRQ, RESET timing. Only T-state totals per instruction (§6.1) are given.
 
-Open decisions are switches in Policy, and only they (see README.md):
-  Policy.x6   decision 6: S/Z after LDI/LDD(R), H after CPI/CPD(R), H after CCF
-  Policy.daa  decision 8: DAA outside PM's 13-row table (and H after DAA)
+Decisions 6 and 8 are switches in Policy, and only they (see README.md):
+  Policy.x6   §3 ruling 6 (a) = 'mostek': S/Z after LDI/LDD(R), H after CPI/CPD(R), H after CCF
+  Policy.daa  §3 ruling 8 (a) = 'nmos': DAA outside PM's 13-row table (and H after DAA)
 Values: 'raise' (default: raise Unspecified at the instruction), 'taint' (no raise; the flag is marked
 don't-care in cpu.fx and raising happens only if something consumes it), or the implemented choice
 ('mostek' for x6, 'nmos' for daa).
@@ -241,7 +241,7 @@ class Z80:
         return r & 0xFFFF, h, r > 0xFFFF, ((a ^ r) & (b ^ r) & 0x8000) != 0
 
     def daa(self):
-        """§6.2 DAA table (13 rows); outside it, and H, are open decision 8."""
+        """§6.2 DAA table (13 rows); outside it, and H, follow spec §3 ruling 8 (a) (policy 'nmos')."""
         self.need(C_ | H_ | N_, "DAA")
         a, c, h, n = self.a, self.f & C_, bool(self.f & H_), bool(self.f & N_)
         hi, lo = a >> 4, a & 15
@@ -262,7 +262,7 @@ class Z80:
         if add is None:
             if self.policy.daa == "raise":
                 raise Unspecified(f"decision 8: DAA outside the 13-row table (A={a:02X} C={c} H={int(h)} N={int(n)})")
-            if self.policy.daa == "nmos":       # Sean Young's algorithm, as proposed by the spec's option (a); NOT chosen yet
+            if self.policy.daa == "nmos":       # Sean Young's algorithm: spec §3 ruling 8 (a)
                 add = (6 if (h or lo > 9) else 0) | (0x60 if (c or a > 0x99) else 0)
                 cout = 1 if (c or a > 0x99) else 0
                 if n:

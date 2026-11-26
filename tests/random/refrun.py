@@ -47,7 +47,7 @@ def main():
     ap.add_argument("--stim", required=True)
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
-    cpu = RecZ80(Policy())
+    cpu = RecZ80(Policy(x6="mostek"))   # same policy as gen.POLICY_KW (this file shares no code with gen.py)
     cpu.mem[:] = bytes(int(x, 16) for x in open(a.hex).read().split())
     st = ReplayStim(load_stim(a.stim))
     sim = PinSim(cpu, st)
