@@ -72,8 +72,9 @@ Until then `DUT=rtl RTL_TRACE_CMD=...` can wrap any testbench that dumps the for
 - **Coverage** (`cover.py`, PASS needs every allowed form executed and every stimulus kind hit): rotating walk through
   all forms plus uniform random picks, so a few dozen seeds reach forms that need a rare state.
 
-## Where the draft spec leaves a case undetermined
-Filed as `Igris:` issues; until answered the generator avoids the case and the model's choice is marked `SPEC-GAP` in
-`ref/pinsz80.py`: (3) INT/NMI visible at the end of HALT's own M1, where `halt_n` is not defined (the generator forces
-INT/NMI high at HALT's T1H; a pending NMI inherited from a handler stops the run), (4) `d_oe` in the extra T states
-after a write (§4.2 "drops at the next T1H" vs §6.1 lengthened-cycle rule 2 "d_oe = 0"; the model follows rule 2).
+## Cases the spec answered after the first draft
+Both questions were filed as `Igris:` issues and answered in spec §4.7 and §4.2 (chip-z80#18, PR #24); no `SPEC-GAP` marker is left.
+(3) An interrupt accepted at the end of HALT's own M1: `halt_n` stays 1, no halted M1 (§4.7). The generator no longer forces
+INT/NMI high at HALT's T1H: before a HALT it biases INT low and/or an NMI edge at that T1H (`Stim.halt_ahead`), sometimes BUSRQ
+too (which blocks the accept, so `halt_n` falls), and in INT/NMI profiles picks `EI; HALT` pairs, so the case is hit
+(`halt_end_accept` in cover.py: 57 over the 64-seed run). (4) `d_oe` in the extra T states after a write: 0 from T4H (§4.2, §6.1 rule 2).

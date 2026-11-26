@@ -16,7 +16,7 @@ import gen  # noqa: E402
 
 KINDS = ["wait_states", "int_asserted", "int_taken_mode0", "int_taken_mode1", "int_taken_mode2", "int_while_halted",
          "int_seen_masked", "int_seen_not_taken_ei_delay", "nmi_asserted", "nmi_taken", "nmi_while_halted",
-         "bus_grants", "halt_executed", "halted_m1"]
+         "bus_grants", "halt_executed", "halted_m1", "halt_end_accept"]
 
 
 def key(f):

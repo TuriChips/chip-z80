@@ -158,6 +158,45 @@ check("§4.7 halt_n falls at T4L of HALT's M1; halted M1 fetches HALT+1",
       [x["halt_n"] for x in r[:8]] == ["1"] * 7 + ["0"] and all(x["halt_n"] == "0" for x in r[8:]) and
       r[8]["a"] == "0001" and r[16]["a"] == "0001" and len(r) == 24)
 
+# 8b. interrupt accepted at the end of HALT's own M1 (§4.7 as amended, chip-z80#18/#24/#31): halt_n never falls
+def st(c): c.im = 1
+def pushed(c): return c.mem[c.sp] | (c.mem[c.sp + 1] << 8)
+def INT0(): return Script(t1h={0: (0, 1, 1)})        # INT low from the first T1H, held
+c, s = sim([0xFB, 0x76, 0x00], INT0(), steps=3, setup=st)
+r = rows(s)
+kinds = [k for _, _, k in s.idx]
+check("§4.7 EI; HALT with INT low: halt_n stays 1 in every half, no halted M1, INTA next, pushed PC = HALT+1",
+      kinds == ["I FB", "I 76", "INT1"] and all(x["halt_n"] == "1" for x in r) and pushed(c) == 2 and len(r) == 8 + 8 + 26
+      and s.cov.get("halt_end_accept") == 1, (kinds, pushed(c), len(r)))
+c, s = sim([0xFB, 0xFB, 0x76, 0x00], INT0(), steps=4, setup=st)
+r = rows(s)
+kinds = [k for _, _, k in s.idx]
+check("§4.7/§8.1 EI; EI; HALT with INT low: same, the second EI keeps the delay, HALT's own end accepts",
+      kinds == ["I FB", "I FB", "I 76", "INT1"] and all(x["halt_n"] == "1" for x in r) and pushed(c) == 3, (kinds, pushed(c)))
+c, s = sim([0xF3, 0x76, 0x00], INT0(), steps=4, setup=lambda c: (st(c), setattr(c, "iff1", 0), setattr(c, "iff2", 0)))
+r = rows(s)
+check("§4.7 DI; HALT with INT low: masked, halt_n falls at T4L of HALT's M1 and stays 0 (no regression)",
+      [x["halt_n"] for x in r[8:16]] == ["1"] * 7 + ["0"] and all(x["halt_n"] == "0" for x in r[16:]), [x["halt_n"] for x in r[:24]])
+# NMI still pending (edge seen during the response) when the handler's first instruction is HALT
+NMI2 = Script(t1h={0: (1, 0, 1), 1: (1, 1, 1), 2: (1, 0, 1), 3: (1, 1, 1)})
+def st0(c): c.pc = 0; c.mem[0x66] = 0x76; c.mem[0x67] = 0x00
+c, s = sim([0x00] * 8, NMI2, steps=4, setup=st0)
+r = rows(s)
+kinds = [k for _, _, k in s.idx]
+check("§4.7 handler's first instruction HALT with an NMI edge pending: halt_n never falls, second NMI pushes 0067",
+      kinds == ["I 00", "NMI", "I 76", "NMI"] and all(x["halt_n"] == "1" for x in r) and pushed(c) == 0x67
+      and s.cov.get("halt_end_accept") == 1, (kinds, pushed(c)))
+# BUSRQ low at HALT's T4H edge blocks the interrupt: halt_n falls at T4L, 2 Tx, the halted M1 accepts and halt_n rises at its T4L
+BR = Script(t1h={0: (0, 1, 1), 1: (0, 1, 0)}, rel=[True])
+c, s = sim([0xFB, 0x76, 0x00], BR, steps=4, setup=st)
+r = rows(s)
+kinds = [k for _, _, k in s.idx]
+check("§4.7/§8.4 item 4 EI; HALT with INT+BUSRQ: halt_n falls at T4L, 2 Tx (halt_n 0), rises at the halted M1's T4L",
+      kinds == ["I FB", "I 76", "HALT-M1", "INT1"]
+      and [x["halt_n"] for x in r[8:28]] == ["1"] * 7 + ["0"] + ["0"] * 4 + ["0"] * 7 + ["1"]
+      and [x["busak_n"] for x in r[16:20]] == ["0", "0", "0", "1"] and r[20]["a"] == "0002" and s.cov.get("halt_end_accept") is None,
+      (kinds, [(x["halt_n"], x["busak_n"]) for x in r[8:30]]))
+
 # 9. INT mode 1: INTA(7) SWH SWL = 13 T, iorq falls at Tw*1L, m1 low until T3H (§4.5, §8.2)
 def st(c): c.iff1 = c.iff2 = 1; c.im = 1; c.pc = 0
 stim = Script(t1h={0: (0, 1, 1)})     # INT low from the first T1H

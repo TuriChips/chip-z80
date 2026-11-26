@@ -109,7 +109,7 @@ IFF1, IFF2, IM, halted and P/V after each step and what the INT/NMI samples saw 
 | §8.4 item 4: BUSRQ low at the sample blocks INT and NMI; NMI stays pending, INT sampled again | C4-20 (and C5-17 for INT alone), C4-26 | written, run |
 | §8.4 item 7: INT withdrawn before the sample is never seen | C4-21 | written, run |
 | §4.7 / §6.3 HALT items 1-3: halted M1s, HALT exit by INT (IFF1 = 1) and by NMI (IFF1 = 0), INT with IFF1 = 0 does not exit | C4-22, C4-23 (and C2-08) | written, run |
-| §4.7 HALT's own M1 accepting an interrupt (SPEC-GAP 3, chip-z80#18/#24/#31) | C4-24, C4-25, C4-26 | written, run |
+| §4.7 HALT's own M1 accepting an interrupt (chip-z80#18/#24); pin model self-tests and C8 `halt_end_accept` | C4-24, C4-25, C4-26 | written, run |
 | §8.2 mode 0 with a multi-byte instruction, mode 2 with vector bit 0 = 1 | **not specified** (spec §8.2): no test | - |
 | §8.4 item 5, interrupt between iterations of a block instruction | **out of scope**: per-opcode (decision 7), C8 | - |
 | NMI latch timing at the edge where `nmi_n` falls inside the same T state as the sample (§8.3) | **not covered**: stimulus rule (§8.4 item 7) puts `nmi_n` changes at a T1H, at least 2 edges before any sample | - |
